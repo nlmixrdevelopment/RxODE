@@ -15,6 +15,9 @@ specified in \code{\link[ggplot2:labs]{labs()}} is used for the title.}
 \item{position}{Where this guide should be drawn: one of top, bottom,
 left, or right.}
 }
+\value{
+nothing, simply included to be compatible with ggplot 3.2
+}
 \description{
 This empty guide draws nothing; It is included in RxODE for
 compatibility with ggplot 3.2

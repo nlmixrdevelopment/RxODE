@@ -157,7 +157,8 @@ et <- function(x, ..., envir = parent.frame()) {
 #'
 #' @inheritParams rxControl
 #' @param rx RxODE object
-#' @keywords intenral
+#' @keywords internal
+#' @return None, clears RxODE pipeline
 #' @export
 .clearPipe <- function(rx = NULL, inits = NULL,
                        events = NULL, params = NULL,
@@ -927,6 +928,8 @@ eventTable <- function(amount.units = NA, time.units = NA) {
 #'     table, assume that the interdose interval is given by this
 #'     `ii` value.  By default this is `24`.
 #'
+#' @return An event table
+#'
 #' @details
 #'
 #' This `seq`uences all the event tables in added in the
@@ -1018,6 +1021,7 @@ c.rxEt <- function(...) {
 #' @inheritParams et
 #' @inheritParams etSeq
 #' @template etExamples
+#' @return An event table
 #' @export
 etRep <- function(x, times = 1, length.out = NA, each = NA, n = NULL, wait = 0, id = integer(0),
                   samples = c("clear", "use"),
@@ -1045,6 +1049,7 @@ rep.rxEt <- function(x, ...) {
 #'
 #' @param x Object to coerce to et.
 #' @param ... Other parameters
+#' @return An event table
 #' @export
 as.et <- function(x, ...) {
   UseMethod("as.et")
@@ -1072,6 +1077,8 @@ as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...) {
 #' Convert an event table to a data.table
 #'
 #' @inheritParams data.table::as.data.table
+#'
+#' @return data.table of event table
 #'
 #' @export as.data.table.rxEt
 as.data.table.rxEt <- function(x, keep.rownames = FALSE, ...) {
@@ -1109,6 +1116,8 @@ as_tibble.rxEt <- function(x, ...) {
 #' If this is an rxEt object that has expired strip all rxEt
 #' information.
 #'
+#' @return Boolean indicating if this is a RxODE event table
+#'
 #' @author Matthew L.Fidler
 #' @export
 is.rxEt <- function(x) {
@@ -1145,6 +1154,8 @@ magrittr::`%>%`
 #' @param x Item to be converted to a RxODE EVID specification.
 #'
 #' @param ... Other parameters
+#'
+#' @return rxEvid specification
 #'
 #' @examples
 #'
@@ -1255,6 +1266,8 @@ as.data.frame.rxEvid <- base::as.data.frame.difftime
 #'
 #' @param x rxRateDur data
 #' @param ... Other parameters
+#'
+#' @return rxRateDur object
 #'
 #' @export
 rxRateDur <- function(x) {

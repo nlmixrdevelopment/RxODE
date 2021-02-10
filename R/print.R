@@ -114,6 +114,7 @@ print.rxEt <- function(x, ...) {
 #' @param x An rxode object
 #' @param ... Ignored parameters
 #' @author Matthew L.Fidler
+#' @return original object
 #' @export
 print.RxODE <- function(x, ...) {
   rxModelVars(x)
@@ -230,6 +231,7 @@ print.rxModelVars <- function(x, ...) {
 #'
 #' @keywords internal
 #' @author Matthew L.Fidler
+#' @return original object
 #' @export
 print.rxCoef <- function(x, ...) {
   .rxDllObj <- x$RxODE
@@ -285,6 +287,7 @@ print.rxC <- function(x, ...) {
 #'
 #' @keywords internal
 #' @author Matthew L.Fidler
+#' @return original object
 #' @export
 print.rxDll <- function(x, ...) {
   if (file.exists(x$dll)) {

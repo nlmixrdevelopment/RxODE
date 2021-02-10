@@ -18,6 +18,8 @@
 #'
 #' @return List of RxODE dlls still loaded
 #'
+#' @return boolean of if all RxODE dlls have been unloaded
+#'
 #' @examples
 #'
 #' print(rxUnloadAll())
@@ -80,6 +82,7 @@ rxReq <- function(pkg) {
 #' @param ... Parameters sent to cat
 #' @author Matthew L. Fidler
 #' @keywords internal
+#' @return nothing
 #' @export
 rxCat <- function(a, ...) {
   ## nocov start
@@ -132,6 +135,8 @@ refresh <- function(derivs = FALSE) {
 #'
 #' @param type used to be type of product
 #'
+#' @return nothing
+#'
 #' @export
 rxSetSum <- function(type = c("pairwise", "fsum", "kahan", "neumaier", "c")) {
   stop("'rxSetSum' has been moved to rxSolve(...,sum=)", call. = FALSE)
@@ -140,6 +145,7 @@ rxSetSum <- function(type = c("pairwise", "fsum", "kahan", "neumaier", "c")) {
 #' Defunct setting of product
 #'
 #' @param type used to be type of product
+#' @return nothing
 #'
 #' @export
 rxSetProd <- function(type = c("long double", "double", "logify")) {
@@ -151,6 +157,8 @@ rxSetProd <- function(type = c("long double", "double", "logify")) {
 #' @param seconds This sets the number of seconds that need to elapse
 #'     before drawing the next segment of the progress bar.  When
 #'     this is zero or below this turns off the progress bar.
+#'
+#' @return nothing, used for side effects
 #'
 #' @export
 #' @author Matthew Fidler
@@ -448,6 +456,14 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 #' rxRmvn(4, setNames(1:d,paste0("a",1:d)), matL)
 #'
 #' @author Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo
+#'
+#' @references The thread safe multivariate normal was inspired from the `mvnfast` package by Matteo Fasiolo <https://CRAN.R-project.org/package=mvnfast>
+#'
+#' @references The concept of the truncated multivariate normal was
+#'   taken from Zdravko Botev Botev (2017) <doi:10.1111/rssb.12162>
+#'   and Botev and L'Ecuyer (2015) <doi:10.1109/WSC.2015.7408180> and
+#'   converted to thread safe simulation;
+#'
 #' @export
 rxRmvn <- function(n, mu = NULL, sigma, lower = -Inf, upper = Inf, ncores = 1, isChol = FALSE,
                    keepNames = TRUE, a = 0.4, tol = 2.05, nlTol = 1e-10, nlMaxiter = 100L) {
@@ -799,6 +815,8 @@ gammapInva <- function(x, p) {
 #'
 #' @param ... other parameters passed to `integrate()`
 #'
+#' @return  values from logit and expit
+#'
 #' @details
 #'
 #' logit is given by:
@@ -849,6 +867,7 @@ logitNormInfo <- function(mean=0, sd=1, low=0, high=1,  abs.tol=1e-6, ...) {
 #' probit and inverse probit functions
 #'
 #' @inheritParams logit
+#' @return values from probit, probitInv and probitNormInfo
 #' @examples
 #'
 #' probit(0.25)
@@ -915,6 +934,7 @@ probitNormInfo <- function(mean=0, sd=1, low=0, high=1,  abs.tol=1e-6, ...) {
 #'   small tasks and sorting for IDs are suppressed.
 #'
 #' @param verbose Display the value of relevant OpenMP settings
+#' @return number of threads that RxODE uses
 #' @export
 getRxThreads <- function(verbose=FALSE){
   .Call(`getRxThreads_R`, verbose)
@@ -1000,6 +1020,8 @@ rxUnloadAll <- function(){
 #'
 #' @inheritParams .rxWithSink
 #'
+#' @return value of code
+#'
 #' @export
 #' @examples
 #'
@@ -1024,6 +1046,8 @@ rxUnloadAll <- function(){
 #'
 #' @param wd working directory to temporarily set the system to while
 #'   evaluating the code
+#'
+#' @return value of code
 #'
 #' @inheritParams .rxWithSink
 #'

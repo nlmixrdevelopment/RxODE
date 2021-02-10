@@ -19,6 +19,9 @@ rxunif(min = 0, max = 1, n = 1L, ncores = 1L)
 \code{rxnorm} simulates using the threefry sitmo generator; \code{rxnormV}
 uses the vandercorput generator}
 }
+\value{
+uniform random numbers
+}
 \description{
 Care should be taken with this method not to encounter the
 birthday problem, described

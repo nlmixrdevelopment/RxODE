@@ -63,6 +63,9 @@ often aesthetics, used to set an aesthetic to a fixed value, like
 \code{colour = "red"} or \code{size = 3}. They may also be parameters
 to the paired geom/stat.}
 }
+\value{
+This returns a stat_amt in context of a ggplot2 plot
+}
 \description{
 This is a dosing geom that shows the vertical lines where a dose occurs
 }

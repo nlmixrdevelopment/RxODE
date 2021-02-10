@@ -9,6 +9,9 @@ rxSetSum(type = c("pairwise", "fsum", "kahan", "neumaier", "c"))
 \arguments{
 \item{type}{used to be type of product}
 }
+\value{
+nothing
+}
 \description{
 Defunct setting of sum
 }

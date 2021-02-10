@@ -9,6 +9,9 @@ rxAllowUnload(allow)
 \arguments{
 \item{allow}{boolean indicating if garbage collection will unload of RxODE dlls.}
 }
+\value{
+Boolean allow; called for side effects
+}
 \description{
 Allow unloading of dlls
 }

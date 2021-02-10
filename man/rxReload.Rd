@@ -6,6 +6,9 @@
 \usage{
 rxReload()
 }
+\value{
+boolean of if the object is reloaded
+}
 \description{
 Can be useful for debugging
 }

@@ -4,6 +4,7 @@
 #'
 #' @param object RxODE object
 #' @param ... Ignored parameters
+#' @return object is returned
 #' @author Matthew L.Fidler
 #' @export
 summary.RxODE <- function(object, ...) {
@@ -29,6 +30,7 @@ summary.rxC <- function(object, ...) {
 #'     logical telling if the object should print the rxDll object
 #'     first. By default this is FALSE
 #'
+#' @return object is returned
 #'
 #' @keywords internal
 #' @author Matthew L.Fidler
@@ -73,7 +75,6 @@ summary.rxDll <- function(object, ...) {
 }
 
 
-#' @author Matthew L.Fidler
 #' @export
 summary.rxSolve <- function(object, ...) {
   if (rxIs(object, "rxSolve")) {

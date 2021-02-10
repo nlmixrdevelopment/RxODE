@@ -21,6 +21,14 @@ if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {
              "src/Makevars")
 }
 
+if (file.exists("man/reexports.Rd")) {
+  l <- readLines("man/reexports.Rd")
+  if (!any(regexpr("[\\]value", l) != -1)) {
+    l <- c(l, "\\value{ Inherited from parent routine }")
+    writeLines(l, "man/reexports.Rd")
+  }
+}
+
 
 unlink("R/RxODE_md5.R")
 

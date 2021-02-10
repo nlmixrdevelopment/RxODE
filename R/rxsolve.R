@@ -572,21 +572,21 @@
 #'   what the number of cores are used in threaded ODE solving.
 #'
 #' @return An \dQuote{rxSolve} solve object that stores the solved
-#'     value in a matrix with as many rows as there are sampled time
-#'     points and as many columns as system variables (as defined by
-#'     the ODEs and additional assignments in the RxODE model code).
-#'     It also stores information about the call to allow dynamic
-#'     updating of the solved object.
+#'   value in a special data.frame or other type as determined by
+#'   `returnType`. By default this has as many rows as there are
+#'   sampled time points and as many columns as system variables (as
+#'   defined by the ODEs and additional assignments in the RxODE model
+#'   code).  It also stores information about the call to allow
+#'   dynamic updating of the solved object.
 #'
-#'     The operations for the object are similar to a data-frame, but
-#'     expand the `$` and `[[""]]` access operators and
-#'     assignment operators to resolve based on different parameter
-#'     values, initial conditions, solver parameters, or events (by
-#'     updating the `time` variable).
+#'   The operations for the object are similar to a data-frame, but
+#'   expand the `$` and `[[""]]` access operators and assignment
+#'   operators to resolve based on different parameter values, initial
+#'   conditions, solver parameters, or events (by updating the `time`
+#'   variable).
 #'
-#'     You can call the [eventTable()] methods on the solved
-#'     object to update the event table and resolve the system of
-#'     equations.  % Should be able to use roxygen templates...
+#'   You can call the [eventTable()] methods on the solved object to
+#'   update the event table and resolve the system of equations.
 #'
 #' @references
 #'
@@ -1221,20 +1221,20 @@ solve.rxEt <- solve.rxSolve
 #' If this is an rxSolve object that has expired strip all rxSolve
 #' information.
 #'
+#' @return boolean indicating if this is a `rxSolve` object
+#'
 #' @author Matthew L.Fidler
 #' @export
 is.rxSolve <- function(x) {
   .Call(`_RxODE_rxIs`, x, "rxSolve")
 }
 
-#' @author Matthew L.Fidler
 #' @export
 `[.rxSolve` <- function(x, i, j, drop) {
   class(x) <- "data.frame"
   NextMethod("[")
 }
 
-#' @author Matthew L.Fidler
 #' @export
 "[[.rxSolve" <- function(obj, arg, exact = TRUE) {
   return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))

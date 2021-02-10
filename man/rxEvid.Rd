@@ -44,6 +44,9 @@ pillar_shaft.rxEvid(x, ...)
 
 \item{...}{Other parameters}
 }
+\value{
+rxEvid specification
+}
 \description{
 This is to make an EVID more readable by non
 pharmacometricians. It displays what each means and allows it to

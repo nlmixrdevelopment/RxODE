@@ -6,6 +6,9 @@
 \usage{
 rxSymInvCholN()
 }
+\value{
+dimension of built-in derivatives/inverses
+}
 \description{
 Return the dimension of the built-in derivatives/inverses
 }

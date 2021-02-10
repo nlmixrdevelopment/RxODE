@@ -24,6 +24,9 @@ rxTheme(
 \item{grid}{a Boolean indicating if the grid is on (\code{TRUE}) or off
 (\code{FALSE}). This could also be a character indicating \code{x} or \code{y}.}
 }
+\value{
+ggplot2 theme used in RxODE
+}
 \description{
 rxTheme is the RxODE theme for plots
 }

@@ -211,9 +211,10 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
 #'
 #' @inheritParams .rxWinRtoolsPath
 #' @author Matthew L. Fidler
+#' @return nothing, used for its side effects
 #' @export
 rxWinSetup <- function(rm.rtools = TRUE) {
   if (!.rxWinRtoolsPath(rm.rtools = rm.rtools)) {
-    message("RxODE requires 'rtools'\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding\n")
+    message("RxODE requires 'rtools' for custom models\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding\n")
   }
 }

@@ -68,6 +68,9 @@ often aesthetics, used to set an aesthetic to a fixed value, like
 \code{colour = "red"} or \code{size = 3}. They may also be parameters
 to the paired geom/stat.}
 }
+\value{
+This returns a ggplot2 stat
+}
 \description{
 This is a censoring geom that shows the left or right censoring specified in the nlmixr input data-set or fit
 }

@@ -17,6 +17,9 @@ rxChain2(obj, solvedObject)
 
 \item{solvedObject}{the solved object}
 }
+\value{
+chained operation
+}
 \description{
 This is s3 method is called internally with \code{+} and \verb{\\\%>\\\%} operators.
 }

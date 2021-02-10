@@ -14,6 +14,9 @@ as.et(x, ...)
 
 \item{...}{Other parameters}
 }
+\value{
+An event table
+}
 \description{
 Coerce object to data.frame
 }

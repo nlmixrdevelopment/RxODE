@@ -13,6 +13,9 @@ rxSetupScale(obj, scale = NULL, extraArgs = NULL)
 
 \item{inits}{A numeric vector of initial conditions.}
 }
+\value{
+setup scale for changing compartment values
+}
 \description{
 Setup the initial conditions.
 }

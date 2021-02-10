@@ -6,6 +6,9 @@
 \usage{
 \method{print}{rxDll}(x, ...)
 }
+\value{
+original object
+}
 \description{
 This tells if the rxDll is loaded, ready and/or deleted.
 }

@@ -199,6 +199,9 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
 \item{simSubjects}{boolean indicated RxODE should simulate subjects in studies (\code{TRUE},
 default) or studies (\code{FALSE})}
 }
+\value{
+a data frame with the simulated subjects
+}
 \description{
 Simulate Parameters from a Theta/Omega specification
 }

@@ -46,6 +46,9 @@ time if needed.
 Overall the the number of threads is throttled (restricted) for
 small tasks and sorting for IDs are suppressed.}
 }
+\value{
+number of threads that RxODE uses
+}
 \description{
 Get/Set the number of threads that RxODE uses
 }

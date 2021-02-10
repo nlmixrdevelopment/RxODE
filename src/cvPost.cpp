@@ -158,6 +158,8 @@ void rgbeta(int d, double shape, double* out){
 //' 
 //' @param cholesky boolean; If `TRUE` return the cholesky
 //'   decomposition.
+//'
+//' @return A correlation sample from the LKJ distribution
 //' 
 //' @author Matthew Fidler (translated to RcppArmadillo) and Emma Schwager
 //' @export
@@ -231,6 +233,8 @@ arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
 //' @param nu Degrees of freedom of the Wishart distribution
 //' 
 //' @inheritParams cvPost
+//'
+//' @return One correlation sample from the inverse wishart
 //' 
 //' @author Matthew Fidler
 //' @export

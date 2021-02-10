@@ -11,6 +11,9 @@ forderForceBase(forceBase = FALSE)
 \code{\link[=order]{order()}} for radix sorting instead of
 \code{data.table}'s parallel radix sorting.}
 }
+\value{
+NILL; called for side effects
+}
 \description{
 Force using base order for RxODE radix sorting
 }

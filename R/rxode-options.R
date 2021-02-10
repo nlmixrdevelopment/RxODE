@@ -148,6 +148,7 @@ rxCreateCache <- function() {
 #' Clear memoise cache for RxODE
 #'
 #' @author Matthew L. Fidler
+#' @return nothing; called for side effects
 #' @keywords internal
 #' @export
 rxForget <- function() {
@@ -262,6 +263,7 @@ rxSuppressMsg <- function() {
 #'    assignment
 #'
 #' @author Matthew L. Fidler
+#' @return nothing; called for side effects
 #' @export
 rxSyncOptions <- function(setDefaults=c("none", "permissive", "strict")) {
   x <- c("none" = 0L, "permissive" = 2L,

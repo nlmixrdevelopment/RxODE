@@ -11,6 +11,9 @@
 
 \item{...}{Ignored parameters}
 }
+\value{
+original object
+}
 \description{
 This prints the model name and its status for being able to be solved
 }

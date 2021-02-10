@@ -9,6 +9,9 @@ rxGetRxODE(obj)
 \arguments{
 \item{obj}{RxODE family of objects}
 }
+\value{
+RxODE model
+}
 \description{
 Get RxODE model from object
 }

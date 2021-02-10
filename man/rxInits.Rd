@@ -39,6 +39,9 @@ parameters missing in \code{vec}, but required in \code{req}.}
 \item{noerror}{is a boolean specifying if an error should be thrown
 for missing parameter values when \code{default} = \code{NA}}
 }
+\value{
+Initial values of the rxDll object
+}
 \description{
 Returns the initial values of the rxDll object
 }

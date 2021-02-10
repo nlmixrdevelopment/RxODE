@@ -12,6 +12,9 @@ is.rxSolve(x)
 If this is an rxSolve object that has expired strip all rxSolve
 information.}
 }
+\value{
+boolean indicating if this is a \code{rxSolve} object
+}
 \description{
 Check to see if this is an rxSolve object.
 }

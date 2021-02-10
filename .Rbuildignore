@@ -113,6 +113,11 @@ vignettes/theo_sd.qs
 tests/testthat/*.d.*
 ..Rcheck
 ^\.github$
+man/rmdhunks/RxODE-datasets.Rmd
+authors.md
+^cran-comments\.md$
+^authors\.md$
 tests/figs
 tests/testthat/test-plot.R
-man/rmdhunks/RxODE-datasets.Rmd
+tests/testthat/test-lincmt-parse.R
+

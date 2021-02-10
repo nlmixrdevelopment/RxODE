@@ -9,6 +9,9 @@ rxSetProd(type = c("long double", "double", "logify"))
 \arguments{
 \item{type}{used to be type of product}
 }
+\value{
+nothing
+}
 \description{
 Defunct setting of product
 }

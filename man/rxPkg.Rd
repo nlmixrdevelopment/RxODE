@@ -39,6 +39,9 @@ example \code{rx_129f8f97fb94a87ca49ca8dafe691e1e_i386.dll}}
 overriding default values. See \code{\link[usethis:use_description]{use_description()}} for how you can set
 personalized defaults using package options}
 }
+\value{
+this function returns nothing and is used for its side effects
+}
 \description{
 Creates a package from compiled RxODE models
 }

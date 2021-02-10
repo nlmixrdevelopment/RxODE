@@ -3,6 +3,7 @@
 #' @param x see [type_sum][pillar::type_sum]
 #' @param ... see [type_sum][pillar::type_sum]
 #' @param width see [type_sum][pillar::type_sum]
+#' @return type_sum units
 type_sum.units <- loadNamespace("units")$type_sum.units
 
 #' @name tibble
@@ -91,6 +92,7 @@ ggplot2::waiver
 #' compatibility with ggplot 3.2
 #'
 #' @inheritParams ggplot2::guide_none
+#' @return nothing, simply included to be compatible with ggplot 3.2
 #' @export
 guide_none <- function(title = waiver(), position = waiver()) {
   stop("needs \"ggplot2\" 3.3.0", call. = FALSE)

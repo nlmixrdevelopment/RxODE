@@ -108,10 +108,11 @@ StatCens <- ggplot2::ggproto("StatCens", ggplot2::Stat,
 ##'
 ##' Will add boxes representing the areas of the fit that were censored.
 ##'
-##' @export
 ##' @param width represents the width (in \% of range) of the
 ##'   censoring box
 ##' @inheritParams ggplot2::stat_identity
+##' @return This returns a ggplot2 stat
+##' @export
 stat_cens <- function(mapping = NULL, data = NULL,
                       position = "identity", show.legend = NA,
                       inherit.aes = TRUE, width = 0.01, ...) {

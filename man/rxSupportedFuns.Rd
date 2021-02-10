@@ -6,6 +6,9 @@
 \usage{
 rxSupportedFuns()
 }
+\value{
+list of supported functions in RxODE
+}
 \description{
 Get list of supported functions
 }

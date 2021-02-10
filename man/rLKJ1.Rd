@@ -16,6 +16,9 @@ eta = (nu-1)/2.}
 \item{cholesky}{boolean; If \code{TRUE} return the cholesky
 decomposition.}
 }
+\value{
+A correlation sample from the LKJ distribution
+}
 \description{
 One correlation sample from the LKJ distribution
 }

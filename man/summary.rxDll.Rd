@@ -13,6 +13,9 @@
 logical telling if the object should print the rxDll object
 first. By default this is FALSE}
 }
+\value{
+object is returned
+}
 \description{
 This gives expanded information about the rxDll object
 }

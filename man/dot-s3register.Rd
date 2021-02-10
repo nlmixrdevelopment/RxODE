@@ -21,6 +21,9 @@ devtools. When the namespace of the method is reloaded by
 the old namespace. This might cause crashes because of dangling
 \code{.Call()} pointers.}
 }
+\value{
+nothing; called for side effects
+}
 \description{
 Generally, the recommend way to register an S3 method is to use the
 \code{S3Method()} namespace directive (often generated automatically by the

@@ -14,6 +14,9 @@ rxTest(type = NULL)
 \arguments{
 \item{type}{Type of test or filter of test type}
 }
+\value{
+nothing
+}
 \description{
 Validate RxODE
 This allows easy validation/qualification of nlmixr by running the

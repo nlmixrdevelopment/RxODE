@@ -36,6 +36,8 @@ bool forderForceBase_ = false;
 //'   [order()] for radix sorting instead of
 //'   `data.table`'s parallel radix sorting.
 //'
+//' @return NILL; called for side effects
+//'
 //' @examples
 //' \donttest{
 //' forderForceBase(TRUE) # Use base `order` for RxODE sorts
@@ -312,6 +314,8 @@ bool _ini0=true;
 //' @param ini0 When `TRUE` (default), set initial conditions to time
 //'   zero. Otherwise the initial conditions are the first observed
 //'   time.
+//'
+//' @return the boolean ini0, though this is called for its side effects
 //'
 //' @export
 //[[Rcpp::export]]

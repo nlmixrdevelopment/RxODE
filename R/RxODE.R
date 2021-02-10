@@ -836,6 +836,7 @@ rxChain <- function(obj1, obj2) {
 #'
 #' @param obj the object being added/chained/piped to the solved object
 #' @param solvedObject the solved object
+#' @return chained operation
 #' @keywords internal
 #' @author Matthew L.Fidler
 #' @export
@@ -1270,6 +1271,7 @@ rxCompile <- function(model, dir, prefix, force = FALSE, modName = NULL,
 }
 
 .pkg <- NULL
+#'@rdname rxCompile
 #' @export
 rxCompile.rxModelVars <- function(model, # Model
                                   dir = NULL, # Directory
@@ -1689,6 +1691,7 @@ rxInit <- rxInits
 #'
 #' @author Matthew L. Fidler
 #' @keywords internal
+#' @return boolean of if the object is reloaded
 #' @export
 rxReload <- function() {
   .tmp <- getLoadedDLLs()$RxODE
@@ -1704,6 +1707,7 @@ rxReload <- function() {
 #' Get the rxModels  information
 #' @param env boolean that returns the environment where models are stored (TRUE), or the currently assigned RxODE model variables (FALSE).
 #' @keywords internal
+#' @return internal rxModels information environment
 #' @export
 rxModels_ <- # nolint
   function(env = TRUE) {

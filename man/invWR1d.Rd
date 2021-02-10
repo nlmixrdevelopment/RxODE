@@ -14,6 +14,9 @@ invWR1d(d, nu, omegaIsChol = FALSE)
 \item{omegaIsChol}{is an indicator of if the omega matrix is in
 the Cholesky decomposition. This is only used when code{type="invWishart"}}
 }
+\value{
+One correlation sample from the inverse wishart
+}
 \description{
 This correlation is constructed by transformation of the Inverse Wishart
 random covariate to a correlation.

@@ -9,6 +9,9 @@ rxCat(a, ...)
 \arguments{
 \item{...}{Parameters sent to cat}
 }
+\value{
+nothing
+}
 \description{
 Use cat when RxODE.verbose is TRUE
 }

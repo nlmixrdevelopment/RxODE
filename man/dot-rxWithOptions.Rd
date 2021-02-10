@@ -12,6 +12,9 @@
 
 \item{code}{The code to run during the sink}
 }
+\value{
+value of code
+}
 \description{
 Temporarily set options then restore them while running code
 }

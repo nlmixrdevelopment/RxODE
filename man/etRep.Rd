@@ -69,6 +69,9 @@ for \code{ss}, \code{addl} and \code{until} options (described below).}
 
 \item{...}{Times or event tables.  They can also be one of the named arguments below.}
 }
+\value{
+An event table
+}
 \description{
 Repeat an RxODE event table
 }

@@ -87,6 +87,7 @@
 #' @param obj model to save.
 #' @param internal If this is run internally.  By default this is FALSE
 #' @inheritParams usethis::use_data
+#' @return Nothing; This is used for its side effects and shouldn't be called by a user
 #' @export
 rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
                   internal = FALSE) {
@@ -280,6 +281,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
 #' @inheritParams usethis::create_package
 #' @inheritParams RxODE
 #' @author Matthew Fidler
+#' @return this function returns nothing and is used for its side effects
 #' @export
 rxPkg <- function(..., package,
                   wd=getwd(),

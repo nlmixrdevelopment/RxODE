@@ -44,6 +44,7 @@
 #'   s3_register("pillar::pillar_shaft", "vctrs_vctr")
 #'   s3_register("tibble::type_sum", "vctrs_vctr")
 #' }
+#' @return nothing; called for side effects
 #' @keywords internal
 .s3register <- function(generic, class, method = NULL) {
   stopifnot(is.character(generic), length(generic) == 1)

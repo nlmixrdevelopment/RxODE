@@ -39,6 +39,9 @@ inter-dose interval
 table, assume that the interdose interval is given by this
 \code{ii} value.  By default this is \code{24}.}
 }
+\value{
+An event table
+}
 \description{
 This combines a sequence of event tables.
 }

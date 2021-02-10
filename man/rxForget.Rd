@@ -6,6 +6,9 @@
 \usage{
 rxForget()
 }
+\value{
+nothing; called for side effects
+}
 \description{
 Clear memoise cache for RxODE
 }

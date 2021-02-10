@@ -8,6 +8,8 @@ rxUnloadAll()
 }
 \value{
 List of RxODE dlls still loaded
+
+boolean of if all RxODE dlls have been unloaded
 }
 \description{
 Unloads all RxODE compiled DLLs

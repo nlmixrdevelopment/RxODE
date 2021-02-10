@@ -39,6 +39,8 @@ StatAmt <- ggplot2::ggproto("StatAmt", ggplot2::Stat,
 ##' \item amt representing the dosing values;  They are missing or zero when no dose is given
 ##' }
 ##'
+##' @return This returns a stat_amt in context of a ggplot2 plot
+##'
 ##' @export
 ##' @inheritParams ggplot2::stat_identity
 stat_amt <- function(mapping = NULL, data = NULL,

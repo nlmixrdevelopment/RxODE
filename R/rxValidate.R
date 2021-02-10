@@ -4,6 +4,7 @@
 #'
 #' @param type Type of test or filter of test type
 #' @author Matthew L. Fidler
+#' @return nothing
 #' @export
 rxValidate <- function(type = NULL) {
   pt <- proc.time()

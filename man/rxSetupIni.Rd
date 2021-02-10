@@ -11,6 +11,9 @@ rxSetupIni(obj, inits = NULL)
 
 \item{inits}{A numeric vector of initial conditions.}
 }
+\value{
+initial conditions that were setup
+}
 \description{
 Setup the initial conditions.
 }

@@ -214,7 +214,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 #' @param name This gives the name of the user function
 #' @param args This gives the arguments of the user function
 #' @param cCode This is the C-code for the new function
-#' @return nothing if successful
+#' @return nothing
 #' @author Matthew L. Fidler
 #' @examples
 #'
@@ -620,7 +620,7 @@ rxRmFun <- function(name) {
 #'     function will construct the derivative with respect to the
 #'     first argument; The second function will construct the
 #'     derivitive with respect to the second argument, and so on.
-#' @return If successful, nothing
+#' @return nothing
 #' @author Matthew Fidler
 #' @export
 #' @examples
@@ -666,6 +666,7 @@ rxD <- function(name, derivatives) {
 #'     - `forward` for forward differences
 #'     - `central` for central differences
 #'     - `error` for throwing an error for unknown derivatives
+#' @return An rxode symengine environment
 #' @author Matthew L. Fidler
 #' @export
 rxToSE <- function(x, envir = NULL, progress = FALSE,
@@ -3117,6 +3118,7 @@ rxSplitPlusQ <- function(x, level = 0, mult = FALSE) {
 
 #' Get list of supported functions
 #'
+#' @return list of supported functions in RxODE
 #' @examples
 #' rxSupportedFuns()
 #'@export

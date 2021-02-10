@@ -9,6 +9,9 @@
 \arguments{
 \item{x}{rxCoef object}
 }
+\value{
+original object
+}
 \description{
 This prints out the user supplied arguments for rxCoef object
 }

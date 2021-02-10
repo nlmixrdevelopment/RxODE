@@ -9,6 +9,9 @@ rxAssignPtr(object = NULL)
 \arguments{
 \item{object}{RxODE family of objects}
 }
+\value{
+nothing, called for side effects
+}
 \description{
 Assign pointer based on model variables
 }

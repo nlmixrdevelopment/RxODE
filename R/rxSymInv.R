@@ -231,6 +231,9 @@ rxSymInvC2 <- function(mat1, diag.xform = c("sqrt", "log", "identity"),
 #' Return the dimension of the built-in derivatives/inverses
 #'
 #' @keywords internal
+#'
+#' @return dimension of built-in derivatives/inverses
+#'
 #' @export
 rxSymInvCholN <- function() {
   .Call(`_rxCholInv`, 0L, NULL, NULL)

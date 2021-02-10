@@ -1,0 +1,46 @@
+# Authors
+ * Matthew L. Fidler (core team/developer)
+ * Melissa Hallow (tutorial writer)
+ * Wenping Wang (core team/developer)
+
+# Contrib authors
+ * Zufar Mulyukov -- Wrote initial version of `rxShiny()` with modifications from Matthew Fidler
+ * Alan Hindmarsh -- Lsoda author
+ * Awad H. Al-Mohy -- Al-Mohy matrix exponential author
+ * Ernst Hairer -- dop853 author
+ * Gerhard Wanner -- dop853 author
+ * Goro Fuji -- Timsort author
+ * Hadley Wickham -- Author of original findLhs in RxODE, also original author of .s3register (used with permission to anyone, both changed by Matthew Fidler)
+ * Jack Dongarra -- LApack author; CRAN asked us to add
+ * Linda Petzold -- LSODA
+ * Martin Maechler -- expm author, used routines from there for inductive linearization
+ * Morwenn -- Timsort author
+ * Nicholas J. Higham -- Author of Al-mohy matrix exponential
+ * Roger B. Sidje -- expokit matrix exponential author
+ * Simon Frost -- thread safe C implementation of liblsoda
+ * Kevin Ushey -- Original author of fast factor, modified by Matthew Filder
+ * Yu Feng -- thread safe liblsoda
+ * Matt Dowle -- forder primary author (version modified by Matthew Fidler to allow different type of threading and exclude grouping)
+ * Cleve Moler -- LApack author; CRAN asked us to add
+ * David Cooley -- Author of fast_factor which was modified and now is used RxODE to quickly create factors for IDs without sorting them like R does
+ * Daniel C. Dillon -- Author of stripping utility to reduce size of RxODE/nlmixr executable
+ * Drew Schmidt -- Drew Schmidt author of edits for exponential matrix utility taken from R package expm
+
+
+# Contributors not listed (but I think should)
+ * Arun Srinivasan -- forder secondary author (version modified by Matthew Fidler to allow different type of threading, indexing and exclude grouping)
+ 
+# Contribtors listed but I'm unsure why
+ * G Grothendieck
+ * Heng Li
+ * Max Gordon
+ 
+# RxODE acknowledgments:
+ * Emma Schwager -- R IJK distribution author
+ * J Coligne -- dop853 fortran author
+ * Bill Denney -- Documentation updates and minor bug fixes
+ * Tim Waterhouse -- Fixed one bug with mac working directories
+ * Richard Upton -- Helped with solving the ADVAN linCmt() solutions
+ * Ross Ihaka -- R author
+ * Robert Gentleman -- R author
+ * R core team -- R authors

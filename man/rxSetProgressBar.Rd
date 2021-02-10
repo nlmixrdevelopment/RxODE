@@ -11,6 +11,9 @@ rxSetProgressBar(seconds = 1)
 before drawing the next segment of the progress bar.  When
 this is zero or below this turns off the progress bar.}
 }
+\value{
+nothing, used for side effects
+}
 \description{
 Set timing for progress bar
 }

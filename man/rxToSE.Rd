@@ -33,6 +33,9 @@ of numeric derivatives.  The currently supported methods are:\preformatted{- `fo
 - `error` for throwing an error for unknown derivatives
 }}
 }
+\value{
+An rxode symengine environment
+}
 \description{
 RxODE to symengine environment
 }

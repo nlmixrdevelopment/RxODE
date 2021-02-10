@@ -14,6 +14,9 @@ rxHtml(x, ...)
 
 \item{...}{Extra arguments sent to kable}
 }
+\value{
+html code for rxSolve object
+}
 \description{
 Format rxSolve and related objects as html.
 }

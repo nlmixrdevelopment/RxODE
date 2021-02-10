@@ -17,7 +17,7 @@ rxRmFun(name)
 \item{cCode}{This is the C-code for the new function}
 }
 \value{
-nothing if successful
+nothing
 }
 \description{
 This adds a user function to RxODE that can be called.  If needed,

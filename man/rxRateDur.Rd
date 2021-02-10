@@ -29,6 +29,9 @@ pillar_shaft.rxRateDur(x, ...)
 
 \item{...}{Other parameters}
 }
+\value{
+rxRateDur object
+}
 \description{
 This is primarily to display information about rate
 }

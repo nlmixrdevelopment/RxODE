@@ -42,3 +42,4 @@ below to see their documentation.
   \item{units}{\code{\link[units]{drop_units}}, \code{\link[units]{set_units}}}
 }}
 
+\value{ Inherited from parent routine }

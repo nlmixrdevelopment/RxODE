@@ -11,6 +11,9 @@ rxSetIni0(ini0 = TRUE)
 zero. Otherwise the initial conditions are the first observed
 time.}
 }
+\value{
+the boolean ini0, though this is called for its side effects
+}
 \description{
 Set Initial conditions to time zero instead of the first observed/dosed time
 }

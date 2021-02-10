@@ -21,6 +21,9 @@ rxnormV(mean = 0, sd = 1, n = 1L, ncores = 1L)
 \code{rxnorm} simulates using the threefry sitmo generator; \code{rxnormV}
 uses the vandercorput generator}
 }
+\value{
+normal random number deviates
+}
 \description{
 Simulate random normal variable from threefry/vandercorput generator
 }

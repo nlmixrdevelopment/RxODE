@@ -129,6 +129,13 @@ rxRmvn(4, setNames(1:d,paste0("a",1:d)), matL)
 John K. Salmon, Mark A. Moraes, Ron O. Dror, and David
 E. Shaw (2011). Parallel Random Numbers: As Easy as 1, 2, 3.
 D. E. Shaw Research, New York, NY 10036, USA.
+
+The thread safe multivariate normal was inspired from the \code{mvnfast} package by Matteo Fasiolo \url{https://CRAN.R-project.org/package=mvnfast}
+
+The concept of the truncated multivariate normal was
+taken from Zdravko Botev Botev (2017) \url{doi:10.1111/rssb.12162}
+and Botev and L'Ecuyer (2015) \url{doi:10.1109/WSC.2015.7408180} and
+converted to thread safe simulation;
 }
 \author{
 Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo

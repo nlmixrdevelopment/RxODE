@@ -6,6 +6,9 @@
 \usage{
 rxSolveFree()
 }
+\value{
+logical indicating if the memory was successfully freed
+}
 \description{
 Take the ODE C system and free it.
 }

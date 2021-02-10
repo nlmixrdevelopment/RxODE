@@ -2,6 +2,7 @@
 #'
 #' @param x RxODE object
 #' @param ... Extra arguments sent to kable
+#' @return html code for rxSolve object
 #' @author Matthew L. Fidler
 #' @export
 rxHtml <- function(x, ...) {

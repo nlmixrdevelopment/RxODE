@@ -12,6 +12,9 @@ rxUnlock(obj)
 \arguments{
 \item{obj}{A RxODE family of objects}
 }
+\value{
+nothing; called for side effects
+}
 \description{
 Lock/unlocking of RxODE dll file
 }

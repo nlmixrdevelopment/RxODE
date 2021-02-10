@@ -11,6 +11,9 @@
 
 \item{...}{Ignored parameters}
 }
+\value{
+object is returned
+}
 \description{
 This prints the expanded information about the RxODE object.
 }

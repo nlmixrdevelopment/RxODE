@@ -9,6 +9,9 @@ rxModels_(env = TRUE)
 \arguments{
 \item{env}{boolean that returns the environment where models are stored (TRUE), or the currently assigned RxODE model variables (FALSE).}
 }
+\value{
+internal rxModels information environment
+}
 \description{
 Get the rxModels  information
 }

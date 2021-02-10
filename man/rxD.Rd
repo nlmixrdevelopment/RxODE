@@ -16,7 +16,7 @@ first argument; The second function will construct the
 derivitive with respect to the second argument, and so on.}
 }
 \value{
-If successful, nothing
+nothing
 }
 \description{
 Add to RxODE's derivative tables

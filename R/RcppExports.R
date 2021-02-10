@@ -34,6 +34,8 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
 #' 
 #' @param cholesky boolean; If `TRUE` return the cholesky
 #'   decomposition.
+#'
+#' @return A correlation sample from the LKJ distribution
 #' 
 #' @author Matthew Fidler (translated to RcppArmadillo) and Emma Schwager
 #' @export
@@ -59,6 +61,8 @@ rLKJcvLsd1 <- function(logSd, logSdSD, eta = 1.0) {
 #' @param nu Degrees of freedom of the Wishart distribution
 #' 
 #' @inheritParams cvPost
+#'
+#' @return One correlation sample from the inverse wishart
 #' 
 #' @author Matthew Fidler
 #' @export
@@ -112,6 +116,8 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
 #'   [order()] for radix sorting instead of
 #'   `data.table`'s parallel radix sorting.
 #'
+#' @return NILL; called for side effects
+#'
 #' @examples
 #' \donttest{
 #' forderForceBase(TRUE) # Use base `order` for RxODE sorts
@@ -127,6 +133,8 @@ forderForceBase <- function(forceBase = FALSE) {
 #' @param ini0 When `TRUE` (default), set initial conditions to time
 #'   zero. Otherwise the initial conditions are the first observed
 #'   time.
+#'
+#' @return the boolean ini0, though this is called for its side effects
 #'
 #' @export
 rxSetIni0 <- function(ini0 = TRUE) {
@@ -335,6 +343,8 @@ rxLhs <- function(obj) {
 #' @param noerror is a boolean specifying if an error should be thrown
 #'     for missing parameter values when `default` = `NA`
 #'
+#' @return Initial values of the rxDll object
+#'
 #' @keywords internal
 #' @author Matthew L.Fidler
 #' @export
@@ -346,6 +356,7 @@ rxInits <- function(obj, vec = NULL, req = NULL, defaultValue = 0, noerror = FAL
 #'
 #' @param obj RxODE object
 #' @param inits A numeric vector of initial conditions.
+#' @return initial conditions that were setup
 #' @author Matthew L. Fidler
 #' @keywords internal
 #' @export
@@ -364,6 +375,8 @@ rxSetupIni <- function(obj, inits = NULL) {
 #' @author Matthew L. Fidler
 #'
 #' @keywords internal
+#'
+#' @return setup scale for changing compartment values
 #'
 #' @export
 rxSetupScale <- function(obj, scale = NULL, extraArgs = NULL) {
@@ -385,6 +398,8 @@ atolRtolFactor_ <- function(factor) {
 #' @param simSubjects boolean indicated RxODE should simulate subjects in studies (`TRUE`,
 #'         default) or studies (`FALSE`)
 #'
+#' @return a data frame with the simulated subjects
+#'
 #' @author Matthew L.Fidler
 #'
 #' @export
@@ -397,6 +412,7 @@ rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaLo
 #' Take the ODE C system and free it.
 #'
 #' @keywords internal
+#' @return logical indicating if the memory was successfully freed
 #' @export
 rxSolveFree <- function() {
     .Call(`_RxODE_rxSolveFree`)
@@ -428,6 +444,7 @@ rxRmModelLib_ <- function(str) {
 
 #' Get RxODE model from object
 #' @param obj RxODE family of objects
+#' @return RxODE model
 #' @export
 rxGetRxODE <- function(obj) {
     .Call(`_RxODE_rxGetRxODE`, obj)
@@ -446,6 +463,7 @@ rxIsCurrent <- function(obj) {
 
 #' Assign pointer based on model variables
 #' @param object RxODE family of objects
+#' @return nothing, called for side effects
 #' @export
 rxAssignPtr <- function(object = NULL) {
     invisible(.Call(`_RxODE_rxAssignPtr`, object))
@@ -515,6 +533,9 @@ rxDynLoad <- function(obj) {
 #' Lock/unlocking of RxODE dll file
 #'
 #' @param obj A RxODE family of objects
+#' 
+#' @return nothing; called for side effects
+#' 
 #' @export
 rxLock <- function(obj) {
     .Call(`_RxODE_rxLock`, obj)
@@ -529,6 +550,8 @@ rxUnlock <- function(obj) {
 #' Allow unloading of dlls
 #'
 #' @param allow boolean indicating if garbage collection will unload of RxODE dlls.
+#'
+#' @return Boolean allow; called for side effects
 #'
 #' @examples
 #'
@@ -600,6 +623,7 @@ dropUnitsRxSolve <- function(x) {
 #' @param silent can be 0L "noisy"  or 1L "silent"
 #'
 #' @keywords internal
+#' @return TRUE; called for side effects
 #' @export
 rxSetSilentErr <- function(silent) {
     .Call(`_RxODE_rxSetSilentErr`, silent)

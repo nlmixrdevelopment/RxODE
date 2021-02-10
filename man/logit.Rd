@@ -34,6 +34,9 @@ high]}
 
 \item{...}{other parameters passed to \code{integrate()}}
 }
+\value{
+values from logit and expit
+}
 \description{
 logit and inverse logit (expit) functions
 }

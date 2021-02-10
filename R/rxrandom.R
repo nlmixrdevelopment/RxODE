@@ -20,6 +20,8 @@ rxnorm <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
 #' `rxnorm` simulates using the threefry sitmo generator; `rxnormV`
 #' uses the vandercorput generator
 #'
+#' @return normal random number deviates
+#'
 #' @examples
 #'
 #' ## Use threefry engine
@@ -74,6 +76,7 @@ rxnormV <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#' @return poission random number deviates
 #' @examples
 #'
 #' ## Use threefry engine
@@ -110,6 +113,7 @@ rxpois <- function(lambda, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#' @return t-distribution random numbers
 #' @examples
 #'
 #' ## Use threefry engine
@@ -146,6 +150,7 @@ rxt <- function(df, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#' @return uniform random numbers
 #' @examples
 #'
 #' ## Use threefry engine
@@ -177,12 +182,13 @@ rxunif <- function(min = 0, max = 1, n = 1L, ncores = 1L) {
 }
 
 
-#' Simulate weibull variable from threefry generator
+#' Simulate Weibull variable from threefry generator
 #'
 #' @inheritParams stats::rweibull
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#' @return Weibull random deviates
 #' @examples
 #'
 #' \donttest{
@@ -223,6 +229,7 @@ rxweibull <- function(shape, scale = 1, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#' @return geometric random deviates
 #' @examples
 #'
 #' ## Use threefry engine
@@ -259,6 +266,9 @@ rxgeom <- function(prob, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#'
+#' @return beta random deviates
+#'
 #' @examples
 #'
 #' ## Use threefry engine
@@ -297,6 +307,9 @@ rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#'
+#' @return gamma random deviates
+#'
 #' @examples
 #'
 #' ## Use threefry engine
@@ -343,6 +356,9 @@ rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#'
+#' @return f random deviates
+#'
 #' @examples
 #'
 #' ## Use threefry engine
@@ -382,6 +398,9 @@ rxf <- function(df1, df2, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#'
+#' @return exponential random deviates
+#'
 #' @examples
 #'
 #' ## Use threefry engine
@@ -419,6 +438,9 @@ rxexp <- function(rate, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#'
+#' @return chi squared random deviates
+#'
 #' @examples
 #'
 #' ## Use threefry engine
@@ -455,6 +477,9 @@ rxchisq <- function(df, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#'
+#' @return Cauchy random deviates
+#'
 #' @examples
 #'
 #' \donttest{
@@ -496,6 +521,9 @@ rxcauchy <- function(location = 0, scale = 1, n = 1L, ncores = 1L) {
 #' @inheritParams rxnormV
 #'
 #' @template birthdayProblem
+#'
+#' @return binomial random deviates
+#'
 #' @examples
 #'
 #' ## Use threefry engine

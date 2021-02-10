@@ -2,6 +2,7 @@
 % Please edit documentation in R/RxODE.R
 \name{rxCompile}
 \alias{rxCompile}
+\alias{rxCompile.rxModelVars}
 \alias{rxCompile.character}
 \alias{rxCompile.rxDll}
 \alias{rxCompile.RxODE}
@@ -11,6 +12,16 @@ rxCompile(
   model,
   dir,
   prefix,
+  force = FALSE,
+  modName = NULL,
+  package = NULL,
+  ...
+)
+
+\method{rxCompile}{rxModelVars}(
+  model,
+  dir = NULL,
+  prefix = NULL,
   force = FALSE,
   modName = NULL,
   package = NULL,

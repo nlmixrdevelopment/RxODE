@@ -5,6 +5,8 @@
 #' @param grid a Boolean indicating if the grid is on (`TRUE`) or off
 #'   (`FALSE`). This could also be a character indicating `x` or `y`.
 #'
+#' @return ggplot2 theme used in RxODE
+#'
 #' @export
 rxTheme <- function(base_size = 11, base_family = "",
                     base_line_size = base_size / 22,

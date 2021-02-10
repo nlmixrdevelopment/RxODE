@@ -23,6 +23,9 @@ rxgamma(shape, rate = 1/scale, scale = 1, n = 1L, ncores = 1L)
 \code{rxnorm} simulates using the threefry sitmo generator; \code{rxnormV}
 uses the vandercorput generator}
 }
+\value{
+gamma random deviates
+}
 \description{
 Care should be taken with this method not to encounter the
 birthday problem, described

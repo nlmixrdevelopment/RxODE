@@ -13,6 +13,9 @@ as.data.table.rxEt(x, keep.rownames = FALSE, ...)
 
 \item{...}{Additional arguments to be passed to or from other methods.}
 }
+\value{
+data.table of event table
+}
 \description{
 Convert an event table to a data.table
 }

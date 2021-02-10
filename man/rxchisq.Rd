@@ -17,6 +17,9 @@ rxchisq(df, n = 1L, ncores = 1L)
 \code{rxnorm} simulates using the threefry sitmo generator; \code{rxnormV}
 uses the vandercorput generator}
 }
+\value{
+chi squared random deviates
+}
 \description{
 Care should be taken with this method not to encounter the
 birthday problem, described

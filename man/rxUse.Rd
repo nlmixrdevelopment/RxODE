@@ -17,6 +17,9 @@ Should be one of "gzip", "bzip2", or "xz".}
 
 \item{internal}{If this is run internally.  By default this is FALSE}
 }
+\value{
+Nothing; This is used for its side effects and shouldn't be called by a user
+}
 \description{
 Use model object in your package
 }

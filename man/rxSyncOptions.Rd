@@ -16,6 +16,9 @@ RxODE(). It requires semicolons at the end of lines and equals for
 assignment
 }}
 }
+\value{
+nothing; called for side effects
+}
 \description{
 Accessing RxODE options via getOption slows down solving.  This
 allows the options to be synced with variables.

@@ -69,7 +69,10 @@ realization of the parameters.}
 \item{nStud}{Number virtual studies to characterize uncertainty in estimated
 parameters.}
 }
+\value{
+None, clears RxODE pipeline
+}
 \description{
 Clear/Set pipeline
 }
-\keyword{intenral}
+\keyword{internal}

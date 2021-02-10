@@ -17,6 +17,9 @@ Inf}
 
 \item{high}{Highest value in the range}
 }
+\value{
+values from probit, probitInv and probitNormInfo
+}
 \description{
 probit and inverse probit functions
 }

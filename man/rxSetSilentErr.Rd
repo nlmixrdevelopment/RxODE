@@ -9,6 +9,9 @@ rxSetSilentErr(silent)
 \arguments{
 \item{silent}{can be 0L "noisy"  or 1L "silent"}
 }
+\value{
+TRUE; called for side effects
+}
 \description{
 Silence some of RxODE's C/C++ messages
 }
