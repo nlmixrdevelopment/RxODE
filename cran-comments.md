@@ -1,6 +1,8 @@
 # CRAN Comments
 
-* Please add \value to .Rd files regarding exported methods and
+##  Please add \value to .Rd files regarding exported methods 
+
+Please add \value to .Rd files regarding exported methods and
   explain the functions results in the documentation. Please write
   about the structure of the output (class) and also what the output
   means. (If a function does not return a value, please document that
@@ -15,8 +17,10 @@ Missing Rd-tags:
 
  - Completed
 
-* Please do not modify the .GlobalEnv. This is not allowed by the CRAN
-  policies.
+##  Please do not modify the .GlobalEnv. 
+
+Please do not modify the .GlobalEnv. This is not allowed by the CRAN
+policies.
 
 - The global environment is not modified by the RxODE functions,
   though there is one test that modifies the global environment by
