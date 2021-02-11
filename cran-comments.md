@@ -50,14 +50,3 @@ policies.
 - In the RxODE github repository there are building scripts that
   modify the global environment which are not included in the package
   submitted to CRAN.
-
-## Test environments
-* local R installation, R 4.0.3
-* ubuntu 16.04 (on travis-ci), R 4.0.3
-* win-builder (devel)
-
-## R CMD check results
-
-0 errors | 0 warnings | 1 note
-
-* This is a new release.
