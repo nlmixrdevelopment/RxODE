@@ -193,6 +193,5 @@ if (length(args) > 0 && args[1] == "fail") {
 argument <- .getUniversalStripLinkerOption(fail)
 
 if (argument != "") {
-  .writeMakevars("src/Makevars", argument, TRUE)
-  .writeMakevars("src/Makevars.win", argument, FALSE)
+  .writeMakevars("src/Makevars.in", argument, TRUE)
 }
