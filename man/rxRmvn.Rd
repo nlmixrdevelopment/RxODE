@@ -133,8 +133,8 @@ D. E. Shaw Research, New York, NY 10036, USA.
 The thread safe multivariate normal was inspired from the \code{mvnfast} package by Matteo Fasiolo \url{https://CRAN.R-project.org/package=mvnfast}
 
 The concept of the truncated multivariate normal was
-taken from Zdravko Botev Botev (2017) \url{doi:10.1111/rssb.12162}
-and Botev and L'Ecuyer (2015) \url{doi:10.1109/WSC.2015.7408180} and
+taken from Zdravko Botev Botev (2017) \doi{10.1111/rssb.12162}
+and Botev and L'Ecuyer (2015) \doi{10.1109/WSC.2015.7408180} and
 converted to thread safe simulation;
 }
 \author{

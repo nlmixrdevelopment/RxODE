@@ -460,8 +460,8 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 #' @references The thread safe multivariate normal was inspired from the `mvnfast` package by Matteo Fasiolo <https://CRAN.R-project.org/package=mvnfast>
 #'
 #' @references The concept of the truncated multivariate normal was
-#'   taken from Zdravko Botev Botev (2017) <doi:10.1111/rssb.12162>
-#'   and Botev and L'Ecuyer (2015) <doi:10.1109/WSC.2015.7408180> and
+#'   taken from Zdravko Botev Botev (2017) \doi{10.1111/rssb.12162}
+#'   and Botev and L'Ecuyer (2015) \doi{10.1109/WSC.2015.7408180} and
 #'   converted to thread safe simulation;
 #'
 #' @export
