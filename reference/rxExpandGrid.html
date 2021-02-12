@@ -72,9 +72,15 @@
 
 
 
+  
+
+  
+
   </head>
 
   <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -999,9 +1005,9 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
 <span class='co'># \donttest{</span>
  <span class='fu'>microbenchmark</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html'>microbenchmark</a></span><span class='op'>(</span><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>, <span class='fu'>expand.grid.jc</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; Unit: microseconds
-#&gt;                              expr  min   lq   mean median   uq   max neval
-#&gt;    rxExpandGrid(letters, letters) 20.9 23.3 26.018  24.15 26.2  77.9   100
-#&gt;  expand.grid.jc(letters, letters) 29.8 31.7 35.102  33.75 35.8 132.8   100</div><div class='input'><span class='co'># }</span>
+#&gt;                              expr  min    lq   mean median    uq   max neval
+#&gt;    rxExpandGrid(letters, letters) 16.7 17.90 21.446  19.15 20.05 126.0   100
+#&gt;  expand.grid.jc(letters, letters) 22.2 23.65 27.994  24.95 27.55  82.5   100</div><div class='input'><span class='co'># }</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -1043,6 +1049,8 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
 </script>
 
 
+
+  
 
   </body>
 </html>
