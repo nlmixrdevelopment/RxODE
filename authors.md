@@ -28,6 +28,7 @@
  * Arun Srinivasan -- forder secondary author (version modified by Matthew Fidler to allow different type of threading, indexing and exclude grouping)
  
 # RxODE acknowledgments:
+ * Justin Wilkins -- Documentation updates and testing
  * Emma Schwager -- R IJK distribution author
  * J Coligne -- dop853 fortran author
  * Bill Denney -- Documentation updates and minor bug fixes
