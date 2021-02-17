@@ -3,11 +3,11 @@
 ${R_HOME}/bin/R CMD BATCH  inst/tools/r-stripper/stripper.R
 rm stripper.Rout
 
-echo --------[begin Workaround]--------
+#echo --------[begin Workaround]--------
 ${R_HOME}/bin/R CMD BATCH  inst/tools/r-stripper/workaround.R
-cat workaround.Rout
+#cat workaround.Rout
 rm workaround.Rout
-echo --------[end Workaround]--------
+#echo --------[end Workaround]--------
 
 echo --------[begin src/Makevars]--------
 cat src/Makevars
