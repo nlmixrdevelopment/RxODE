@@ -155,7 +155,7 @@
       <a href="../articles/RxODE-tutorials.html">Running the interactive tutorials</a>
     </li>
     <li>
-      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf">2015 CPT tutorial</a>
+      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf" class="external-link">2015 CPT tutorial</a>
     </li>
     <li class="divider">
     <li>
@@ -190,18 +190,18 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE-manual/">RxODE User Guide</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/nlmixr/">nlmixr</a>
+      <a href="https://nlmixrdevelopment.github.io/nlmixr/" class="external-link">nlmixr</a>
     </li>
   </ul>
 </li>
 <li>
-  <a href="https://github.com/nlmixrdevelopment/RxODE">
+  <a href="https://github.com/nlmixrdevelopment/RxODE" class="external-link">
     <span class="fas fa-github fa-lg"></span>
      
   </a>
 </li>
 <li>
-  <a href="https://github.com/nlmixrdevelopment/RxODE/releases">
+  <a href="https://github.com/nlmixrdevelopment/RxODE/releases" class="external-link">
     <span class="fas fa-download"></span>
      
   </a>
@@ -227,9 +227,9 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Jacobian specification and Stiff Systems</h1>
             
-            <h4 class="date">2021-02-13</h4>
+            <h4 data-toc-skip class="date">2021-02-17</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-stiff.Rmd"><code>vignettes/RxODE-stiff.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-stiff.Rmd" class="external-link"><code>vignettes/RxODE-stiff.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-stiff.Rmd</code></div>
 
     </div>
@@ -240,22 +240,22 @@
 <div id="stiff-odes-with-jacobian-specification" class="section level1">
 <h1 class="hasAnchor">
 <a href="#stiff-odes-with-jacobian-specification" class="anchor"></a>Stiff ODEs with Jacobian Specification</h1>
-<p>Occasionally, you may come across a <a href="https://en.wikipedia.org/wiki/Stiff_equation"><strong>stiff</strong> differential equation</a>, that is a differential equation that is numerically unstable and small variations in parameters cause different solutions to the ODEs. One way to tackle this is to choose a stiff-solver, or hybrid stiff solver (like the default LSODA). Typically this is enough. However exact Jacobian solutions may increase the stability of the ODE. (Note the Jacobian is the derivative of the ODE specification with respect to each variable). In RxODE you can specify the Jacobian with the <code>df(state)/dy(variable)=</code> statement. A classic ODE that has stiff properties under various conditions is the <a href="http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html">Van der Pol</a> differential equations.</p>
+<p>Occasionally, you may come across a <a href="https://en.wikipedia.org/wiki/Stiff_equation" class="external-link"><strong>stiff</strong> differential equation</a>, that is a differential equation that is numerically unstable and small variations in parameters cause different solutions to the ODEs. One way to tackle this is to choose a stiff-solver, or hybrid stiff solver (like the default LSODA). Typically this is enough. However exact Jacobian solutions may increase the stability of the ODE. (Note the Jacobian is the derivative of the ODE specification with respect to each variable). In RxODE you can specify the Jacobian with the <code>df(state)/dy(variable)=</code> statement. A classic ODE that has stiff properties under various conditions is the <a href="http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html" class="external-link">Van der Pol</a> differential equations.</p>
 <p>In RxODE these can be specified by the following:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
 <pre><code>## RxODE 1.0.3 using 1 threads (see ?getRxThreads)
 ##   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Vtpol2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>  <span class="op">=</span> <span class="va">dy</span>
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">dy</span><span class="op">)</span> <span class="op">=</span> <span class="va">mu</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">y</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">*</span><span class="va">dy</span> <span class="op">-</span> <span class="va">y</span>
+    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>  <span class="op">=</span> <span class="va">dy</span>
+    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">dy</span><span class="op">)</span> <span class="op">=</span> <span class="va">mu</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">y</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">*</span><span class="va">dy</span> <span class="op">-</span> <span class="va">y</span>
     <span class="co">## Jacobian</span>
-    <span class="fu"><a href="https://rdrr.io/r/stats/Fdist.html">df</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">/</span><span class="fu">dy</span><span class="op">(</span><span class="va">dy</span><span class="op">)</span>  <span class="op">=</span> <span class="fl">1</span>
-    <span class="fu"><a href="https://rdrr.io/r/stats/Fdist.html">df</a></span><span class="op">(</span><span class="va">dy</span><span class="op">)</span><span class="op">/</span><span class="fu">dy</span><span class="op">(</span><span class="va">y</span><span class="op">)</span>  <span class="op">=</span> <span class="op">-</span><span class="fl">2</span><span class="op">*</span><span class="va">dy</span><span class="op">*</span><span class="va">mu</span><span class="op">*</span><span class="va">y</span> <span class="op">-</span> <span class="fl">1</span>
-    <span class="fu"><a href="https://rdrr.io/r/stats/Fdist.html">df</a></span><span class="op">(</span><span class="va">dy</span><span class="op">)</span><span class="op">/</span><span class="fu">dy</span><span class="op">(</span><span class="va">dy</span><span class="op">)</span> <span class="op">=</span> <span class="va">mu</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">y</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>
+    <span class="fu"><a href="https://rdrr.io/r/stats/Fdist.html" class="external-link">df</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">/</span><span class="fu">dy</span><span class="op">(</span><span class="va">dy</span><span class="op">)</span>  <span class="op">=</span> <span class="fl">1</span>
+    <span class="fu"><a href="https://rdrr.io/r/stats/Fdist.html" class="external-link">df</a></span><span class="op">(</span><span class="va">dy</span><span class="op">)</span><span class="op">/</span><span class="fu">dy</span><span class="op">(</span><span class="va">y</span><span class="op">)</span>  <span class="op">=</span> <span class="op">-</span><span class="fl">2</span><span class="op">*</span><span class="va">dy</span><span class="op">*</span><span class="va">mu</span><span class="op">*</span><span class="va">y</span> <span class="op">-</span> <span class="fl">1</span>
+    <span class="fu"><a href="https://rdrr.io/r/stats/Fdist.html" class="external-link">df</a></span><span class="op">(</span><span class="va">dy</span><span class="op">)</span><span class="op">/</span><span class="fu">dy</span><span class="op">(</span><span class="va">dy</span><span class="op">)</span> <span class="op">=</span> <span class="va">mu</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">y</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>
     <span class="co">## Initial conditions</span>
-    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes_position.html">y</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span> <span class="op">=</span> <span class="fl">2</span>
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes_position.html" class="external-link">y</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span> <span class="op">=</span> <span class="fl">2</span>
     <span class="fu">dy</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span> <span class="op">=</span> <span class="fl">0</span>
     <span class="co">## mu</span>
     <span class="va">mu</span> <span class="op">=</span> <span class="fl">1</span> <span class="co">## nonstiff; 10 moderately stiff; 1000 stiff</span>
@@ -263,11 +263,11 @@
 <pre><code>## qs v0.23.6.</code></pre>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span><span class="op">)</span>;
-<span class="va">et</span><span class="op">$</span><span class="fu">add.sampling</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>;
+<span class="va">et</span><span class="op">$</span><span class="fu">add.sampling</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>;
 <span class="va">et</span><span class="op">$</span><span class="fu">add.dosing</span><span class="op">(</span><span class="fl">20</span>, start.time<span class="op">=</span><span class="fl">0</span><span class="op">)</span>;
 
-<span class="va">s1</span> <span class="op">&lt;-</span> <span class="va">Vtpol2</span> <span class="op">%&gt;%</span>  <span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="va">et</span>, method<span class="op">=</span><span class="st">"lsoda"</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">s1</span><span class="op">)</span></code></pre></div>
+<span class="va">s1</span> <span class="op">&lt;-</span> <span class="va">Vtpol2</span> <span class="op">%&gt;%</span>  <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">et</span>, method<span class="op">=</span><span class="st">"lsoda"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">s1</span><span class="op">)</span></code></pre></div>
 <pre><code>## ______________________________ Solved RxODE object _____________________________
 ## -- Parameters ($params): -------------------------------------------------------
 ## mu 
@@ -289,8 +289,8 @@
 ## ________________________________________________________________________________</code></pre>
 <p>While this is not stiff at mu=1, mu=1000 is a stiff system</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">s2</span> <span class="op">&lt;-</span> <span class="va">Vtpol2</span> <span class="op">%&gt;%</span>  <span class="fu"><a href="https://rdrr.io/r/base/solve.html">solve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>mu<span class="op">=</span><span class="fl">1000</span><span class="op">)</span>, <span class="va">et</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">s2</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="va">s2</span> <span class="op">&lt;-</span> <span class="va">Vtpol2</span> <span class="op">%&gt;%</span>  <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>mu<span class="op">=</span><span class="fl">1000</span><span class="op">)</span>, <span class="va">et</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">s2</span><span class="op">)</span></code></pre></div>
 <pre><code>## ______________________________ Solved RxODE object _____________________________
 ## -- Parameters ($params): -------------------------------------------------------
 ##   mu 
@@ -361,7 +361,7 @@ df(dy)/dy(dy)=mu*(-Rx_pow_di(y,2)+1);
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 1.6.1.9000.</p>
 </div>
 
       </footer>

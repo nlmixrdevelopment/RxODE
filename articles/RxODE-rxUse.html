@@ -155,7 +155,7 @@
       <a href="../articles/RxODE-tutorials.html">Running the interactive tutorials</a>
     </li>
     <li>
-      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf">2015 CPT tutorial</a>
+      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf" class="external-link">2015 CPT tutorial</a>
     </li>
     <li class="divider">
     <li>
@@ -190,18 +190,18 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE-manual/">RxODE User Guide</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/nlmixr/">nlmixr</a>
+      <a href="https://nlmixrdevelopment.github.io/nlmixr/" class="external-link">nlmixr</a>
     </li>
   </ul>
 </li>
 <li>
-  <a href="https://github.com/nlmixrdevelopment/RxODE">
+  <a href="https://github.com/nlmixrdevelopment/RxODE" class="external-link">
     <span class="fas fa-github fa-lg"></span>
      
   </a>
 </li>
 <li>
-  <a href="https://github.com/nlmixrdevelopment/RxODE/releases">
+  <a href="https://github.com/nlmixrdevelopment/RxODE/releases" class="external-link">
     <span class="fas fa-download"></span>
      
   </a>
@@ -226,11 +226,11 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Compiled RxODE models in Packages</h1>
-                        <h4 class="author">Matthew Fidler</h4>
+                        <h4 data-toc-skip class="author">Matthew Fidler</h4>
             
-            <h4 class="date">2021-02-13</h4>
+            <h4 data-toc-skip class="date">2021-02-17</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-rxUse.Rmd"><code>vignettes/RxODE-rxUse.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-rxUse.Rmd" class="external-link"><code>vignettes/RxODE-rxUse.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-rxUse.Rmd</code></div>
 
     </div>
@@ -267,7 +267,7 @@ rxPkg(idr, package="myPackage"); ## Add the idr model to your package</a></code>
 <pre><code><a href="../reference/rxUse.html">rxUse(model)</a></code></pre>
 <p>Now both <code>model</code> and <code>idr</code> are in the model library. This will also create <code>model-doc.R</code> in your R directory so you can document this model.</p>
 <p>You can then use <code>devtools</code> methods to install/test your model</p>
-<pre><code><a href="https://devtools.r-lib.org//reference/load_all.html">devtools::load_all() # Load all the functions in the package
+<pre><code><a href="https://devtools.r-lib.org//reference/load_all.html" class="external-link">devtools::load_all() # Load all the functions in the package
 devtools::document() # Create package documentation
 devtools::install() # Install package
 devtools::check() # Check the package
@@ -300,7 +300,7 @@ idr &lt;- RxODE({
 rxUse(idr); ## Add the idr model to your package
 rxUse(); # Update the compiled RxODE sources for all of your packages
 </a></code></pre>
-<p>The <code><a href="../reference/rxUse.html">rxUse()</a></code> will: - Create <code>RxODE</code> sources and move them into the package’s <code>src/</code> directory. If there is only R source in the package, it will also finish off the directory with an <code>library-init.c</code> which registers all the RxODE models in the package for use in R. - Create stub R documentation for each of the models your are including in your package. You will be able to see the R documentation when loading your package by the standard <code><a href="https://rdrr.io/r/utils/Question.html">?</a></code> interface.</p>
+<p>The <code><a href="../reference/rxUse.html">rxUse()</a></code> will: - Create <code>RxODE</code> sources and move them into the package’s <code>src/</code> directory. If there is only R source in the package, it will also finish off the directory with an <code>library-init.c</code> which registers all the RxODE models in the package for use in R. - Create stub R documentation for each of the models your are including in your package. You will be able to see the R documentation when loading your package by the standard <code><a href="https://rdrr.io/r/utils/Question.html" class="external-link">?</a></code> interface.</p>
 <p>You will still need to: - Export at least one function. If you do not have a function that you wish to export, you can add a re-export of <code>RxODE</code> using roxygen as follows:</p>
 <pre><code><a href="../reference/RxODE.html">##' @importFrom RxODE RxODE
 ##' @export
@@ -386,16 +386,16 @@ RxODE::`%&gt;%`</a></code></pre>
 <span id="cb9-2"><a href="#cb9-2"></a><span class="co">## It is saved to configure.ac</span></span></code></pre></div>
 <p>If you want to integrate with other sources in your <code>Rcpp</code> or <code>C</code>/<code>Fortan</code> based packages, you need to include <code>rxModels-compiled.h</code> and: - Add the define macro <code>compiledModelCall</code> to the list of registered <code>.Call</code> functions. - Register C interface to allow model solving by <code>R_init0_rxModels_RxODE_models()</code> (again <code>rxModels</code> would be replaced by your package name).</p>
 <p>Once this is complete, you can compile/document by the standard methods:</p>
-<pre><code><a href="https://devtools.r-lib.org//reference/load_all.html">devtools::load_all()
+<pre><code><a href="https://devtools.r-lib.org//reference/load_all.html" class="external-link">devtools::load_all()
 devtools::document()
 devtools::install()</a></code></pre>
 <p>If you load the package with a new version of RxODE, the models will be recompiled when they are used.</p>
 <p>However, if you want the models recompiled for the most recent version of RxODE, you simply need to call <code><a href="../reference/rxUse.html">rxUse()</a></code> again in the project directory followed by the standard methods for install/create a package.</p>
-<pre><code><a href="https://devtools.r-lib.org//reference/load_all.html">devtools::load_all()
+<pre><code><a href="https://devtools.r-lib.org//reference/load_all.html" class="external-link">devtools::load_all()
 devtools::document()
 devtools::install()</a></code></pre>
 <p><strong>Note</strong> you do not have to include the <code>RxODE</code> code required to generate the model to regenerate the RxODE c-code in the <code>src</code> directory. As with all RxODE objects, a <code>summary</code> will show one way to recreate the same model.</p>
-<p>An example of compiled models package can be found in the <a href="https://github.com/nlmixrdevelopment/rxModels">rxModels</a> repository.</p>
+<p>An example of compiled models package can be found in the <a href="https://github.com/nlmixrdevelopment/rxModels" class="external-link">rxModels</a> repository.</p>
 </div>
   </div>
 
@@ -414,7 +414,7 @@ devtools::install()</a></code></pre>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 1.6.1.9000.</p>
 </div>
 
       </footer>

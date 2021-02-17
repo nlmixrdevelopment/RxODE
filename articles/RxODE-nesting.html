@@ -155,7 +155,7 @@
       <a href="../articles/RxODE-tutorials.html">Running the interactive tutorials</a>
     </li>
     <li>
-      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf">2015 CPT tutorial</a>
+      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf" class="external-link">2015 CPT tutorial</a>
     </li>
     <li class="divider">
     <li>
@@ -190,18 +190,18 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE-manual/">RxODE User Guide</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/nlmixr/">nlmixr</a>
+      <a href="https://nlmixrdevelopment.github.io/nlmixr/" class="external-link">nlmixr</a>
     </li>
   </ul>
 </li>
 <li>
-  <a href="https://github.com/nlmixrdevelopment/RxODE">
+  <a href="https://github.com/nlmixrdevelopment/RxODE" class="external-link">
     <span class="fas fa-github fa-lg"></span>
      
   </a>
 </li>
 <li>
-  <a href="https://github.com/nlmixrdevelopment/RxODE/releases">
+  <a href="https://github.com/nlmixrdevelopment/RxODE/releases" class="external-link">
     <span class="fas fa-download"></span>
      
   </a>
@@ -227,9 +227,9 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Nesting levels in RxODE</h1>
             
-            <h4 class="date">2021-02-13</h4>
+            <h4 data-toc-skip class="date">2021-02-17</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-nesting.Rmd"><code>vignettes/RxODE-nesting.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-nesting.Rmd" class="external-link"><code>vignettes/RxODE-nesting.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-nesting.Rmd</code></div>
 
     </div>
@@ -305,11 +305,11 @@
 <a href="#event-table" class="anchor"></a>Event table</h3>
 <p>This event table contains nesting variables: - inv: investigator id - id: subject id - eye: eye id (left or right) - occ: occasion</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; RxODE 1.0.3 using 1 threads (see ?getRxThreads)
 #&gt;   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; 
 #&gt; Attaching package: 'dplyr'</code></pre>
 <pre><code>#&gt; The following objects are masked from 'package:stats':
@@ -322,15 +322,15 @@
 <code class="sourceCode R"><span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amountUnits<span class="op">=</span><span class="st">"mg"</span>, timeUnits<span class="op">=</span><span class="st">"hours"</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, addl<span class="op">=</span><span class="fl">9</span>,ii<span class="op">=</span><span class="fl">12</span>,cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fl">120</span>, amt<span class="op">=</span><span class="fl">2000</span>, addl<span class="op">=</span><span class="fl">4</span>, ii<span class="op">=</span><span class="fl">14</span>, cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">240</span>, by<span class="op">=</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Assumes sampling when there is no dosing information</span>
-  <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">240</span>, by<span class="op">=</span><span class="fl">4</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co">## adds 0.1 for separate eye</span>
+  <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">240</span>, by<span class="op">=</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Assumes sampling when there is no dosing information</span>
+  <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">240</span>, by<span class="op">=</span><span class="fl">4</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co">## adds 0.1 for separate eye</span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>id<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="co">## Add an occasion per dose</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>occ<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/cumsum.html">cumsum</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">amt</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>occ<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">occ</span> <span class="op">==</span> <span class="fl">0</span>, <span class="fl">1</span>, <span class="va">occ</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>occ<span class="op">=</span><span class="fl">2</span><span class="op">-</span> <span class="va">occ</span> <span class="op">%%</span> <span class="fl">2</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>eye<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span> <span class="op">==</span> <span class="va">time</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>inv<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">id</span> <span class="op">&lt;</span> <span class="fl">10</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="va">as_tibble</span> <span class="op">-&gt;</span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>occ<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">amt</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>occ<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">occ</span> <span class="op">==</span> <span class="fl">0</span>, <span class="fl">1</span>, <span class="va">occ</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>occ<span class="op">=</span><span class="fl">2</span><span class="op">-</span> <span class="va">occ</span> <span class="op">%%</span> <span class="fl">2</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>eye<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span> <span class="op">==</span> <span class="va">time</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>inv<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">id</span> <span class="op">&lt;</span> <span class="fl">10</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="va">as_tibble</span> <span class="op">-&gt;</span>
   <span class="va">ev</span></code></pre></div>
 </div>
 <div id="rxode-model" class="section level3">
@@ -343,12 +343,12 @@
   <span class="fu">eff</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span> <span class="op">=</span> <span class="fl">1</span>
   <span class="va">C2</span> <span class="op">=</span> <span class="va">centr</span><span class="op">/</span><span class="va">V2</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">+</span><span class="va">prop.sd</span><span class="op">)</span>;
   <span class="va">C3</span> <span class="op">=</span> <span class="va">peri</span><span class="op">/</span><span class="va">V3</span>;
-  <span class="va">CL</span> <span class="op">=</span>  <span class="va">TCl</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">eta.Cl</span> <span class="op">+</span> <span class="va">eye.Cl</span> <span class="op">+</span> <span class="va">iov.Cl</span> <span class="op">+</span> <span class="va">inv.Cl</span><span class="op">)</span>
-  <span class="va">KA</span> <span class="op">=</span> <span class="va">TKA</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">eta.Ka</span> <span class="op">+</span> <span class="va">eye.Ka</span> <span class="op">+</span> <span class="va">iov.Cl</span> <span class="op">+</span> <span class="va">inv.Ka</span><span class="op">)</span>
-  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">=</span><span class="op">-</span><span class="va">KA</span><span class="op">*</span><span class="va">depot</span>;
-  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">centr</span><span class="op">)</span> <span class="op">=</span> <span class="va">KA</span><span class="op">*</span><span class="va">depot</span> <span class="op">-</span> <span class="va">CL</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">+</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
-  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span>  <span class="op">=</span>                    <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
-  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
+  <span class="va">CL</span> <span class="op">=</span>  <span class="va">TCl</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">eta.Cl</span> <span class="op">+</span> <span class="va">eye.Cl</span> <span class="op">+</span> <span class="va">iov.Cl</span> <span class="op">+</span> <span class="va">inv.Cl</span><span class="op">)</span>
+  <span class="va">KA</span> <span class="op">=</span> <span class="va">TKA</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">eta.Ka</span> <span class="op">+</span> <span class="va">eye.Ka</span> <span class="op">+</span> <span class="va">iov.Cl</span> <span class="op">+</span> <span class="va">inv.Ka</span><span class="op">)</span>
+  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">=</span><span class="op">-</span><span class="va">KA</span><span class="op">*</span><span class="va">depot</span>;
+  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">centr</span><span class="op">)</span> <span class="op">=</span> <span class="va">KA</span><span class="op">*</span><span class="va">depot</span> <span class="op">-</span> <span class="va">CL</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">+</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
+  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span>  <span class="op">=</span>                    <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
+  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
   <span class="va">ef0</span> <span class="op">=</span> <span class="va">eff</span> <span class="op">+</span> <span class="va">add.sd</span>
 <span class="op">}</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; qs v0.23.6.</code></pre>
@@ -357,48 +357,48 @@
 <h3 class="hasAnchor">
 <a href="#uncertainty-in-model-parameters" class="anchor"></a>Uncertainty in Model parameters</h3>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"TKA"</span><span class="op">=</span><span class="fl">0.294</span>, <span class="st">"TCl"</span><span class="op">=</span><span class="fl">18.6</span>, <span class="st">"V2"</span><span class="op">=</span><span class="fl">40.2</span>,
+<code class="sourceCode R"><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TKA"</span><span class="op">=</span><span class="fl">0.294</span>, <span class="st">"TCl"</span><span class="op">=</span><span class="fl">18.6</span>, <span class="st">"V2"</span><span class="op">=</span><span class="fl">40.2</span>,
            <span class="st">"Q"</span><span class="op">=</span><span class="fl">10.5</span>, <span class="st">"V3"</span><span class="op">=</span><span class="fl">297</span>, <span class="st">"Kin"</span><span class="op">=</span><span class="fl">1</span>, <span class="st">"Kout"</span><span class="op">=</span><span class="fl">1</span>, <span class="st">"EC50"</span><span class="op">=</span><span class="fl">200</span><span class="op">)</span>
 
 <span class="co">## Creating covariance matrix</span>
-<span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">8</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>, <span class="fl">8</span>, <span class="fl">8</span><span class="op">)</span>
-<span class="va">tMat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html">tcrossprod</a></span><span class="op">(</span><span class="va">tmp</span>, <span class="va">tmp</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">8</span> <span class="op">^</span> <span class="fl">2</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/dimnames.html">dimnames</a></span><span class="op">(</span><span class="va">tMat</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span><span class="op">)</span>
+<span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">8</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>, <span class="fl">8</span>, <span class="fl">8</span><span class="op">)</span>
+<span class="va">tMat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">tmp</span>, <span class="va">tmp</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">8</span> <span class="op">^</span> <span class="fl">2</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">tMat</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">tMat</span></code></pre></div>
-<pre><code>#&gt;               TKA          TCl           V2            Q           V3
-#&gt; TKA   0.212695717  0.099948676  0.012431002 -0.009778632  0.044165842
-#&gt; TCl   0.099948676  0.246083365  0.051239364  0.017644851 -0.008457917
-#&gt; V2    0.012431002  0.051239364  0.084975624  0.002371693 -0.026592869
-#&gt; Q    -0.009778632  0.017644851  0.002371693  0.132206146 -0.017709315
-#&gt; V3    0.044165842 -0.008457917 -0.026592869 -0.017709315  0.118542975
-#&gt; Kin  -0.053312550 -0.097875736 -0.065620040 -0.002251439 -0.054531206
-#&gt; Kout  0.074679442 -0.035294971  0.018547193 -0.053693200  0.033094274
-#&gt; EC50 -0.020593049 -0.019713144  0.003857416  0.103181630  0.035932976
-#&gt;               Kin        Kout         EC50
-#&gt; TKA  -0.053312550  0.07467944 -0.020593049
-#&gt; TCl  -0.097875736 -0.03529497 -0.019713144
-#&gt; V2   -0.065620040  0.01854719  0.003857416
-#&gt; Q    -0.002251439 -0.05369320  0.103181630
-#&gt; V3   -0.054531206  0.03309427  0.035932976
-#&gt; Kin   0.143057807 -0.03456078 -0.041094458
-#&gt; Kout -0.034560785  0.11040562 -0.029608844
-#&gt; EC50 -0.041094458 -0.02960884  0.127740184</code></pre>
+<pre><code>#&gt;               TKA           TCl           V2            Q           V3
+#&gt; TKA   0.036881329 -0.0067512332 -0.022189007 -0.032505276  0.004518363
+#&gt; TCl  -0.006751233  0.0403545578 -0.006409149  0.003267532 -0.017041360
+#&gt; V2   -0.022189007 -0.0064091491  0.078486496  0.024808129 -0.039089068
+#&gt; Q    -0.032505276  0.0032675321  0.024808129  0.190678094 -0.054675358
+#&gt; V3    0.004518363 -0.0170413602 -0.039089068 -0.054675358  0.064073497
+#&gt; Kin  -0.016026144 -0.0004189336 -0.005422647  0.086494218 -0.023043820
+#&gt; Kout  0.029353979 -0.0199893134 -0.068849213  0.004026733  0.049811540
+#&gt; EC50 -0.024865653  0.0013662304  0.052770665  0.033514100 -0.037597265
+#&gt;                Kin         Kout        EC50
+#&gt; TKA  -0.0160261437  0.029353979 -0.02486565
+#&gt; TCl  -0.0004189336 -0.019989313  0.00136623
+#&gt; V2   -0.0054226467 -0.068849213  0.05277066
+#&gt; Q     0.0864942177  0.004026733  0.03351410
+#&gt; V3   -0.0230438202  0.049811540 -0.03759726
+#&gt; Kin   0.1431548678  0.039433299 -0.02952294
+#&gt; Kout  0.0394332993  0.128309998 -0.06748947
+#&gt; EC50 -0.0295229447 -0.067489471  0.07542395</code></pre>
 </div>
 <div id="nesting-variability" class="section level3">
 <h3 class="hasAnchor">
 <a href="#nesting-variability" class="anchor"></a>Nesting Variability</h3>
-<p>To specify multiple levels of nesting, you can specify it as a nested <code>lotri</code> matrix; When using this approach you use the condition operator <code><a href="https://rdrr.io/r/base/Logic.html">|</a></code> to specify what variable nesting occurs on; For the Bayesian simulation we need to specify how much information we have for each parameter; For <code>RxODE</code> this is the <code>nu</code> parameter.</p>
+<p>To specify multiple levels of nesting, you can specify it as a nested <code>lotri</code> matrix; When using this approach you use the condition operator <code><a href="https://rdrr.io/r/base/Logic.html" class="external-link">|</a></code> to specify what variable nesting occurs on; For the Bayesian simulation we need to specify how much information we have for each parameter; For <code>RxODE</code> this is the <code>nu</code> parameter.</p>
 <p>In this case: - id, <code>nu=100</code> or the model came from 100 subjects - eye, <code>nu=200</code> or the model came from 200 eyes - occ, <code>nu=200</code> or the model came from 200 occasions - inv, <code>nu=10</code> or the model came from 10 investigators</p>
 <p>To specify this in <code>lotri</code> you can use <code>| var(nu=X)</code>, or:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">omega</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span><span class="op">(</span><span class="va">eta.Cl</span> <span class="op">~</span> <span class="fl">0.1</span>,
-                     <span class="va">eta.Ka</span> <span class="op">~</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">|</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/defunct.html">id</a></span><span class="op">(</span>nu<span class="op">=</span><span class="fl">100</span><span class="op">)</span>,
-               <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span><span class="op">(</span><span class="va">eye.Cl</span> <span class="op">~</span> <span class="fl">0.05</span>,
+<code class="sourceCode R"><span class="va">omega</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">eta.Cl</span> <span class="op">~</span> <span class="fl">0.1</span>,
+                     <span class="va">eta.Ka</span> <span class="op">~</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">|</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/defunct.html" class="external-link">id</a></span><span class="op">(</span>nu<span class="op">=</span><span class="fl">100</span><span class="op">)</span>,
+               <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">eye.Cl</span> <span class="op">~</span> <span class="fl">0.05</span>,
                      <span class="va">eye.Ka</span> <span class="op">~</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op">|</span> <span class="fu">eye</span><span class="op">(</span>nu<span class="op">=</span><span class="fl">200</span><span class="op">)</span>,
-               <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span><span class="op">(</span><span class="va">iov.Cl</span> <span class="op">~</span> <span class="fl">0.01</span>,
+               <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">iov.Cl</span> <span class="op">~</span> <span class="fl">0.01</span>,
                      <span class="va">iov.Ka</span> <span class="op">~</span> <span class="fl">0.01</span><span class="op">)</span> <span class="op">|</span> <span class="fu">occ</span><span class="op">(</span>nu<span class="op">=</span><span class="fl">200</span><span class="op">)</span>,
-               <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span><span class="op">(</span><span class="va">inv.Cl</span> <span class="op">~</span> <span class="fl">0.02</span>,
+               <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">inv.Cl</span> <span class="op">~</span> <span class="fl">0.02</span>,
                      <span class="va">inv.Ka</span> <span class="op">~</span> <span class="fl">0.02</span><span class="op">)</span> <span class="op">|</span> <span class="fu">inv</span><span class="op">(</span>nu<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span>
 <span class="va">omega</span></code></pre></div>
 <pre><code>#&gt; $id
@@ -428,7 +428,7 @@
 <a href="#unexplained-variability" class="anchor"></a>Unexplained variability</h3>
 <p>The last piece of variability to specify is the unexplained variability</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span><span class="op">(</span><span class="va">prop.sd</span> <span class="op">~</span> <span class="fl">.25</span>,
+<code class="sourceCode R"><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">prop.sd</span> <span class="op">~</span> <span class="fl">.25</span>,
                <span class="va">add.sd</span><span class="op">~</span> <span class="fl">0.125</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="solving-the-problem" class="section level3">
@@ -439,61 +439,27 @@
              thetaMat<span class="op">=</span><span class="va">tMat</span>, omega<span class="op">=</span><span class="va">omega</span>,
              sigma<span class="op">=</span><span class="va">sigma</span>, sigmaDf<span class="op">=</span><span class="fl">400</span>,
              nStud<span class="op">=</span><span class="fl">400</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; intdy -- t = 180 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 180.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 184 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 184.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 188 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 188.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 192 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 192.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 196 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 196.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 200 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 200.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 204 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 204.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 208 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 208.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 212 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 212.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 216 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 216.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 220 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 220.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 224 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 224.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 228 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 228.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 232 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 232.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 236 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 236.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 240 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 240.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; unhandled error message: EE:[lsoda] trouble from intdy, itask = 1, tout = 240.1
-#&gt;  @(lsoda.c:689
-#&gt; unhandled error message: EE:[lsoda] 70000 steps taken before reaching tout
+<pre><code>#&gt; unhandled error message: EE:[lsoda] 70000 steps taken before reaching tout
 #&gt;  @(lsoda.c:748</code></pre>
 <pre><code>#&gt; Warning: some ID(s) could not solve the ODEs correctly; These values are
 #&gt; replaced with 'NA'</code></pre>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; ______________________________ Solved RxODE object _____________________________
 #&gt; -- Parameters ($params): -------------------------------------------------------
 #&gt; # A tibble: 8,000 x 24
 #&gt;    sim.id id    `inv.Cl(inv==1)` `inv.Cl(inv==2)` `inv.Ka(inv==1)`
 #&gt;     &lt;int&gt; &lt;fct&gt;            &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
-#&gt;  1      1 1               -0.189           -0.177            0.168
-#&gt;  2      1 2               -0.189           -0.177            0.168
-#&gt;  3      1 3               -0.189           -0.177            0.168
-#&gt;  4      1 4               -0.189           -0.177            0.168
-#&gt;  5      1 5               -0.189           -0.177            0.168
-#&gt;  6      1 6               -0.189           -0.177            0.168
-#&gt;  7      1 7               -0.189           -0.177            0.168
-#&gt;  8      1 8               -0.189           -0.177            0.168
-#&gt;  9      1 9               -0.189           -0.177            0.168
-#&gt; 10      1 10              -0.189           -0.177            0.168
+#&gt;  1      1 1               -0.128            0.111           0.0970
+#&gt;  2      1 2               -0.128            0.111           0.0970
+#&gt;  3      1 3               -0.128            0.111           0.0970
+#&gt;  4      1 4               -0.128            0.111           0.0970
+#&gt;  5      1 5               -0.128            0.111           0.0970
+#&gt;  6      1 6               -0.128            0.111           0.0970
+#&gt;  7      1 7               -0.128            0.111           0.0970
+#&gt;  8      1 8               -0.128            0.111           0.0970
+#&gt;  9      1 9               -0.128            0.111           0.0970
+#&gt; 10      1 10              -0.128            0.111           0.0970
 #&gt; # ... with 7,990 more rows, and 19 more variables: `inv.Ka(inv==2)` &lt;dbl&gt;,
 #&gt; #   `eye.Cl(eye==1)` &lt;dbl&gt;, `eye.Cl(eye==2)` &lt;dbl&gt;, `eye.Ka(eye==1)` &lt;dbl&gt;,
 #&gt; #   `eye.Ka(eye==2)` &lt;dbl&gt;, `iov.Cl(occ==1)` &lt;dbl&gt;, `iov.Cl(occ==2)` &lt;dbl&gt;,
@@ -510,14 +476,14 @@
 #&gt; 
 #&gt; -- First part of data (object): ------------------------------------------------
 #&gt; # A tibble: 976,000 x 18
-#&gt;   sim.id    id     time inv.Cl inv.Ka eye.Cl eye.Ka  iov.Cl iov.Ka      C2
-#&gt;    &lt;int&gt; &lt;int&gt;      [h]  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;
-#&gt; 1      1     1      0.0 -0.189  0.168 -0.210  0.151 -0.0456  0.108  0.    
-#&gt; 2      1     1      0.1 -0.189  0.168 -0.282 -0.155 -0.0456  0.108 -3.47e1
-#&gt; 3      1     1      4.0 -0.189  0.168 -0.210  0.151 -0.0456  0.108 -8.60e3
-#&gt; 4      1     1      4.1 -0.189  0.168 -0.282 -0.155 -0.0456  0.108 -8.83e3
-#&gt; 5      1     1      8.0 -0.189  0.168 -0.210  0.151 -0.0456  0.108 -3.76e5
-#&gt; 6      1     1      8.1 -0.189  0.168 -0.282 -0.155 -0.0456  0.108  5.13e3
+#&gt;   sim.id    id     time inv.Cl inv.Ka eye.Cl eye.Ka  iov.Cl  iov.Ka    C2
+#&gt;    &lt;int&gt; &lt;int&gt;      [h]  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1      1     1      0.0 -0.128 0.0970  0.200  0.133 0.00790 -0.0452   0  
+#&gt; 2      1     1      0.1 -0.128 0.0970  0.192  0.116 0.00790 -0.0452  21.5
+#&gt; 3      1     1      4.0 -0.128 0.0970  0.200  0.133 0.00790 -0.0452  54.3
+#&gt; 4      1     1      4.1 -0.128 0.0970  0.192  0.116 0.00790 -0.0452  68.1
+#&gt; 5      1     1      8.0 -0.128 0.0970  0.200  0.133 0.00790 -0.0452  16.0
+#&gt; 6      1     1      8.1 -0.128 0.0970  0.192  0.116 0.00790 -0.0452  18.0
 #&gt; # ... with 975,994 more rows, and 8 more variables: C3 &lt;dbl&gt;, CL &lt;dbl&gt;,
 #&gt; #   KA &lt;dbl&gt;, ef0 &lt;dbl&gt;, depot &lt;dbl&gt;, centr &lt;dbl&gt;, peri &lt;dbl&gt;, eff &lt;dbl&gt;
 #&gt; ________________________________________________________________________________</code></pre>
@@ -526,65 +492,65 @@
 <pre><code>inv.Cl = (inv == 1) * `inv.Cl(inv==1)` + (inv == 2) * `inv.Cl(inv==2)`</code></pre>
 <p>If you look at the simulated parameters you can see <code>inv.Cl(inv==1)</code> and <code>inv.Cl(inv==2)</code> are in the <code>s$params</code>; They are the same for each study:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">params</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">params</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt;   sim.id id inv.Cl(inv==1) inv.Cl(inv==2) inv.Ka(inv==1) inv.Ka(inv==2)
-#&gt; 1      1  1     -0.1891842     -0.1766904      0.1678487    -0.02266118
-#&gt; 2      1  2     -0.1891842     -0.1766904      0.1678487    -0.02266118
-#&gt; 3      1  3     -0.1891842     -0.1766904      0.1678487    -0.02266118
-#&gt; 4      1  4     -0.1891842     -0.1766904      0.1678487    -0.02266118
-#&gt; 5      1  5     -0.1891842     -0.1766904      0.1678487    -0.02266118
-#&gt; 6      1  6     -0.1891842     -0.1766904      0.1678487    -0.02266118
+#&gt; 1      1  1     -0.1284526      0.1109724     0.09702435    -0.07420309
+#&gt; 2      1  2     -0.1284526      0.1109724     0.09702435    -0.07420309
+#&gt; 3      1  3     -0.1284526      0.1109724     0.09702435    -0.07420309
+#&gt; 4      1  4     -0.1284526      0.1109724     0.09702435    -0.07420309
+#&gt; 5      1  5     -0.1284526      0.1109724     0.09702435    -0.07420309
+#&gt; 6      1  6     -0.1284526      0.1109724     0.09702435    -0.07420309
 #&gt;   eye.Cl(eye==1) eye.Cl(eye==2) eye.Ka(eye==1) eye.Ka(eye==2) iov.Cl(occ==1)
-#&gt; 1    -0.20977345   -0.281571020     0.15083921    -0.15548549   -0.045600810
-#&gt; 2     0.07251497   -0.351554199     0.12860711    -0.20430343   -0.278624698
-#&gt; 3    -0.07735232    0.026949331    -0.12033844    -0.07861499    0.004613154
-#&gt; 4     0.04009152    0.040100659    -0.20396421    -0.05497488    0.041832751
-#&gt; 5    -0.39071765   -0.058248241    -0.04205765     0.15984804    0.018531624
-#&gt; 6     0.18749777   -0.004087563    -0.31692652    -0.08730998    0.020145400
-#&gt;   iov.Cl(occ==2) iov.Ka(occ==1) iov.Ka(occ==2)       V2       V3      TCl
-#&gt; 1    0.048774225    0.108147283     0.06303838 39.85021 296.9009 17.70204
-#&gt; 2   -0.113825745   -0.009713908    -0.01315046 39.85021 296.9009 17.70204
-#&gt; 3   -0.053404752    0.113516943     0.03151135 39.85021 296.9009 17.70204
-#&gt; 4    0.027174761   -0.061911432    -0.14374768 39.85021 296.9009 17.70204
-#&gt; 5    0.076091456   -0.091676700     0.16099273 39.85021 296.9009 17.70204
-#&gt; 6   -0.003481133    0.189905521     0.08307242 39.85021 296.9009 17.70204
-#&gt;        eta.Cl        TKA       eta.Ka        Q      Kin      Kout     EC50
-#&gt; 1  0.04506349 -0.8423349  0.109263816 10.83807 1.224042 0.9101082 200.6354
-#&gt; 2 -0.37252211 -0.8423349  0.042306343 10.83807 1.224042 0.9101082 200.6354
-#&gt; 3  0.05792928 -0.8423349 -0.003326691 10.83807 1.224042 0.9101082 200.6354
-#&gt; 4  0.03283337 -0.8423349 -0.292169880 10.83807 1.224042 0.9101082 200.6354
-#&gt; 5 -0.03175557 -0.8423349 -0.623575016 10.83807 1.224042 0.9101082 200.6354
-#&gt; 6 -0.26464979 -0.8423349 -0.200878714 10.83807 1.224042 0.9101082 200.6354</code></pre>
+#&gt; 1      0.2000288      0.1923513     0.13331897      0.1162949    0.007895205
+#&gt; 2     -0.1248889      0.1234321     0.02108065      0.4417191   -0.200078101
+#&gt; 3      0.5121965     -0.1677639     0.02619012      0.1259797   -0.016840635
+#&gt; 4      0.2742196     -0.3118765    -0.04360169     -0.5661060    0.012742289
+#&gt; 5      0.0943146      0.2874631    -0.07570204      0.2642166   -0.065693721
+#&gt; 6      0.2902011      0.4575729     0.20456030      0.1204666   -0.012214118
+#&gt;   iov.Cl(occ==2) iov.Ka(occ==1) iov.Ka(occ==2)       V2      V3      TCl
+#&gt; 1    -0.02602574    -0.04522754     0.10757325 39.91382 297.244 18.31275
+#&gt; 2    -0.02232515    -0.16444491     0.04858918 39.91382 297.244 18.31275
+#&gt; 3    -0.12210198     0.06506636    -0.05564434 39.91382 297.244 18.31275
+#&gt; 4     0.12598830    -0.16545079     0.15835087 39.91382 297.244 18.31275
+#&gt; 5    -0.17758826     0.02705130    -0.16372397 39.91382 297.244 18.31275
+#&gt; 6     0.01646940     0.04842288     0.13229852 39.91382 297.244 18.31275
+#&gt;        eta.Cl       TKA      eta.Ka        Q       Kin     Kout     EC50
+#&gt; 1 -0.37005486 0.5370483 -0.20466564 10.47647 0.8611646 1.552395 199.9436
+#&gt; 2  0.47125234 0.5370483  0.07999811 10.47647 0.8611646 1.552395 199.9436
+#&gt; 3 -0.32547727 0.5370483 -0.23637066 10.47647 0.8611646 1.552395 199.9436
+#&gt; 4 -0.21724766 0.5370483 -0.07448179 10.47647 0.8611646 1.552395 199.9436
+#&gt; 5  0.71645381 0.5370483 -0.10511105 10.47647 0.8611646 1.552395 199.9436
+#&gt; 6  0.03183229 0.5370483  0.20239850 10.47647 0.8611646 1.552395 199.9436</code></pre>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">params</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">sim.id</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">params</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">sim.id</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt;   sim.id id inv.Cl(inv==1) inv.Cl(inv==2) inv.Ka(inv==1) inv.Ka(inv==2)
-#&gt; 1      2  1      0.1892841      0.2495577     -0.3540035    0.006563548
-#&gt; 2      2  2      0.1892841      0.2495577     -0.3540035    0.006563548
-#&gt; 3      2  3      0.1892841      0.2495577     -0.3540035    0.006563548
-#&gt; 4      2  4      0.1892841      0.2495577     -0.3540035    0.006563548
-#&gt; 5      2  5      0.1892841      0.2495577     -0.3540035    0.006563548
-#&gt; 6      2  6      0.1892841      0.2495577     -0.3540035    0.006563548
+#&gt; 1      2  1      0.2991585    -0.08552796     0.08941975     -0.1281588
+#&gt; 2      2  2      0.2991585    -0.08552796     0.08941975     -0.1281588
+#&gt; 3      2  3      0.2991585    -0.08552796     0.08941975     -0.1281588
+#&gt; 4      2  4      0.2991585    -0.08552796     0.08941975     -0.1281588
+#&gt; 5      2  5      0.2991585    -0.08552796     0.08941975     -0.1281588
+#&gt; 6      2  6      0.2991585    -0.08552796     0.08941975     -0.1281588
 #&gt;   eye.Cl(eye==1) eye.Cl(eye==2) eye.Ka(eye==1) eye.Ka(eye==2) iov.Cl(occ==1)
-#&gt; 1   -0.238446925     0.32304655     0.08522638     0.03625334     0.10101222
-#&gt; 2    0.003121663     0.36671939    -0.03596102    -0.16647125    -0.18415651
-#&gt; 3   -0.006086724     0.02020144    -0.51552443    -0.45139202     0.19285451
-#&gt; 4   -0.038640312     0.23495831     0.12822386     0.21693273     0.03339666
-#&gt; 5   -0.214340937     0.08672796     0.15236144    -0.11272004     0.01264064
-#&gt; 6   -0.259755881    -0.18609992    -0.09573586    -0.07030082    -0.06431671
-#&gt;   iov.Cl(occ==2) iov.Ka(occ==1) iov.Ka(occ==2)      V2       V3      TCl
-#&gt; 1    0.033968916    -0.14246508     0.02656055 40.3667 297.2748 19.06973
-#&gt; 2   -0.041789763     0.01476226     0.02149268 40.3667 297.2748 19.06973
-#&gt; 3   -0.101435464    -0.14689797    -0.01015855 40.3667 297.2748 19.06973
-#&gt; 4    0.149965989     0.13919860     0.26794414 40.3667 297.2748 19.06973
-#&gt; 5   -0.079258369    -0.03669023    -0.18499101 40.3667 297.2748 19.06973
-#&gt; 6   -0.001516428     0.01466226     0.20520947 40.3667 297.2748 19.06973
-#&gt;         eta.Cl       TKA     eta.Ka        Q       Kin     Kout     EC50
-#&gt; 1  0.614825437 0.5098027 -0.5602976 10.57258 0.2229715 1.243333 200.2257
-#&gt; 2 -0.095568743 0.5098027 -0.4438695 10.57258 0.2229715 1.243333 200.2257
-#&gt; 3  0.007741215 0.5098027 -0.1189760 10.57258 0.2229715 1.243333 200.2257
-#&gt; 4 -0.079522845 0.5098027 -0.1229592 10.57258 0.2229715 1.243333 200.2257
-#&gt; 5  0.019065089 0.5098027  0.1904381 10.57258 0.2229715 1.243333 200.2257
-#&gt; 6  0.148652966 0.5098027 -0.2094994 10.57258 0.2229715 1.243333 200.2257</code></pre>
+#&gt; 1     0.06161436     0.17720198    -0.07358569   -0.009309252    -0.07751463
+#&gt; 2     0.07321012    -0.01651640     0.18945210   -0.556901655     0.12441806
+#&gt; 3    -0.38089763     0.13777938    -0.34129110   -0.258241704     0.06980965
+#&gt; 4    -0.18602267    -0.03726366    -0.25511320    0.239910780    -0.13728939
+#&gt; 5    -0.23458458     0.32557469    -0.11270645    0.029640777    -0.03296501
+#&gt; 6     0.23052889     0.16251092    -0.04047265   -0.077190827    -0.08238731
+#&gt;   iov.Cl(occ==2) iov.Ka(occ==1) iov.Ka(occ==2)       V2       V3      TCl
+#&gt; 1    -0.06851874    -0.15095232     0.01778139 40.01835 297.0157 18.52518
+#&gt; 2     0.13572846     0.10865070    -0.01723194 40.01835 297.0157 18.52518
+#&gt; 3    -0.12717939    -0.07197074    -0.15241459 40.01835 297.0157 18.52518
+#&gt; 4     0.04119573    -0.09112965    -0.17667754 40.01835 297.0157 18.52518
+#&gt; 5    -0.07428620    -0.09152247     0.11208283 40.01835 297.0157 18.52518
+#&gt; 6    -0.08216796     0.04980835     0.06817140 40.01835 297.0157 18.52518
+#&gt;        eta.Cl       TKA      eta.Ka        Q      Kin     Kout     EC50
+#&gt; 1 -0.25465756 0.1944842 -0.18410520 10.88648 1.251672 1.281518 200.1216
+#&gt; 2  0.40429044 0.1944842  0.27719387 10.88648 1.251672 1.281518 200.1216
+#&gt; 3 -0.03809122 0.1944842  0.14034984 10.88648 1.251672 1.281518 200.1216
+#&gt; 4 -0.06049511 0.1944842 -0.02460711 10.88648 1.251672 1.281518 200.1216
+#&gt; 5  0.80642986 0.1944842  0.41727206 10.88648 1.251672 1.281518 200.1216
+#&gt; 6  0.22748409 0.1944842  0.23546460 10.88648 1.251672 1.281518 200.1216</code></pre>
 <p>For between eye variability and between occasion variability each individual simulates a number of variables that become the between eye and between occasion variability; In the case of the eye:</p>
 <pre><code>eye.Cl = (eye == 1) * `eye.Cl(eye==1)` + (eye == 2) * `eye.Cl(eye==2)`</code></pre>
 <p>So when you look the simulation each of these variables (ie <code>eye.Cl(eye==1)</code>, <code>eye.Cl(eye==2)</code>, etc) they change for each individual and when combined make the between eye variability or the between occasion variability that can be seen in some pharamcometric models.</p>
@@ -607,7 +573,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 1.6.1.9000.</p>
 </div>
 
       </footer>

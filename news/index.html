@@ -290,7 +290,7 @@
 <ul>
 <li><p>RxODE can only use supported functions (could be breaking); You may add your own functions with <code>rxFun</code> and their derivatives with <code>rxD</code></p></li>
 <li><p>RxODE now uses its own internal truncated multivariate normal simulations based on the threefry sitmo library. Therefore random numbers generated within <code>RxODE</code> like providing <code><a href="../reference/rxSolve.html">rxSolve(...,omega=)</a></code> will have different results with this new random number generator. This was done to allow internal re-sampling of sigmas/etas with thread-safe random number generators (calling R through <code>mvnfast</code> or R’s simulation engines are not thread safe).</p></li>
-<li><p><code>RxODE</code> now moved the precise sum/product type options for <code><a href="https://rdrr.io/r/base/sum.html">sum()</a></code> and <code><a href="https://rdrr.io/r/base/prod.html">prod()</a></code> to <code>rxSolve</code> or <code>rxControl</code></p></li>
+<li><p><code>RxODE</code> now moved the precise sum/product type options for <code><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum()</a></code> and <code><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod()</a></code> to <code>rxSolve</code> or <code>rxControl</code></p></li>
 <li><p><code>cvPost</code> now will returned a named list of matrices if the input matrix was named</p></li>
 <li><p><code>rxSolve</code> will now return an integer <code>id</code> instead of a factor <code>id</code> when <code>id</code> is integer or integerish (as defined by checkmate). Otherwise a factor will be returned.</p></li>
 <li><p>When mixing ODEs and <code>linCmt()</code> models, the <code>linCmt()</code> compartments are 1 and possibly 2 instead of right after the last internal ODE. This is more aligned with how PK/PD models are typically defined.</p></li>
@@ -305,7 +305,7 @@
 <li><p>Add the ability to order input parameters with the <code>param()</code> pseudo-function</p></li>
 <li><p>Add the ability to resample covariates with <code>resample=TRUE</code> or <code>resample=c("SEX", "CRCL")</code>. You can resample all the covariates by <code>ID</code> with <code>resampleID=TRUE</code> or resample the covariates without respect to <code>ID</code> with <code>resampleID=FALSE</code></p></li>
 <li><p>Comparison of factors/strings is now supported in <code>RxODE</code>; Therefore ID==“Study-1” is now allowed.</p></li>
-<li><p>Completion for elements of <code><a href="../reference/rxSolve.html">rxSolve()</a></code> objects, and <code><a href="../reference/et.html">et()</a></code> objects have been added (accessed through <code><a href="https://rdrr.io/r/base/Extract.html">$</a></code>)</p></li>
+<li><p>Completion for elements of <code><a href="../reference/rxSolve.html">rxSolve()</a></code> objects, and <code><a href="../reference/et.html">et()</a></code> objects have been added (accessed through <code><a href="https://rdrr.io/r/base/Extract.html" class="external-link">$</a></code>)</p></li>
 <li><p>Completion of <code><a href="../reference/rxSolve.html">rxSolve()</a></code> arguments are now included since they are part of the main method</p></li>
 <li><p>Allow simulation with zero matrices, that provide the simulation without variability. This affects <code>rxSolve</code> as well as <code>rxMvnrnd</code> and <code>cvPost</code> (which will give a zero matrix whenever one is specified)</p></li>
 <li><p><code><a href="../reference/et.html">et()</a></code> can dose with <code>length(amt) &gt; 1</code> as long as the other arguments can create a event table.</p></li>
@@ -327,9 +327,9 @@
 <ul>
 <li><code>lag(var, #)</code></li>
 <li><code>lead(var, #)</code></li>
-<li><code><a href="https://dplyr.tidyverse.org/reference/nth.html">first(var)</a></code></li>
-<li><code><a href="https://dplyr.tidyverse.org/reference/nth.html">last(var)</a></code></li>
-<li><code><a href="https://rdrr.io/r/base/diff.html">diff(var)</a></code></li>
+<li><code><a href="https://dplyr.tidyverse.org/reference/nth.html" class="external-link">first(var)</a></code></li>
+<li><code><a href="https://dplyr.tidyverse.org/reference/nth.html" class="external-link">last(var)</a></code></li>
+<li><code><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff(var)</a></code></li>
 </ul>
 </li>
 </ul>
@@ -400,7 +400,7 @@
 <li>
 <p>Added ability to take more complex conditional expressions, including:</p>
 <ul>
-<li><code><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse(expr, yes, no)</a></code></li>
+<li><code><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html" class="external-link">ifelse(expr, yes, no)</a></code></li>
 <li><code>x = (x==1)*1 + (!(x==1))*2</code></li>
 <li>
 <code>if (logic){ expr} else if (logic) {expr} else {}</code>. The preferred syntax is still only <code>if</code>/<code>else</code> and the corresponding parsed code reflects this preference.
@@ -451,7 +451,7 @@
 </li>
 <li><p>Kept <code>evid</code> and <code>ii</code> as restricted items since they are not part of the covariate table and are restricted in use.</p></li>
 <li>
-<p>Added the following random number generators; They are thread safe (based on <code>threefry</code> <code>sitmo</code> and c++11) and your simulations with them will depend on the number of cores used in your simulation (Be careful about reproducibility with large number of threads; Also use parallel-solve type of RxODE simulations to avoid the <a href="https://www.johndcook.com/blog/2016/01/29/random-number-generator-seed-mistakes/">birthday problem</a>).</p>
+<p>Added the following random number generators; They are thread safe (based on <code>threefry</code> <code>sitmo</code> and c++11) and your simulations with them will depend on the number of cores used in your simulation (Be careful about reproducibility with large number of threads; Also use parallel-solve type of RxODE simulations to avoid the <a href="https://www.johndcook.com/blog/2016/01/29/random-number-generator-seed-mistakes/" class="external-link">birthday problem</a>).</p>
 <p>During ODE solving, the values of these are <code>0</code>, but while calculating the final output the variable is randomized at least for every output. These are:</p>
 <ul>
 <li>

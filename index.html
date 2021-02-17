@@ -271,32 +271,32 @@
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
-<p>You can install the released version of RxODE from <a href="https://CRAN.R-project.org">CRAN</a> with:</p>
+<p>You can install the released version of RxODE from <a href="https://CRAN.R-project.org" class="external-link">CRAN</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"RxODE"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"RxODE"</span><span class="op">)</span></code></pre></div>
 <p>You can install the development version of RxODE with</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"nlmixrdevelopment/RxODE"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"nlmixrdevelopment/RxODE"</span><span class="op">)</span></code></pre></div>
 <p>To build models with RxODE, you need a working c compiler. To use parallel threaded solving in RxODE, this c compiler needs to support open-mp.</p>
 <p>You can check to see if R has working c compiler you can check with:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## install.packages("pkgbuild")</span>
-<span class="fu">pkgbuild</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pkgbuild/man/has_build_tools.html">has_build_tools</a></span><span class="op">(</span>debug <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<span class="fu">pkgbuild</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pkgbuild/man/has_build_tools.html" class="external-link">has_build_tools</a></span><span class="op">(</span>debug <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 <p>If you do not have the toolchain, you can set it up as described by the platform information below:</p>
 <div id="windows" class="section level3">
 <h3 class="hasAnchor">
 <a href="#windows" class="anchor"></a>Windows</h3>
 <p>In windows you may simply use installr to install rtools:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"installr"</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">installr</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"installr"</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">installr</span><span class="op">)</span>
 <span class="fu">install.rtools</span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<p>Alternatively you can <a href="https://cran.r-project.org/bin/windows/Rtools/">download</a> and install rtools directly.</p>
+<p>Alternatively you can <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">download</a> and install rtools directly.</p>
 </div>
 <div id="mac-osx" class="section level3">
 <h3 class="hasAnchor">
 <a href="#mac-osx" class="anchor"></a>Mac OSX</h3>
-<p>To get the most speed you need OpenMP enabled and compile RxODE against that binary. Likely the most up to date discussion about this is the <a href="https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac">data.table installation faq for MacOS</a>, there are many ways to enable OpenMP in mac; Maybe someday OpenMP will be included in the default OS compilers.</p>
+<p>To get the most speed you need OpenMP enabled and compile RxODE against that binary. Likely the most up to date discussion about this is the <a href="https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac" class="external-link">data.table installation faq for MacOS</a>, there are many ways to enable OpenMP in mac; Maybe someday OpenMP will be included in the default OS compilers.</p>
 </div>
 <div id="linux" class="section level3">
 <h3 class="hasAnchor">
@@ -307,11 +307,11 @@
 <div id="development-version" class="section level2">
 <h2 class="hasAnchor">
 <a href="#development-version" class="anchor"></a>Development Version</h2>
-<p>Since the development version of RxODE uses StanHeaders, you will need to make sure your compiler is setup to support C++14, as described in the <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#configuration-of-the-c-toolchain">rstan setup page</a>. For R 4.0, I do not believe this requires modifying the windows toolchain any longer (so it is much easier to setup).</p>
-<p>Once the C++ toolchain is setup appropriately, you can install the development version from <a href="https://github.com/nlmixrdevelopment/RxODE">GitHub</a> with:</p>
+<p>Since the development version of RxODE uses StanHeaders, you will need to make sure your compiler is setup to support C++14, as described in the <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#configuration-of-the-c-toolchain" class="external-link">rstan setup page</a>. For R 4.0, I do not believe this requires modifying the windows toolchain any longer (so it is much easier to setup).</p>
+<p>Once the C++ toolchain is setup appropriately, you can install the development version from <a href="https://github.com/nlmixrdevelopment/RxODE" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># install.packages("devtools")</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span><span class="op">(</span><span class="st">"nlmixrdevelopment/RxODE"</span><span class="op">)</span></code></pre></div>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"nlmixrdevelopment/RxODE"</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
 <div id="illustrated-example" class="section level1">
@@ -320,18 +320,18 @@
 <p>The model equations can be specified through a text string, a model file or an R expression. Both differential and algebraic equations are permitted. Differential equations are specified by <code>d/dt(var_name) =</code>. Each equation can be separated by a semicolon.</p>
 <p>To load <code>RxODE</code> package and compile the model:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
 <span class="co">#&gt; RxODE 1.0.2 using 4 threads (see ?getRxThreads)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-quantities/units/">units</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-quantities/units/" class="external-link">units</a></span><span class="op">)</span>
 <span class="co">#&gt; udunits system database from C:/R/r-4.0.3/library/units/share/udunits</span>
 
 <span class="va">mod1</span> <span class="op">&lt;-</span><span class="fu"><a href="reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
     <span class="va">C2</span> <span class="op">=</span> <span class="va">centr</span><span class="op">/</span><span class="va">V2</span>;
     <span class="va">C3</span> <span class="op">=</span> <span class="va">peri</span><span class="op">/</span><span class="va">V3</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">=</span><span class="op">-</span><span class="va">KA</span><span class="op">*</span><span class="va">depot</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">centr</span><span class="op">)</span> <span class="op">=</span> <span class="va">KA</span><span class="op">*</span><span class="va">depot</span> <span class="op">-</span> <span class="va">CL</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">+</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span>  <span class="op">=</span>                    <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
+    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">=</span><span class="op">-</span><span class="va">KA</span><span class="op">*</span><span class="va">depot</span>;
+    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">centr</span><span class="op">)</span> <span class="op">=</span> <span class="va">KA</span><span class="op">*</span><span class="va">depot</span> <span class="op">-</span> <span class="va">CL</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">+</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
+    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span>  <span class="op">=</span>                    <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
+    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
 <span class="op">}</span><span class="op">)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; qs v0.23.5.</span>
@@ -345,12 +345,12 @@
 <p>Model parameters can be defined as named vectors. Names of parameters in the vector must be a superset of parameters in the ODE model, and the order of parameters within the vector is not important.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">theta</span> <span class="op">&lt;-</span> 
-   <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">2.94E-01</span>, CL<span class="op">=</span><span class="fl">1.86E+01</span>, V2<span class="op">=</span><span class="fl">4.02E+01</span>, <span class="co"># central </span>
+   <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">2.94E-01</span>, CL<span class="op">=</span><span class="fl">1.86E+01</span>, V2<span class="op">=</span><span class="fl">4.02E+01</span>, <span class="co"># central </span>
      Q<span class="op">=</span><span class="fl">1.05E+01</span>,  V3<span class="op">=</span><span class="fl">2.97E+02</span>,              <span class="co"># peripheral</span>
      Kin<span class="op">=</span><span class="fl">1</span>, Kout<span class="op">=</span><span class="fl">1</span>, EC50<span class="op">=</span><span class="fl">200</span><span class="op">)</span>               <span class="co"># effects</span></code></pre></div>
 <p>Initial conditions (ICs) can be defined through a vector as well. If the elements are not specified, the initial condition for the compartment is assumed to be zero.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">inits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>eff<span class="op">=</span><span class="fl">1</span><span class="op">)</span>;</code></pre></div>
+<code class="sourceCode R"><span class="va">inits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>eff<span class="op">=</span><span class="fl">1</span><span class="op">)</span>;</code></pre></div>
 <p>If you want to specify the initial conditions in the model you can add:</p>
 <pre><code>eff(0) = 1</code></pre>
 </div>
@@ -366,7 +366,7 @@
 <span class="va">ev</span><span class="op">$</span><span class="fu">add.dosing</span><span class="op">(</span>dose<span class="op">=</span><span class="fl">20000</span>, nbr.doses<span class="op">=</span><span class="fl">5</span>, start.time<span class="op">=</span><span class="fl">120</span>,
               dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span>
 <span class="va">ev</span><span class="op">$</span><span class="fu">add.sampling</span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span></code></pre></div>
-<p>If you wish you can also do this with the <code>mattigr</code> pipe operator <code><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></code></p>
+<p>If you wish you can also do this with the <code>mattigr</code> pipe operator <code><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></code></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hours"</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">10000</span>, nbr.doses<span class="op">=</span><span class="fl">10</span>, dosing.interval<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -375,12 +375,12 @@
   <span class="fu"><a href="reference/add.sampling.html">add.sampling</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span></code></pre></div>
 <p>The functions <code>get.dosing()</code> and <code>get.sampling()</code> can be used to retrieve information from the event table.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">ev</span><span class="op">$</span><span class="fu">get.dosing</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ev</span><span class="op">$</span><span class="fu">get.dosing</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;   id low time high       cmt   amt rate ii addl evid ss dur</span>
 <span class="co">#&gt; 1  1  NA    0   NA (default) 10000    0 12    9    1  0   0</span>
 <span class="co">#&gt; 2  1  NA  120   NA (default) 20000    0 24    4    1  0   0</span></code></pre></div>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">ev</span><span class="op">$</span><span class="fu">get.sampling</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ev</span><span class="op">$</span><span class="fu">get.sampling</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;   id low time high   cmt amt rate ii addl evid ss dur</span>
 <span class="co">#&gt; 1  1  NA    0   NA (obs)  NA   NA NA   NA    0 NA  NA</span>
 <span class="co">#&gt; 2  1  NA    1   NA (obs)  NA   NA NA   NA    0 NA  NA</span>
@@ -403,7 +403,7 @@
 <p>The ODE can now be solved by calling the model object’s <code>run</code> or <code>solve</code> function. Simulation results for all variables in the model are stored in the output matrix x.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span><span class="op">$</span><span class="fu">solve</span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;
-<span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="right">time</th>
@@ -496,12 +496,12 @@
 <span class="co">#&gt; _____________________________________________________________________________________________________________________________</span></code></pre></div>
 <p>This returns a modified data frame. You can see the compartment values in the plot below:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">C2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Central Concentration"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">C2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Central Concentration"</span><span class="op">)</span></code></pre></div>
 <p><img src="reference/figures/README-intro-central-1.png" title="plot of chunk intro-central" alt="plot of chunk intro-central" width="100%"></p>
 <p>Or,</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">eff</span><span class="op">)</span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"Effect"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">eff</span><span class="op">)</span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Effect"</span><span class="op">)</span></code></pre></div>
 <p><img src="reference/figures/README-intro-effect-1.png" title="plot of chunk intro-effect" alt="plot of chunk intro-effect" width="100%"></p>
 <p>Note that the labels are automatically labeled with the units from the initial event table. RxODE extracts <code>units</code> to label the plot (if they are present).</p>
 </div>
@@ -513,16 +513,16 @@
 <h2 class="hasAnchor">
 <a href="#ode-solving" class="anchor"></a>ODE solving</h2>
 <p>This is a brief comparison of pharmacometric ODE solving R packages to <code>RxODE</code>.</p>
-<p>There are several <a href="https://cran.r-project.org/web/views/DifferentialEquations.html">R packages for differential equations</a>. The most popular is <a href="https://cran.r-project.org/package=deSolve">deSolve</a>.</p>
-<p>However for pharmacometrics-specific ODE solving, there are only 2 packages other than <a href="https://CRAN.R-project.org/package=RxODE">RxODE</a> released on CRAN. Each uses compiled code to have faster ODE solving.</p>
+<p>There are several <a href="https://cran.r-project.org/web/views/DifferentialEquations.html" class="external-link">R packages for differential equations</a>. The most popular is <a href="https://cran.r-project.org/package=deSolve" class="external-link">deSolve</a>.</p>
+<p>However for pharmacometrics-specific ODE solving, there are only 2 packages other than <a href="https://CRAN.R-project.org/package=RxODE" class="external-link">RxODE</a> released on CRAN. Each uses compiled code to have faster ODE solving.</p>
 <ul>
 <li>
-<p><a href="https://CRAN.R-project.org/package=mrgsolve">mrgsolve</a>, which uses C++ lsoda solver to solve ODE systems. The user is required to write hybrid R/C++ code to create a mrgsolve model which is translated to C++ for solving.</p>
+<p><a href="https://CRAN.R-project.org/package=mrgsolve" class="external-link">mrgsolve</a>, which uses C++ lsoda solver to solve ODE systems. The user is required to write hybrid R/C++ code to create a mrgsolve model which is translated to C++ for solving.</p>
 <p>In contrast, <code>RxODE</code> has a R-like mini-language that is parsed into C code that solves the ODE system.</p>
-<p>Unlike <code>RxODE</code>, <code>mrgsolve</code> does not currently support symbolic manipulation of ODE systems, like automatic Jacobian calculation or forward sensitivity calculation (<code>RxODE</code> currently supports this and this is the basis of <a href="https://cran.r-project.org/package=nlmixr">nlmixr</a>’s FOCEi algorithm)</p>
+<p>Unlike <code>RxODE</code>, <code>mrgsolve</code> does not currently support symbolic manipulation of ODE systems, like automatic Jacobian calculation or forward sensitivity calculation (<code>RxODE</code> currently supports this and this is the basis of <a href="https://cran.r-project.org/package=nlmixr" class="external-link">nlmixr</a>’s FOCEi algorithm)</p>
 </li>
 <li>
-<p><a href="https://cran.r-project.org/package=dMod">dMod</a>, which uses a unique syntax to create “reactions”. These reactions create the underlying ODEs and then created c code for a compiled deSolve model.</p>
+<p><a href="https://cran.r-project.org/package=dMod" class="external-link">dMod</a>, which uses a unique syntax to create “reactions”. These reactions create the underlying ODEs and then created c code for a compiled deSolve model.</p>
 <p>In contrast <code>RxODE</code> defines ODE systems at a lower level. <code>RxODE</code>’s parsing of the mini-language comes from C, whereas <code>dMod</code>’s parsing comes from R.</p>
 <p>Like <code>RxODE</code>, <code>dMod</code> supports symbolic manipulation of ODE systems and calculates forward sensitivities and adjoint sensitivities of systems.</p>
 <p>Unlike <code>RxODE</code>, <code>dMod</code> is not thread-safe since <code>deSolve</code> is not yet thread-safe.</p>
@@ -531,7 +531,7 @@
 <p>And there is one package that is not released on CRAN:</p>
 <ul>
 <li>
-<p><a href="https://github.com/InsightRX/PKPDsim">PKPDsim</a> which defines models in an R-like syntax and converts the system to compiled code.</p>
+<p><a href="https://github.com/InsightRX/PKPDsim" class="external-link">PKPDsim</a> which defines models in an R-like syntax and converts the system to compiled code.</p>
 <p>Like <code>mrgsolve</code>, <code>PKPDsim</code> does not currently support symbolic manipulation of ODE systems.</p>
 <p><code>PKPDsim</code> is not thread-safe.</p>
 </li>
@@ -548,11 +548,11 @@
 <a href="#the-following-packages-for-solved-pk-systems-are-on-cran" class="anchor"></a>The following packages for solved PK systems are on CRAN</h3>
 <ul>
 <li>
-<a href="https://CRAN.R-project.org/package=mrgsolve">mrgsolve</a> currently has 1-2 compartment (poly-exponential models) models built-in. The solved systems and ODEs cannot currently be mixed.</li>
+<a href="https://CRAN.R-project.org/package=mrgsolve" class="external-link">mrgsolve</a> currently has 1-2 compartment (poly-exponential models) models built-in. The solved systems and ODEs cannot currently be mixed.</li>
 <li>
-<a href="https://github.com/kestrel99/pmxTools">pmxTools</a> currently have 1-3 compartment (super-positioning) models built-in. This is a R-only implementation.</li>
+<a href="https://github.com/kestrel99/pmxTools" class="external-link">pmxTools</a> currently have 1-3 compartment (super-positioning) models built-in. This is a R-only implementation.</li>
 <li>
-<a href="https://cran.r-project.org/web/packages/PKPDmodels/index.html">PKPDmodels</a> has a one-compartment model with gradients.</li>
+<a href="https://cran.r-project.org/web/packages/PKPDmodels/index.html" class="external-link">PKPDmodels</a> has a one-compartment model with gradients.</li>
 </ul>
 </div>
 <div id="non-cran-libraries" class="section level3">
@@ -560,7 +560,7 @@
 <a href="#non-cran-libraries" class="anchor"></a>Non-CRAN libraries:</h3>
 <ul>
 <li>
-<a href="https://github.com/abuhelwa/PKADVAN_Rpackage">PKADVAN</a> Provides 1-3 compartment models using non-superpositioning. This allows time-varying covariates.</li>
+<a href="https://github.com/abuhelwa/PKADVAN_Rpackage" class="external-link">PKADVAN</a> Provides 1-3 compartment models using non-superpositioning. This allows time-varying covariates.</li>
 </ul>
 </div>
 </div>
@@ -570,7 +570,7 @@
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2>Links</h2>
+<h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
 <li>Download from CRAN at <br><a href="https://cloud.r-project.org/package=RxODE">https://​cloud.r-project.org/​package=RxODE</a>
 </li>
@@ -582,7 +582,7 @@
 </div>
 
 <div class="license">
-<h2>License</h2>
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li>GPL (&gt;= 3) </li>
 </ul>
@@ -590,14 +590,14 @@
 
 
 <div class="citation">
-<h2>Citation</h2>
+<h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
 <li><a href="authors.html">Citing RxODE</a></li>
 </ul>
 </div>
 
 <div class="developers">
-<h2>Developers</h2>
+<h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Matthew L. Fidler <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0001-8538-6691" target="orcid.widget" aria-label="ORCID"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 <li>Melissa Hallow <br><small class="roles"> Author </small>  </li>
@@ -607,14 +607,14 @@
 </div>
 
 <div class="dev-status">
-<h2>Dev status</h2>
+<h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/nlmixrdevelopment/RxODE/actions"><img src="https://github.com/nlmixrdevelopment/RxODE/workflows/R-CMD-check/badge.svg" alt="R build status"></a></li>
-<li><a href="https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master"><img src="https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg" alt="codecov.io"></a></li>
-<li><a href="https://cran.r-project.org/package=RxODE"><img src="http://www.r-pkg.org/badges/version/RxODE" alt="CRAN version"></a></li>
-<li><a href="https://cran.r-project.org/package=RxODE"><img src="https://cranlogs.r-pkg.org/badges/grand-total/RxODE" alt="CRAN total downloads"></a></li>
-<li><a href="https://cran.r-project.org/package=RxODE"><img src="https://cranlogs.r-pkg.org/badges/RxODE" alt="CRAN total downloads"></a></li>
-<li><a href="https://www.codefactor.io/repository/github/nlmixrdevelopment/rxode"><img src="https://www.codefactor.io/repository/github/nlmixrdevelopment/rxode/badge" alt="CodeFactor"></a></li>
+<li><a href="https://github.com/nlmixrdevelopment/RxODE/actions" class="external-link"><img src="https://github.com/nlmixrdevelopment/RxODE/workflows/R-CMD-check/badge.svg" alt="R build status"></a></li>
+<li><a href="https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master" class="external-link"><img src="https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg" alt="codecov.io"></a></li>
+<li><a href="https://cran.r-project.org/package=RxODE" class="external-link"><img src="http://www.r-pkg.org/badges/version/RxODE" alt="CRAN version"></a></li>
+<li><a href="https://cran.r-project.org/package=RxODE" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/RxODE" alt="CRAN total downloads"></a></li>
+<li><a href="https://cran.r-project.org/package=RxODE" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/RxODE" alt="CRAN total downloads"></a></li>
+<li><a href="https://www.codefactor.io/repository/github/nlmixrdevelopment/rxode" class="external-link"><img src="https://www.codefactor.io/repository/github/nlmixrdevelopment/rxode/badge" alt="CodeFactor"></a></li>
 </ul>
 </div>
 

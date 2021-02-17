@@ -155,7 +155,7 @@
       <a href="../articles/RxODE-tutorials.html">Running the interactive tutorials</a>
     </li>
     <li>
-      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf">2015 CPT tutorial</a>
+      <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf" class="external-link">2015 CPT tutorial</a>
     </li>
     <li class="divider">
     <li>
@@ -190,18 +190,18 @@
       <a href="https://nlmixrdevelopment.github.io/RxODE-manual/">RxODE User Guide</a>
     </li>
     <li>
-      <a href="https://nlmixrdevelopment.github.io/nlmixr/">nlmixr</a>
+      <a href="https://nlmixrdevelopment.github.io/nlmixr/" class="external-link">nlmixr</a>
     </li>
   </ul>
 </li>
 <li>
-  <a href="https://github.com/nlmixrdevelopment/RxODE">
+  <a href="https://github.com/nlmixrdevelopment/RxODE" class="external-link">
     <span class="fas fa-github fa-lg"></span>
      
   </a>
 </li>
 <li>
-  <a href="https://github.com/nlmixrdevelopment/RxODE/releases">
+  <a href="https://github.com/nlmixrdevelopment/RxODE/releases" class="external-link">
     <span class="fas fa-download"></span>
      
   </a>
@@ -227,9 +227,9 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Weight Based Dosing in RxODE</h1>
             
-            <h4 class="date">2021-02-13</h4>
+            <h4 data-toc-skip class="date">2021-02-17</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-wt.Rmd"><code>vignettes/RxODE-wt.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-wt.Rmd" class="external-link"><code>vignettes/RxODE-wt.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-wt.Rmd</code></div>
 
     </div>
@@ -242,20 +242,20 @@
 <h1 class="hasAnchor">
 <a href="#creating-a-2-compartment-model-in-rxode" class="anchor"></a>Creating a 2-compartment model in RxODE</h1>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; RxODE 1.0.3 using 1 threads (see ?getRxThreads)
 #&gt;   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## Note the time covariate is not included in the simulation</span>
 <span class="va">m1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
-  <span class="va">CL</span> <span class="op">~</span> <span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="fl">0.2</span><span class="op">*</span><span class="va">SEX</span><span class="op">)</span><span class="op">*</span><span class="op">(</span><span class="fl">0.807</span><span class="op">+</span><span class="fl">0.00514</span><span class="op">*</span><span class="op">(</span><span class="va">CRCL</span><span class="op">-</span><span class="fl">91.2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">eta.cl</span><span class="op">)</span>
-  <span class="va">V1</span> <span class="op">~</span> <span class="fl">4.8</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">eta.v1</span><span class="op">)</span>
-  <span class="va">Q</span> <span class="op">~</span> <span class="op">(</span><span class="fl">3.46</span><span class="op">+</span><span class="fl">0.0593</span><span class="op">*</span><span class="op">(</span><span class="va">WT</span><span class="op">-</span><span class="fl">75.1</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">eta.q</span><span class="op">)</span>;
-  <span class="va">V2</span> <span class="op">~</span> <span class="fl">1.93</span><span class="op">*</span><span class="op">(</span><span class="fl">3.13</span><span class="op">+</span><span class="fl">0.0458</span><span class="op">*</span><span class="op">(</span><span class="va">WT</span><span class="op">-</span><span class="fl">75.1</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">eta.v2</span><span class="op">)</span>
+  <span class="va">CL</span> <span class="op">~</span> <span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="fl">0.2</span><span class="op">*</span><span class="va">SEX</span><span class="op">)</span><span class="op">*</span><span class="op">(</span><span class="fl">0.807</span><span class="op">+</span><span class="fl">0.00514</span><span class="op">*</span><span class="op">(</span><span class="va">CRCL</span><span class="op">-</span><span class="fl">91.2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">eta.cl</span><span class="op">)</span>
+  <span class="va">V1</span> <span class="op">~</span> <span class="fl">4.8</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">eta.v1</span><span class="op">)</span>
+  <span class="va">Q</span> <span class="op">~</span> <span class="op">(</span><span class="fl">3.46</span><span class="op">+</span><span class="fl">0.0593</span><span class="op">*</span><span class="op">(</span><span class="va">WT</span><span class="op">-</span><span class="fl">75.1</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">eta.q</span><span class="op">)</span>;
+  <span class="va">V2</span> <span class="op">~</span> <span class="fl">1.93</span><span class="op">*</span><span class="op">(</span><span class="fl">3.13</span><span class="op">+</span><span class="fl">0.0458</span><span class="op">*</span><span class="op">(</span><span class="va">WT</span><span class="op">-</span><span class="fl">75.1</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">eta.v2</span><span class="op">)</span>
   <span class="va">A1</span> <span class="op">~</span> <span class="va">centr</span>;
   <span class="va">A2</span> <span class="op">~</span> <span class="va">peri</span>;
-  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">centr</span><span class="op">)</span> <span class="op">~</span> <span class="op">-</span> <span class="va">A1</span><span class="op">*</span><span class="op">(</span><span class="va">CL</span><span class="op">/</span><span class="va">V1</span> <span class="op">+</span> <span class="va">Q</span><span class="op">/</span><span class="va">V1</span><span class="op">)</span> <span class="op">+</span> <span class="va">A2</span><span class="op">*</span><span class="va">Q</span><span class="op">/</span><span class="va">V2</span>;
-  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span> <span class="op">~</span> <span class="va">A1</span><span class="op">*</span><span class="va">Q</span><span class="op">/</span><span class="va">V1</span> <span class="op">-</span> <span class="va">A2</span><span class="op">*</span><span class="va">Q</span><span class="op">/</span><span class="va">V2</span>;
+  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">centr</span><span class="op">)</span> <span class="op">~</span> <span class="op">-</span> <span class="va">A1</span><span class="op">*</span><span class="op">(</span><span class="va">CL</span><span class="op">/</span><span class="va">V1</span> <span class="op">+</span> <span class="va">Q</span><span class="op">/</span><span class="va">V1</span><span class="op">)</span> <span class="op">+</span> <span class="va">A2</span><span class="op">*</span><span class="va">Q</span><span class="op">/</span><span class="va">V2</span>;
+  <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span> <span class="op">~</span> <span class="va">A1</span><span class="op">*</span><span class="va">Q</span><span class="op">/</span><span class="va">V1</span> <span class="op">-</span> <span class="va">A2</span><span class="op">*</span><span class="va">Q</span><span class="op">/</span><span class="va">V2</span>;
   <span class="va">DV</span> <span class="op">=</span> <span class="va">centr</span> <span class="op">/</span> <span class="va">V1</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">prop.err</span><span class="op">)</span>
 <span class="op">}</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; qs v0.23.6.</code></pre>
@@ -265,8 +265,8 @@
 <a href="#simulating-covariates" class="anchor"></a>Simulating Covariates</h1>
 <p>This simulation correlates age, sex, and weight. Since we will be using weight based dosing, this needs to be simulated first</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; 
 #&gt; Attaching package: 'dplyr'</code></pre>
 <pre><code>#&gt; The following objects are masked from 'package:stats':
@@ -278,17 +278,17 @@
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">nsub</span><span class="op">=</span><span class="fl">30</span>
 <span class="co"># Simulate Weight based on age and gender</span>
-<span class="va">AGE</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">nsub</span>,min<span class="op">=</span><span class="fl">18</span>,max<span class="op">=</span><span class="fl">70</span><span class="op">)</span><span class="op">)</span>
-<span class="va">SEX</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">nsub</span>,min<span class="op">=</span><span class="fl">0</span>,max<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>
-<span class="va">HTm</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">nsub</span>,<span class="fl">176.3</span>,<span class="fl">0.17</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fl">4482</span><span class="op">)</span><span class="op">)</span>,digits<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
-<span class="va">HTf</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">nsub</span>,<span class="fl">162.2</span>,<span class="fl">0.16</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fl">4857</span><span class="op">)</span><span class="op">)</span>,digits<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
-<span class="va">WTm</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fl">3.28</span><span class="op">+</span><span class="fl">1.92</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">HTm</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">nsub</span>,<span class="fl">0</span>,<span class="fl">0.14</span><span class="op">)</span><span class="op">)</span>,digits<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
-<span class="va">WTf</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fl">3.49</span><span class="op">+</span><span class="fl">1.45</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">HTf</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">nsub</span>,<span class="fl">0</span>,<span class="fl">0.17</span><span class="op">)</span><span class="op">)</span>,digits<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
-<span class="va">WT</span><span class="op">&lt;-</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="va">SEX</span><span class="op">==</span><span class="fl">1</span>,<span class="va">WTf</span>,<span class="va">WTm</span><span class="op">)</span>
-<span class="va">CRCL</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">nsub</span>,<span class="fl">30</span>,<span class="fl">140</span><span class="op">)</span><span class="op">)</span>
+<span class="va">AGE</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">nsub</span>,min<span class="op">=</span><span class="fl">18</span>,max<span class="op">=</span><span class="fl">70</span><span class="op">)</span><span class="op">)</span>
+<span class="va">SEX</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">nsub</span>,min<span class="op">=</span><span class="fl">0</span>,max<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>
+<span class="va">HTm</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nsub</span>,<span class="fl">176.3</span>,<span class="fl">0.17</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">4482</span><span class="op">)</span><span class="op">)</span>,digits<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
+<span class="va">HTf</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nsub</span>,<span class="fl">162.2</span>,<span class="fl">0.16</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">4857</span><span class="op">)</span><span class="op">)</span>,digits<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
+<span class="va">WTm</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fl">3.28</span><span class="op">+</span><span class="fl">1.92</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">HTm</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nsub</span>,<span class="fl">0</span>,<span class="fl">0.14</span><span class="op">)</span><span class="op">)</span>,digits<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
+<span class="va">WTf</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fl">3.49</span><span class="op">+</span><span class="fl">1.45</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">HTf</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nsub</span>,<span class="fl">0</span>,<span class="fl">0.17</span><span class="op">)</span><span class="op">)</span>,digits<span class="op">=</span><span class="fl">1</span><span class="op">)</span>
+<span class="va">WT</span><span class="op">&lt;-</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">SEX</span><span class="op">==</span><span class="fl">1</span>,<span class="va">WTf</span>,<span class="va">WTm</span><span class="op">)</span>
+<span class="va">CRCL</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">nsub</span>,<span class="fl">30</span>,<span class="fl">140</span><span class="op">)</span><span class="op">)</span>
 <span class="co">## id is in lower case to match the event table</span>
-<span class="va">cov.df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tibble.html">tibble</a></span><span class="op">(</span>id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">AGE</span><span class="op">)</span>, AGE<span class="op">=</span><span class="va">AGE</span>, SEX<span class="op">=</span><span class="va">SEX</span>, WT<span class="op">=</span><span class="va">WT</span>, CRCL<span class="op">=</span><span class="va">CRCL</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">cov.df</span><span class="op">)</span></code></pre></div>
+<span class="va">cov.df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tibble.html">tibble</a></span><span class="op">(</span>id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">AGE</span><span class="op">)</span>, AGE<span class="op">=</span><span class="va">AGE</span>, SEX<span class="op">=</span><span class="va">SEX</span>, WT<span class="op">=</span><span class="va">WT</span>, CRCL<span class="op">=</span><span class="va">CRCL</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">cov.df</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; # A tibble: 30 x 5
 #&gt;       id   AGE   SEX    WT  CRCL
 #&gt;    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
@@ -308,8 +308,8 @@
 <h1 class="hasAnchor">
 <a href="#creating-weight-based-event-table" class="anchor"></a>Creating weight based event table</h1>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">s</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0.25</span>,<span class="fl">0.5</span>,<span class="fl">0.75</span>,<span class="fl">1</span>,<span class="fl">1.5</span>,<span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">24</span>,by<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>
-<span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">s</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">{</span><span class="va">.x</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">x</span>; <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="va">.x</span>, <span class="va">x</span> <span class="op">+</span> <span class="va">.x</span><span class="op">)</span><span class="op">}</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">s</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0.25</span>,<span class="fl">0.5</span>,<span class="fl">0.75</span>,<span class="fl">1</span>,<span class="fl">1.5</span>,<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">24</span>,by<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>
+<span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">s</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">{</span><span class="va">.x</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">x</span>; <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="va">.x</span>, <span class="va">x</span> <span class="op">+</span> <span class="va">.x</span><span class="op">)</span><span class="op">}</span><span class="op">)</span>
 
 <span class="va">e</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="co">## Specify the id and weight based dosing from covariate data.frame</span>
@@ -319,7 +319,7 @@
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="va">as.data.frame</span> <span class="op">%&gt;%</span>
     <span class="co">## Merge the event table with the covarite information</span>
-    <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/merge.html">merge</a></span><span class="op">(</span><span class="va">cov.df</span>, by<span class="op">=</span><span class="st">"id"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+    <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">cov.df</span>, by<span class="op">=</span><span class="st">"id"</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="va">as_tibble</span>
 
 
@@ -345,14 +345,14 @@
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">e</span>,
              <span class="co">## Lotri uses lower-triangular matrix rep. for named matrix</span>
-             omega<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span><span class="op">(</span><span class="va">eta.cl</span> <span class="op">~</span> <span class="fl">.306</span>, 
+             omega<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">eta.cl</span> <span class="op">~</span> <span class="fl">.306</span>, 
                          <span class="va">eta.q</span> <span class="op">~</span><span class="fl">0.0652</span>,
                          <span class="va">eta.v1</span> <span class="op">~</span><span class="fl">.567</span>,
                          <span class="va">eta.v2</span> <span class="op">~</span> <span class="fl">.191</span><span class="op">)</span>,
-             sigma<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html">lotri</a></span><span class="op">(</span><span class="va">prop.err</span> <span class="op">~</span> <span class="fl">0.15</span><span class="op">)</span>,
+             sigma<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">prop.err</span> <span class="op">~</span> <span class="fl">0.15</span><span class="op">)</span>,
              addDosing <span class="op">=</span> <span class="cn">TRUE</span>, addCov <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; ______________________________ Solved RxODE object _____________________________
 #&gt; -- Parameters ($params): -------------------------------------------------------
 #&gt; # A tibble: 30 x 5
@@ -385,7 +385,7 @@
 #&gt; # ... with 894 more rows
 #&gt; ________________________________________________________________________________</code></pre>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">data</span>, log<span class="op">=</span><span class="st">"y"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data</span>, log<span class="op">=</span><span class="st">"y"</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; Warning in self$trans$transform(x): NaNs produced</code></pre>
 <pre><code>#&gt; Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
 <p><img src="RxODE-wt_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
@@ -394,7 +394,7 @@
 <h1 class="hasAnchor">
 <a href="#daptomycin-reference" class="anchor"></a>Daptomycin Reference</h1>
 <p>This weight-based simulation is adapted from the Daptomycin article below:</p>
-<p>Dvorchik B, Arbeit RD, Chung J, Liu S, Knebel W, Kastrissios H. Population pharmacokinetics of daptomycin. Antimicrob Agents Che mother 2004; 48: 2799-2807. <a href="doi:(10.1128/AAC.48.8.2799-2807.2004" class="uri">doi:(10.1128/AAC.48.8.2799-2807.2004</a>)[<a href="https://dx.doi.org/10.1128%2FAAC.48.8.2799-2807.2004" class="uri">https://dx.doi.org/10.1128%2FAAC.48.8.2799-2807.2004</a>]</p>
+<p>Dvorchik B, Arbeit RD, Chung J, Liu S, Knebel W, Kastrissios H. Population pharmacokinetics of daptomycin. Antimicrob Agents Che mother 2004; 48: 2799-2807. <a href="doi:(10.1128/AAC.48.8.2799-2807.2004" class="uri">doi:(10.1128/AAC.48.8.2799-2807.2004</a>)[<a href="https://dx.doi.org/10.1128%2FAAC.48.8.2799-2807.2004" class="external-link">https://dx.doi.org/10.1128%2FAAC.48.8.2799-2807.2004</a>]</p>
 <p>This simulation example was made available from the work of Sherwin Sy with modifications by Matthew Fidler</p>
 </div>
   </div>
@@ -414,7 +414,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 1.6.1.9000.</p>
 </div>
 
       </footer>
