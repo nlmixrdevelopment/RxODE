@@ -1,7 +1,6 @@
-#include <RxODE_model_shared.h>
 _getRxSolve_t _getRxSolve_;
-
-_simfun simeps, simeta;
+_simfun simeps;
+_simfun simeta;
 
 rx_solve *_solveData = NULL;
 RxODE_assign_ptr _assign_ptr = NULL;
@@ -69,6 +68,16 @@ RxODEi2_fn2 riweibull;
 
 RxODE_compareFactorVal_fn _compareFactorVal;
 
+double _prod(double *input, double *p, int type, int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  for (unsigned int i = 0; i < n; i++){
+    input[i] = va_arg(valist, double);
+  }
+  va_end(valist);
+  return _prodPS(input, p, n, type);
+}
+
 double _sum(double *input, double *pld, int m, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
@@ -83,17 +92,6 @@ double _sum(double *input, double *pld, int m, int type, int n, ...){
     }
   }
   return ret;
-}
-
-
-double _prod(double *input, double *p, int type, int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  for (unsigned int i = 0; i < n; i++){
-    input[i] = va_arg(valist, double);
-  }
-  va_end(valist);
-  return _prodPS(input, p, n, type);
 }
 
 double _sign(unsigned int n, ...) {

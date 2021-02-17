@@ -60,3 +60,33 @@ writeLines(c(sprintf("#define __VER_md5__ \"%s\"", md5),
              sprintf("#define __VER_ver__ \"%s\"", v)),
            ode.h)
 close(ode.h)
+
+unlink("src/codegen2.h")
+l <- readLines("inst/include/RxODE_model_shared.c")
+
+l <- l[l != ""]
+l <- gsub(" *= *NULL;", "=NULL;", l)
+
+def <- l
+w <- which(regexpr("double _prod", def) != -1) - 1
+def <- def[1:w]
+def <- gsub("=NULL", "", def);
+def <- gsub("[^ ]* *[*]?([^;]*);", "\\1", def)
+
+def <- c(def, c("_sum", "_sign", "_prod", "_max", "_min", "_transit4P", "_transit3P", "_assignFuns0", "_assignFuns"))
+
+final <- c("#include <time.h>",
+           "void writeHeader() {",
+           "time_t timeId;",
+           "timeId = time(NULL);",
+           paste0("sAppend(&sbOut, \"#define ", def, " ", def, "%ld\\n\", timeId);"),
+           "}",
+           "void writeBody() {",
+           paste0("sAppendN(&sbOut, ", sapply(paste0(l, "\n"), deparse1), ", ", nchar(l) + 1, ");"),
+           "}"
+           )
+
+codegen2.h <- file("src/codegen2.h", "wb")
+writeLines(final,
+           codegen2.h)
+close(codegen2.h)
