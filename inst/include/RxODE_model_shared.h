@@ -152,23 +152,8 @@ typedef double(*_rxSumType)(double *, int, double *, int, int);
 
 typedef void(*_simfun)(int id);
 
-extern _simfun simeps, simeta;
-
-extern double _sum(double *input, double *pld, int m, int type, int n, ...);
-
 typedef double(*_rxProdType)(double*, double*, int, int);
 
-extern double _prod(double *input, double *p, int type, int n, ...);
-
-extern double _sign(unsigned int n, ...);
-
-extern double _max(unsigned int n, ...);
-
-extern double _min(unsigned int n, ...);
-
-extern double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
-
-extern double _transit3P(double t, unsigned int id, double n, double mtt);
 
 typedef double (*linCmtA_p) (rx_solve *rx, unsigned int id, double t, int linCmt,
 			     int ncmt, int trans, double d_ka,
@@ -200,6 +185,14 @@ typedef rx_solve *(*_getRxSolve_t)();
 typedef int (*RxODEi_rxbinom) (rx_solving_options_ind* ind, int n, double prob);
 typedef int (*RxODEi2_ribinom) (rx_solving_options_ind* ind, int id, int n, double prob);
 
+extern _simfun simeps, simeta;
+extern double _sum(double *input, double *pld, int m, int type, int n, ...);
+extern double _prod(double *input, double *p, int type, int n, ...);
+extern double _sign(unsigned int n, ...);
+extern double _max(unsigned int n, ...);
+extern double _min(unsigned int n, ...);
+extern double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
+extern double _transit3P(double t, unsigned int id, double n, double mtt);
 extern void _assignFuns();
 extern void _assignFuns0();
 extern double _sum(double *input, double *pld, int m, int type, int n, ...);
@@ -209,9 +202,7 @@ extern double _max(unsigned int n, ...);
 extern double _min(unsigned int n, ...);
 extern double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
 extern double _transit3P(double t, unsigned int id, double n, double mtt);
-
 extern _getRxSolve_t _getRxSolve_;
-
 extern rx_solve *_solveData;
 extern RxODE_assign_ptr _assign_ptr;
 extern _rxRmModelLibType _rxRmModelLib;
