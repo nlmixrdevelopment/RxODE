@@ -28,8 +28,8 @@ These globals were registered at these points:
 ```
 
 We believe we fixed this by defining new variables for every ODE model
-compiled. Our tests show that this new approach does not have any ODR
-violations.  We also checked the binary symbols in 2 different
+compiled. Our ASAN/LTO tests show that this new approach does not have
+any ODR violations.  We also checked the binary symbols in 2 different
 compiled objects and made sure they were different.
 
 Please check on your machines if this is correct.
