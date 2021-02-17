@@ -73,7 +73,7 @@ def <- def[1:w]
 def <- gsub("=NULL", "", def);
 def <- gsub("[^ ]* *[*]?([^;]*);", "\\1", def)
 
-def <- c(def, c("_sum", "_sign", "_prod", "_max", "_min", "_transit4P", "_transit3P", "_assignFuns0", "_assignFuns"))
+def <- c(def, c("_sum", "_sign", "_prod", "_max", "_min", "_transit4P", "_transit3P", "_assignFuns0", "_assignFuns", "_getRxSolve_"))
 
 final <- c("#include <time.h>",
            "void writeHeader() {",
