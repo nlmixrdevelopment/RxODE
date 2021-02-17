@@ -70,7 +70,7 @@ l <- gsub(" *= *NULL;", "=NULL;", l)
 def <- l
 w <- which(regexpr("double _prod", def) != -1) - 1
 def <- def[1:w]
-def <- gsub("=NULL", "", def);
+def <- gsub("=NULL", "", def)
 def <- gsub("[^ ]* *[*]?([^;]*);", "\\1", def)
 
 def <- c(def, c("_sum", "_sign", "_prod", "_max", "_min", "_transit4P", "_transit3P", "_assignFuns0", "_assignFuns", "_getRxSolve_"))
@@ -82,7 +82,7 @@ final <- c("#include <time.h>",
            paste0("sAppend(&sbOut, \"#define ", def, " ", def, "%ld\\n\", timeId);"),
            "}",
            "void writeBody() {",
-           paste0("sAppendN(&sbOut, ", sapply(paste0(l, "\n"), deparse1), ", ", nchar(l) + 1, ");"),
+           paste0("sAppendN(&sbOut, ", vapply(paste0(l, "\n"), deparse1, character(1)), ", ", nchar(l) + 1, ");"),
            "}"
            )
 
