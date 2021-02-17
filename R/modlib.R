@@ -185,9 +185,6 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
     if (!dir.exists(devtools::package_file("src"))) {
       dir.create(devtools::package_file("src"), recursive = TRUE)
     }
-    .minfo("copy RxODE_model_shared.c")
-    file.copy(file.path(system.file(package="RxODE"), "include", "RxODE_model_shared.c"),
-                file.path(devtools::package_file("src"), "RxODE_model_shared.c"))
     .pkg <- basename(usethis::proj_get())
     sapply(
       list.files(.rxUseCdir, pattern = "[.]c", full.names = TRUE),
@@ -201,7 +198,6 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
         }
         .w <- which(.f0 == "#include \"extraC.h\"")[1]
         .f0[.w] <- .extraCnow
-        .w <- which(.f0 == "#include <RxODE_model_shared.c>")[1]
         .f0 <- .f0[-.w]
         writeLines(text = .f0, con = file.path(devtools::package_file("src"), basename(x)))
       }
