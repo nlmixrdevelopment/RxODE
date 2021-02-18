@@ -45,7 +45,6 @@
 			     (_solveData->subjects[_cSub].simIni[id] = (val)) : _solveData->subjects[_cSub].simIni[id])
 #undef rbeta
 #define rbeta(ind, x, y) rxbeta(ind, x, y)
-#define ribeta(ind, id, x, y) _getIndSim(id, rxbeta(ind, x, y))
 #undef rnorm
 #define rnorm(ind,x,y) rxnorm(ind, x,y)
 #define rxnorm1(x) rxnorm(&_solveData->subjects[_cSub], x, 1.0)
@@ -152,23 +151,8 @@ typedef double(*_rxSumType)(double *, int, double *, int, int);
 
 typedef void(*_simfun)(int id);
 
-extern _simfun simeps, simeta;
-
-extern double _sum(double *input, double *pld, int m, int type, int n, ...);
-
 typedef double(*_rxProdType)(double*, double*, int, int);
 
-extern double _prod(double *input, double *p, int type, int n, ...);
-
-extern double _sign(unsigned int n, ...);
-
-extern double _max(unsigned int n, ...);
-
-extern double _min(unsigned int n, ...);
-
-extern double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
-
-extern double _transit3P(double t, unsigned int id, double n, double mtt);
 
 typedef double (*linCmtA_p) (rx_solve *rx, unsigned int id, double t, int linCmt,
 			     int ncmt, int trans, double d_ka,
@@ -199,83 +183,5 @@ typedef rx_solve *(*_getRxSolve_t)();
 
 typedef int (*RxODEi_rxbinom) (rx_solving_options_ind* ind, int n, double prob);
 typedef int (*RxODEi2_ribinom) (rx_solving_options_ind* ind, int id, int n, double prob);
-
-extern void _assignFuns();
-extern void _assignFuns0();
-extern double _sum(double *input, double *pld, int m, int type, int n, ...);
-extern double _prod(double *input, double *p, int type, int n, ...);
-extern double _sign(unsigned int n, ...);
-extern double _max(unsigned int n, ...);
-extern double _min(unsigned int n, ...);
-extern double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
-extern double _transit3P(double t, unsigned int id, double n, double mtt);
-
-extern _getRxSolve_t _getRxSolve_;
-
-extern rx_solve *_solveData;
-extern RxODE_assign_ptr _assign_ptr;
-extern _rxRmModelLibType _rxRmModelLib;
-extern _rxGetModelLibType _rxGetModelLib;
-extern RxODE_ode_solver_old_c _old_c;
-extern RxODE_fn0i _ptrid;
-extern _rxIsCurrentC_type _rxIsCurrentC;
-extern _rxSumType _sumPS;
-extern _rxProdType _prodPS;
-
-extern RxODE_fn0i _prodType;
-extern RxODE_fn0i _sumType;
-
-extern _update_par_ptr_p _update_par_ptr;
-extern _getParCov_p _getParCov;
-extern linCmtA_p linCmtA;
-extern linCmtA_p linCmtC;
-extern linCmtB_p linCmtB;
-extern _rx_asgn _RxODE_rxAssignPtr;
-extern _rx_asgn _rxQr;
-
-extern RxODE_fn phi;
-extern RxODE_fn3 logit;
-extern RxODE_fn3 expit;
-extern RxODE_fn2 gammap;
-extern RxODE_fn2 gammaq;
-extern RxODE_fn2 lowergamma;
-extern RxODE_fn2 uppergamma;
-extern RxODE_fn2 gammapInv;
-extern RxODE_fn2 gammapDer;
-extern RxODE_fn2 gammapInva;
-extern RxODE_fn2 gammaqInv;
-extern RxODE_fn2 gammaqInva;
-
-extern RxODEi_fn2 rxnorm;
-extern RxODEi_fn2 rxnormV;
-extern RxODEi_rxbinom rxbinom;
-extern RxODEi_fn2 rxcauchy;
-extern RxODEi_fn rxchisq;
-extern RxODEi_fn rxexp;
-extern RxODEi_fn2 rxf;
-extern RxODEi_ifn rxgeom;
-extern RxODEi_fn2 rxgamma;
-extern RxODEi_fn2 rxbeta;
-extern RxODEi_ifn rxpois;
-extern RxODEi_fn rxt_;
-extern RxODEi_fn2 rxunif;
-extern RxODEi_fn2 rxweibull;
-
-extern RxODEi2_fn2 rinorm;
-extern RxODEi2_fn2 rinormV;
-extern RxODEi2_ribinom ribinom;
-extern RxODEi2_fn2 ricauchy;
-extern RxODEi2_fn richisq;
-extern RxODEi2_fn riexp;
-extern RxODEi2_fn2 rif;
-extern RxODEi2_ifn rigeom;
-extern RxODEi2_fn2 rigamma;
-extern RxODEi2_fn2 ribeta;
-extern RxODEi2_ifn ripois;
-extern RxODEi2_fn rit_;
-extern RxODEi2_fn2 riunif;
-extern RxODEi2_fn2 riweibull;
-
-extern RxODE_compareFactorVal_fn _compareFactorVal;
 
 #endif // __RxODE_model_shared_H__

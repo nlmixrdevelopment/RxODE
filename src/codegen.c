@@ -1,4 +1,5 @@
 #include "codegen.h"
+#include "codegen2.h"
 
 SEXP _RxODE_rxQs(SEXP);
 SEXP _RxODE_rxQr(SEXP);
@@ -81,6 +82,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     int i, j;
     char *buf;
     if (show_ode == 1){
+      writeHeader();
       sAppendN(&sbOut,"#include <RxODE_model_shared.h>\n",32);
       int mx = maxSumProdN;
       if (SumProdLD > mx) mx = SumProdLD;
@@ -104,7 +106,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       prnt_vars(print_simeps, 1, "#define _SYNC_simeps_ for (int _svari=_solveData->neps; _svari--;){", "}\n", 15);
       prnt_vars(print_simeta, 1, "#define _SYNC_simeta_ for (int _ovari=_solveData->neta; _ovari--;){", "}\n", 16);
       sAppendN(&sbOut,"#include \"extraC.h\"\n", 20);
-      sAppendN(&sbOut,"#include <RxODE_model_shared.c>\n", 32);
+      writeBody();
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
       sAppend(&sbOut, "SEXP %smodel_vars();\n", prefix);

@@ -36,3 +36,4 @@ inst/doc
 docs/
 .RData
 /src/ode.h
+/src/codegen2.h

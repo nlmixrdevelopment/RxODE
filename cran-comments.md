@@ -26,3 +26,25 @@ These globals were registered at these points:
 (/lib64/ld-linux-x86-64.so.2+0x11801)
 
 ```
+
+We believe we fixed this by defining new variables for every ODE model
+compiled. Our ASAN/LTO tests show that this new approach does not have
+any ODR violations.  We also checked the binary symbols in 2 different
+compiled objects and made sure they were different.
+
+Please check on your machines if the odr-violation has been removed.
+
+On our end, we cannot reproduce your results; On our machine the
+ODR-check for the last version was clean.
+
+Our guess is the extra `-march=native` means that our processor
+doesn't match the testing machine's processor. By your back-trace
+(which we appreciate) we believe that the error also points to the
+same memory location, same type of object and same place in the
+code. If I understand ODR correctly, this should be valid by the ODR
+rules.
+
+Our guess is the CRAN testing machine error is because of the
+`-march=native` over-optimization , causing either buggy code, some
+special linking error or false positive odr violations.
+
