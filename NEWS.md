@@ -1,4 +1,4 @@
-# RxODE 1.0.3
+# RxODE 1.0.4
 ## Breaking changes
 
 * RxODE can only use supported functions (could be breaking); You may
