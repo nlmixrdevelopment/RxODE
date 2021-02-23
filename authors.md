@@ -1,9 +1,11 @@
 # Authors
- * Matthew L. Fidler (core team/developer)
+
+ * Matthew L. Fidler (core team/developer/manual)
  * Melissa Hallow (tutorial writer)
  * Wenping Wang (core team/developer)
 
-# Contrib authors
+# Contributors
+
  * Zufar Mulyukov -- Wrote initial version of `rxShiny()` with modifications from Matthew Fidler
  * Alan Hindmarsh -- Lsoda author
  * Awad H. Al-Mohy -- Al-Mohy matrix exponential author
@@ -28,10 +30,11 @@
  * Arun Srinivasan -- forder secondary author (version modified by Matthew Fidler to allow different type of threading, indexing and exclude grouping)
  
 # RxODE acknowledgments:
- * Justin Wilkins -- Documentation updates and testing
+
+ * Justin Wilkins -- Documentation updates, logo and testing
  * Emma Schwager -- R IJK distribution author
  * J Coligne -- dop853 fortran author
- * Bill Denney -- Documentation updates and minor bug fixes
+ * Bill Denney -- Documentation updates, manual and minor bug fixes
  * Tim Waterhouse -- Fixed one bug with mac working directories
  * Richard Upton -- Helped with solving the ADVAN linCmt() solutions
  * Ross Ihaka -- R author
