@@ -94,7 +94,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.4.1</span>
       </span>
     </div>
 
@@ -313,29 +313,29 @@
 #&gt;    0 observation times (see $</span><span style='color: #0000BB;'>get.sampling</span><span>(); add with </span><span style='color: #0000BB;'>add.sampling</span><span> or </span><span style='color: #0000BB;'>et</span><span>)
 #&gt;    multiple doses in `addl` columns, expand with $</span><span style='color: #0000BB;'>expand</span><span>(); or </span><span style='color: #0000BB;'>etExpand</span><span>()
 #&gt; ── </span><span style='font-weight: bold;'>First part of :</span><span> ─────────────────────────────────────────────────────────────
-#&gt; </span><span style='color: #555555;'># A tibble: 1 x 5</span><span>
+#&gt; </span><span style='color: #949494;'># A tibble: 1 x 5</span><span>
 #&gt;    time   amt    ii  addl evid        
-#&gt;   </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;int&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;evid&gt;</span><span>      
-#&gt; </span><span style='color: #555555;'>1</span><span>     0     3    24    10 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span></div><div class='input'><span class='fu'>etExpand</span><span class='op'>(</span><span class='va'>ev</span><span class='op'>)</span> <span class='co'># expands event table, but doesn't modify it</span>
+#&gt;   </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;int&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;evid&gt;</span><span>      
+#&gt; </span><span style='color: #BCBCBC;'>1</span><span>     0     3    24    10 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span></div><div class='input'><span class='fu'>etExpand</span><span class='op'>(</span><span class='va'>ev</span><span class='op'>)</span> <span class='co'># expands event table, but doesn't modify it</span>
 </div><div class='output co'>#&gt; ────────────────────────── </span><span style='font-weight: bold;'>EventTable with 11 records</span><span> ──────────────────────────
 #&gt; 
 #&gt;    11 dosing records (see </span><span style='color: #BBBB00;'>x</span><span>$</span><span style='color: #0000BB;'>get.dosing</span><span>(); add with </span><span style='color: #0000BB;'>add.dosing</span><span> or </span><span style='color: #0000BB;'>et</span><span>)
 #&gt;    0 observation times (see </span><span style='color: #BBBB00;'>x</span><span>$</span><span style='color: #0000BB;'>get.sampling</span><span>(); add with </span><span style='color: #0000BB;'>add.sampling</span><span> or </span><span style='color: #0000BB;'>et</span><span>)
 #&gt; ── </span><span style='font-weight: bold;'>First part of </span><span style='color: #BBBB00;font-weight: bold;'>x</span><span style='font-weight: bold;'>:</span><span> ────────────────────────────────────────────────────────────
-#&gt; </span><span style='color: #555555;'># A tibble: 11 x 4</span><span>
+#&gt; </span><span style='color: #949494;'># A tibble: 11 x 4</span><span>
 #&gt;     time   amt    ii evid        
-#&gt;    </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;evid&gt;</span><span>      
-#&gt; </span><span style='color: #555555;'> 1</span><span>     0     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
-#&gt; </span><span style='color: #555555;'> 2</span><span>    24     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
-#&gt; </span><span style='color: #555555;'> 3</span><span>    48     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
-#&gt; </span><span style='color: #555555;'> 4</span><span>    72     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
-#&gt; </span><span style='color: #555555;'> 5</span><span>    96     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
-#&gt; </span><span style='color: #555555;'> 6</span><span>   120     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
-#&gt; </span><span style='color: #555555;'> 7</span><span>   144     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
-#&gt; </span><span style='color: #555555;'> 8</span><span>   168     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
-#&gt; </span><span style='color: #555555;'> 9</span><span>   192     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
-#&gt; </span><span style='color: #555555;'>10</span><span>   216     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
-#&gt; </span><span style='color: #555555;'>11</span><span>   240     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span></div><div class='input'>
+#&gt;    </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;evid&gt;</span><span>      
+#&gt; </span><span style='color: #BCBCBC;'> 1</span><span>     0     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
+#&gt; </span><span style='color: #BCBCBC;'> 2</span><span>    24     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
+#&gt; </span><span style='color: #BCBCBC;'> 3</span><span>    48     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
+#&gt; </span><span style='color: #BCBCBC;'> 4</span><span>    72     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
+#&gt; </span><span style='color: #BCBCBC;'> 5</span><span>    96     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
+#&gt; </span><span style='color: #BCBCBC;'> 6</span><span>   120     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
+#&gt; </span><span style='color: #BCBCBC;'> 7</span><span>   144     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
+#&gt; </span><span style='color: #BCBCBC;'> 8</span><span>   168     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
+#&gt; </span><span style='color: #BCBCBC;'> 9</span><span>   192     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
+#&gt; </span><span style='color: #BCBCBC;'>10</span><span>   216     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span>
+#&gt; </span><span style='color: #BCBCBC;'>11</span><span>   240     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span></div><div class='input'>
 <span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>ev</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; ─────────────────────────── </span><span style='font-weight: bold;'>EventTable with 1 records</span><span> ──────────────────────────
 #&gt; 
@@ -343,10 +343,10 @@
 #&gt;    0 observation times (see $</span><span style='color: #0000BB;'>get.sampling</span><span>(); add with </span><span style='color: #0000BB;'>add.sampling</span><span> or </span><span style='color: #0000BB;'>et</span><span>)
 #&gt;    multiple doses in `addl` columns, expand with $</span><span style='color: #0000BB;'>expand</span><span>(); or </span><span style='color: #0000BB;'>etExpand</span><span>()
 #&gt; ── </span><span style='font-weight: bold;'>First part of :</span><span> ─────────────────────────────────────────────────────────────
-#&gt; </span><span style='color: #555555;'># A tibble: 1 x 5</span><span>
+#&gt; </span><span style='color: #949494;'># A tibble: 1 x 5</span><span>
 #&gt;    time   amt    ii  addl evid        
-#&gt;   </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;int&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;evid&gt;</span><span>      
-#&gt; </span><span style='color: #555555;'>1</span><span>     0     3    24    10 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span></div><div class='input'>
+#&gt;   </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;int&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;evid&gt;</span><span>      
+#&gt; </span><span style='color: #BCBCBC;'>1</span><span>     0     3    24    10 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span><span></div><div class='input'>
 <span class='va'>ev</span><span class='op'>$</span><span class='fu'>expand</span><span class='op'>(</span><span class='op'>)</span> <span class='co'>## Expands the current event table and saves it in ev</span>
 </div></span></pre>
   </div>
@@ -360,11 +360,11 @@
 
       <footer>
       <div class="copyright">
-  <p>Developed by Matthew L. Fidler, Melissa Hallow, Wenping Wang.</p>
+  <p><p>Developed by Matthew L. Fidler, Melissa Hallow, Wenping Wang.</p></p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.9000.</p>
+  <p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 1.6.1.9000.</p></p>
 </div>
 
       </footer>
