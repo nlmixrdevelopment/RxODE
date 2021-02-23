@@ -22,6 +22,10 @@ that `RxODE` will translate into R-callable compiled code. It also
 describes the communication of variables between `R` and the
 `RxODE` modeling specification.
 
+
+Below is a commented example to quickly show the capabilities of
+`RxODE` syntax.
+
 ## Example
 
 ```

@@ -15,20 +15,25 @@ Assignment statements can be:
 
 - **simple** assignments, where the left hand is an identifier (i.e.,
   variable)
+  
 - special **time-derivative** assignments, where the left hand
   specifies the change of the amount in the corresponding state
   variable (compartment) with respect to time e.g., `d/dt(depot)`:
+  
 - special **initial-condition** assignments where the left hand
   specifies the compartment of the initial condition being specified,
   e.g. `depot(0) = 0`
+  
 - special model event changes including **bioavailability**
   (`f(depot)=1`), **lag time** (`alag(depot)=0`), **modeled rate**
   (`rate(depot)=2`) and **modeled duration** (`dur(depot)=2`). An
   example of these model features and the event specification for the
   modeled infusions the RxODE data specification is found in [RxODE
   events vignette](https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html).
+  
 - special **change point syntax, or model times**.  These model times are
   specified by `mtime(var)=time`
+  
 - special **Jacobian-derivative** assignments, where the left hand
   specifies the change in the compartment ode with respect to a
   variable.  For example, if `d/dt(y) = dy`, then a Jacobian for this
@@ -116,7 +121,8 @@ assigned, or used as a state but can be accessed in the RxODE code:
  - `rate`
  - `id`
  
-However the following variables are cannot be used in a model specification 
+However the following variables are cannot be used in a model specification:
+
  - `evid`
  - `ii`
 
