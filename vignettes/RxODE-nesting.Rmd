@@ -15,6 +15,5 @@ Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
 ```
 ## Nesting in RxODE
 
-
 ```{r child='../man-roxygen/rmdhunks/nesting.Rmdh'}
 ```
