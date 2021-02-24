@@ -147,8 +147,8 @@ arma::vec phiv(double t, arma::mat& A, arma::vec& u,
       if (istep == 0){
 	fact = R_pow_di((m+1)/M_E,m+1)*sqrt(M_2PI*(m+1));
 	t_new = (1/anorm)*pow((fact*tol)/(4*beta*anorm),xm);
-	s = R_pow_di(10,(floor(log10(t_new))-1));
-	t_new = ceil(t_new/s)*s; 
+	s = R_pow_di(10,(std::floor(log10(t_new))-1));
+	t_new = std::ceil(t_new/s)*s;
       }
       istep++;
       t_step = std::min( t_out-t_now,t_new );
@@ -205,8 +205,8 @@ arma::vec phiv(double t, arma::mat& A, arma::vec& u,
 	  break;
 	} else {
 	  t_step = gamma * t_step * pow(t_step*tol/err_loc, xm);
-	  s = R_pow_di(10,floor(log10(t_step))-1);
-	  t_step = ceil(t_step/s) * s;
+	  s = R_pow_di(10,std::floor(log10(t_step))-1);
+	  t_step = std::ceil(t_step/s) * s;
 	  if (ireject == mxrej){
 	    stop(_("requested tolerance is too high"));
 	  }
@@ -223,8 +223,8 @@ arma::vec phiv(double t, arma::mat& A, arma::vec& u,
       t_now = t_now + t_step;
       t_new = gamma * t_step * pow(t_step*tol/err_loc, xm);
       t_new = std::max(std::min(t_new, 1e300), 1.0-200);
-      s = R_pow_di(10.0, floor(log10(t_new))-1);
-      t_new = ceil(t_new/s) * s;
+      s = R_pow_di(10.0, std::floor(log10(t_new))-1);
+      t_new = std::ceil(t_new/s) * s;
       err_loc = std::max(err_loc,rndoff);
       s_error = s_error + err_loc;
     }

@@ -46,10 +46,10 @@ Matrix<T, Dynamic, 1> phiv3( double t, Matrix<T, Dynamic, Dynamic> A, VectorXd u
     if (beta_v==0) break;
     V.col(0) /= beta;
     if (istep == 0) {
-       double fact = (pow((m+1)/exp(1.0), m+1))*sqrt(2*3.14*(m+1));
-       t_new = (1.0/anorm)*pow((fact*tol)/(4*beta_v*anorm),xm);
-       s = pow(10.0,floor(log10(t_new))-1.0);
-       t_new = ceil(t_new/s)*s;
+       double fact = (std::pow((m+1)/exp(1.0), m+1))*sqrt(2*3.14*(m+1));
+       t_new = (1.0/anorm)*std::pow((fact*tol)/(4*beta_v*anorm),xm);
+       s = std::pow(10.0,std::floor(log10(t_new))-1.0);
+       t_new = std::ceil(t_new/s)*s;
     }
     double t_step = fmin( t_out-t_now,t_new );
     for (j = 0; j < m; ++j) {
@@ -103,9 +103,9 @@ Matrix<T, Dynamic, 1> phiv3( double t, Matrix<T, Dynamic, Dynamic> A, VectorXd u
        if (err_loc <= delta*t_step*tol)
           break;
        else {
-          t_step = gamma * t_step * pow(t_step*tol/err_loc, xm);
-          double s = pow(10.0, floor(log10(t_step))-1.0);
-          t_step = ceil(t_step/s) * s;
+          t_step = gamma * t_step * std::pow(t_step*tol/err_loc, xm);
+          double s = std::pow(10.0, std::floor(log10(t_step))-1.0);
+          t_step = std::ceil(t_step/s) * s;
           if (irej == mxrej)
              cout << "The requested tolerance is too high.\n";
        }
@@ -114,11 +114,11 @@ Matrix<T, Dynamic, 1> phiv3( double t, Matrix<T, Dynamic, Dynamic> A, VectorXd u
     w += V.block(0, 0, n, mx)*(beta*F.block(0, mb, mx, 1));
 
     t_now += t_step;
-    t_new = gamma * t_step * pow(t_step*tol/err_loc, xm);
-    s = pow(10.0, floor(log10(t_new))-1.0);
-    t_new = ceil(t_new/s) * s;
+    t_new = gamma * t_step * std::pow(t_step*tol/err_loc, xm);
+    s = std::pow(10.0, std::floor(log10(t_new))-1.0);
+    t_new = std::ceil(t_new/s) * s;
 
-    err_loc = fmax(err_loc, rndoff);
+    err_loc = std::fmax(err_loc, rndoff);
     s_error += err_loc;
   }
   

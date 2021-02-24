@@ -2925,7 +2925,7 @@ RObject et_(List input, List et__){
 	    double tmp = until[0] - time[0] - ii[0];
 	    if (tmp > 0){
 	      tmp = tmp/ii[0];
-	      double tmp2 = ceil(tmp);
+	      double tmp2 = std::ceil(tmp);
 	      if (tmp2 == tmp){
 		addl[0] = tmp + 1;
 	      } else {
@@ -2938,7 +2938,7 @@ RObject et_(List input, List et__){
 	    double tmp = until[0] - time[1] - ii[0];
 	    if (tmp > 0){
 	      tmp = tmp/ii[0];
-	      double tmp2 = ceil(tmp);
+	      double tmp2 = std::ceil(tmp);
 	      if (tmp2 == tmp){
 		addl[0] = tmp + 1;
 	      } else {

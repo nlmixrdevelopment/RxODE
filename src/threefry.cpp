@@ -1372,7 +1372,7 @@ extern "C" void simeps(int id) {
     // In this case the par_ptr will be updated with the new values, but they are out of order
     arma::mat out(1, rx->neps);
     // ind->id  = csub+csim*nsub;
-    int csim = floor(ind->id/rx->nsub);
+    int csim = std::floor(ind->id/rx->nsub);
     simvar(&out[0], 0, csim, rx);
     int *svar = rx->svar;
     double *par_ptr = ind->par_ptr;
@@ -1391,7 +1391,7 @@ extern "C" void simeta(int id) {
     // In this case the par_ptr will be updated with the new values, but they are out of order
     arma::mat out(1, rx->neta);
     // ind->id  = csub+csim*nsub;
-    int csim = floor(ind->id/rx->nsub);
+    int csim = std::floor(ind->id/rx->nsub);
     simvar(&out[0], 1, csim, rx);
     double *par_ptr = ind->par_ptr;
     for (int j=0; j < rx->neta; j++){

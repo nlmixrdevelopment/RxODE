@@ -232,16 +232,16 @@ extern "C" int par_progress(int c, int n, int d, int cores, clock_t t0, int stop
 	    clock_t t = _lastT0 - t0;
 	    double ts = ((double)t)/CLOCKS_PER_SEC;
 	    if (ts < 60){
-	      RSprintf("0:00:%02.f ", floor(ts));
+	      RSprintf("0:00:%02.f ", std::floor(ts));
 	    } else {
-	      double f = floor(ts/60);
+	      double f = std::floor(ts/60);
 	      double s = ts-f*60;
 	      if (f >= 60){
-		double h = floor(f/60);
+		double h = std::floor(f/60);
 		f = f-h*60;
-		RSprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+		RSprintf("%.0f:%02.f:%02.f ", h, f, std::floor(s));
 	      } else {
-		RSprintf("0:%02.f:%02.f ", f, floor(s));
+		RSprintf("0:%02.f:%02.f ", f, std::floor(s));
 	      }
 	    }
 	    RSprintf("\n");
@@ -276,16 +276,16 @@ extern "C" int par_progress(int c, int n, int d, int cores, clock_t t0, int stop
 	  clock_t t = _lastT0 - t0;
 	  double ts = ((double)t)/CLOCKS_PER_SEC;
 	  if (ts < 60){
-	    RSprintf("0:00:%02.f ", floor(ts));
+	    RSprintf("0:00:%02.f ", std::floor(ts));
 	  } else {
-	    double f = floor(ts/60);
+	    double f = std::floor(ts/60);
 	    double s = ts-f*60;
 	    if (f >= 60){
-	      double h = floor(f/60);
+	      double h = std::floor(f/60);
 	      f = f-h*60;
-	      RSprintf("%.0f:%02.f:%02.f ", h, f, floor(s));
+	      RSprintf("%.0f:%02.f:%02.f ", h, f, std::floor(s));
 	    } else {
-	      RSprintf("0:%02.f:%02.f ", f, floor(s));
+	      RSprintf("0:%02.f:%02.f ", f, std::floor(s));
 	    }
 	  }
 	  if (stop){
@@ -640,10 +640,10 @@ extern "C" rx_solve *getRxSolve_(){
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0){
   *wh = evid;
   *cmt = 0;
-  *wh100 = floor(*wh/1e5L);
-  *whI   = floor(*wh/1e4L-*wh100*10);
+  *wh100 = std::floor(*wh/1e5L);
+  *whI   = std::floor(*wh/1e4L-*wh100*10);
   *wh    = *wh - *wh100*1e5 - (*whI-1)*1e4;
-  *wh0 = floor((*wh%10000)/100);
+  *wh0 = std::floor((*wh%10000)/100);
   *cmt = *wh0 - 1 + *wh100*100;
   *wh0 = evid - *wh100*1e5 - *whI*1e4 - *wh0*100;
   if (rx_global.linNcmt != 0) {
@@ -680,7 +680,7 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
     int l = 0, r = ind->ndoses-1, m=0;
     while(l <= r){
-      m = floor((l+r)/2);
+      m = std::floor((l+r)/2);
       if (ind->idose[m] < idx) l = m+1;
       else if (ind->idose[m] > idx) r = m-1;
       else break;
@@ -741,7 +741,7 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
     int l = 0, r = ind->ndoses-1, m=0;
     while(l <= r){
-      m = floor((l+r)/2);
+      m = std::floor((l+r)/2);
       if (ind->idose[m] < idx) l = m+1;
       else if (ind->idose[m] > idx) r = m-1;
       else break;
@@ -903,7 +903,7 @@ extern "C" double getTime(int idx, rx_solving_options_ind *ind){
 	// bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
 	int l = 0, r = ind->ndoses-1, m=0;
 	while(l <= r){
-	  m = floor((l+r)/2);
+	  m = std::floor((l+r)/2);
 	  if (ind->idose[m] < idx) l = m+1;
 	  else if (ind->idose[m] > idx) r = m-1;
 	  else break;
@@ -1050,7 +1050,7 @@ extern "C" int syncIdx(rx_solving_options_ind *ind){
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
     int l = 0, r = ind->ndoses-1, m=0;
     while(l <= r){
-      m = floor((l+r)/2);
+      m = std::floor((l+r)/2);
       if (ind->idose[m] < ind->ix[ind->idx]) l = m+1;
       else if (ind->idose[m] > ind->ix[ind->idx]) r = m-1;
       else break;

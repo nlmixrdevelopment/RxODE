@@ -30,7 +30,7 @@ List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type){
     if (iType == 0){
       for (int i = lenF; i--;){
 	i1 = i % len1;
-	i2 = floor(i / len1);
+	i2 = std::floor(i / len1);
 	out1[i] = in1[i1];
 	out2[i] = in2[i2];
       }
@@ -47,7 +47,7 @@ List rxExpandGrid_(RObject &c1, RObject &c2, RObject &type){
       CharacterVector out5(lenF);
       for (int i = lenF; i--;){
 	i1 = i % len1;
-	i2 = floor(i / len1);
+	i2 = std::floor(i / len1);
 	std::string s1 = as<std::string>(in1[i1]);
 	std::string s2 = as<std::string>(in2[i2]);
 	out1[i] = s1;
@@ -101,7 +101,7 @@ List rxExpandSens_(CharacterVector state, CharacterVector calcSens){
   for (int i = lenF; i--;){
     //"d/dt(rx__sens_%s_BY_%s__)"
     i1 = i % len1;
-    i2 = floor(i / len1);
+    i2 = std::floor(i / len1);
     std::string curState = as<std::string>(state[i1]);
     std::string curSens = as<std::string>(calcSens[i2]);
     std::string sensSp = "rx__sens_" + curState + "_BY_" + curSens + "__";
@@ -175,8 +175,8 @@ List rxExpandSens2_(CharacterVector state, CharacterVector s1, CharacterVector s
   int i1, i2, i3;
   for (int i = lenF; i--;){
     i1 = i % len1;
-    i2 = (int)(floor(i / len1)) % len2;
-    i3 = floor(i / (len1*len2));
+    i2 = (int)(std::floor(i / len1)) % len2;
+    i3 = std::floor(i / (len1*len2));
     std::string cS = as<std::string>(state[i1]);
     std::string cS1 = as<std::string>(s1[i2]);
     std::string cS2 = as<std::string>(s2[i3]);
