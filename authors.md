@@ -31,6 +31,7 @@
  
 # RxODE acknowledgments:
 
+ * Sherwin Sy -- Weight based dosing example
  * Justin Wilkins -- Documentation updates, logo and testing
  * Emma Schwager -- R IJK distribution author
  * J Coligne -- dop853 fortran author
