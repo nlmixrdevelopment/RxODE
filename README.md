@@ -18,6 +18,7 @@ output:
 [![R build status](https://github.com/nlmixrdevelopment/RxODE/workflows/R-CMD-check/badge.svg)](https://github.com/nlmixrdevelopment/RxODE/actions)
 [![codecov.io](https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg)](https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
+[![CRAN checks](https://cranchecks.info/badges/summary/RxODE)](https://cran.r-project.org/web/checks/check_results_RxODE.html)
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/RxODE)](https://cran.r-project.org/package=RxODE)
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/RxODE)](https://cran.r-project.org/package=RxODE)
 [![CodeFactor](https://www.codefactor.io/repository/github/nlmixrdevelopment/rxode/badge)](https://www.codefactor.io/repository/github/nlmixrdevelopment/rxode)
@@ -98,12 +99,13 @@ rtools directly.
 
 ### Mac OSX
 
-To get the most speed you need OpenMP enabled and compile RxODE against
-that binary. Likely the most up to date discussion about this is the
-[data.table installation faq for
-MacOS](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac),
-there are many ways to enable OpenMP in mac; Maybe someday OpenMP will
-be included in the default OS compilers.
+To get the most speed you need OpenMP enabled and compile RxODE with
+that compiler. There are various options and the most up to date
+discussion about this is likely the [data.table installation faq for
+MacOS](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac).
+The last thing to keep in mind is that `RxODE` uses the code very
+similar to the original `lsoda` which requires the `gfortran` compiler
+to be setup as well as the `OpenMP` compilers.s
 
 ### Linux
 
@@ -141,9 +143,10 @@ To load `RxODE` package and compile the model:
 
 ```r
 library(RxODE)
-#> RxODE 1.0.2 using 4 threads (see ?getRxThreads)
+#> detected new version of RxODE, cleaning cache
+#> RxODE 1.0.4 using 4 threads (see ?getRxThreads)
 library(units)
-#> udunits system database from C:/R/r-4.0.3/library/units/share/udunits
+#> udunits system database from /usr/share/xml/udunits
 
 mod1 <-RxODE({
     C2 = centr/V2;
@@ -154,11 +157,11 @@ mod1 <-RxODE({
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
 #> 
-#> qs v0.23.5.
-#> > creating RxODE include directory
-#> > getting R compile options
-#> > precompiling headers
-#> v done
+#> qs v0.23.6.
+#> → creating RxODE include directory
+#> → getting R compile options
+#> → precompiling headers
+#> ✔ done
 ```
 
 ## Specify ODE parameters and initial conditions
@@ -305,14 +308,14 @@ You can also solve this and create a RxODE data frame:
 ```r
 x <- mod1 %>% rxSolve(theta, ev, inits);
 x
-#> ____________________________________________________ Solved RxODE object ____________________________________________________
-#> -- Parameters (x$params): ---------------------------------------------------------------------------------------------------
+#> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+#> ── Parameters (x$params): ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #>      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 #>  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
-#> -- Initial Conditions (x$inits): --------------------------------------------------------------------------------------------
+#> ── Initial Conditions (x$inits): ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #> depot centr  peri   eff 
 #>     0     0     0     1 
-#> -- First part of data (object): ---------------------------------------------------------------------------------------------
+#> ── First part of data (object): ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #> # A tibble: 241 x 7
 #>    time    C2    C3  depot centr  peri   eff
 #>     [h] <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>
@@ -322,8 +325,8 @@ x
 #> 4     3  51.9 4.46   4140. 2087. 1324.  1.23
 #> 5     4  44.5 5.98   3085. 1789. 1776.  1.23
 #> 6     5  36.5 7.18   2299. 1467. 2132.  1.21
-#> # ... with 235 more rows
-#> _____________________________________________________________________________________________________________________________
+#> # … with 235 more rows
+#> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
 ```
 
 This returns a modified data frame.  You can see the compartment
