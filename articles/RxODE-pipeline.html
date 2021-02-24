@@ -236,17 +236,17 @@
 
     
     
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
-<span class="co">#&gt; RxODE 1.0.4.1 using 1 threads (see ?getRxThreads)</span>
-<span class="co">#&gt;   no cache: create with `rxCreateCache()`</span></code></pre></div>
 <div id="setting-up-the-rxode-model-for-the-pipeline" class="section level1">
 <h1 class="hasAnchor">
 <a href="#setting-up-the-rxode-model-for-the-pipeline" class="anchor"></a>Setting up the RxODE model for the pipeline</h1>
 <p>In this example we will show how to use RxODE in a simple pipeline.</p>
 <p>We can start with a model that can be used for the different simulation workflows that RxODE can handle:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">Ribba2012</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
+<span class="co">#&gt; RxODE 1.0.4.1 using 1 threads (see ?getRxThreads)</span>
+<span class="co">#&gt;   no cache: create with `rxCreateCache()`</span>
+
+<span class="va">Ribba2012</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
     <span class="va">k</span> <span class="op">=</span> <span class="fl">100</span>
 
     <span class="va">tkde</span> <span class="op">=</span> <span class="fl">0.24</span>
@@ -315,14 +315,14 @@
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Ribba2012</span> <span class="op">%&gt;%</span> <span class="co"># Use RxODE</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time.units<span class="op">=</span><span class="st">"months"</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Pipe to a new event table</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">1</span>, time<span class="op">=</span><span class="fl">50</span>, until<span class="op">=</span><span class="fl">58</span>, ii<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Add dosing every 1.5 months</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">250</span>, by<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Add some sampling times (not required)</span>
     <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Solve the simulation</span>
     <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pt</span>, <span class="va">q</span>, <span class="va">qp</span>, <span class="va">pstar</span><span class="op">)</span> <span class="co"># Plot it, plotting the variables of interest</span></code></pre></div>
-<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
+<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 </div>
 <div id="simulating-multiple-subjects-from-a-single-event-table" class="section level1">
 <h1 class="hasAnchor">
@@ -331,7 +331,7 @@
 <h2 class="hasAnchor">
 <a href="#simulating-with-between-subject-variability" class="anchor"></a>Simulating with between subject variability</h2>
 <p>The next sort of simulation that may be useful is simulating multiple patients with the same treatments. In this case, we will use the <code>omega</code> matrix specified by the paper:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## Add CVs from paper for individual simulation</span>
 <span class="co">## Uses exact formula:</span>
 
@@ -366,7 +366,7 @@
 <span class="co">#&gt; eta.deltaqp 0.0000000</span>
 <span class="co">#&gt; eta.kde     0.3987761</span></code></pre></div>
 <p>With this information, it is easy to simulate 3 subjects from the model-based parameters:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1089</span><span class="op">)</span>
 <span class="va">Ribba2012</span> <span class="op">%&gt;%</span> <span class="co"># Use RxODE</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time.units<span class="op">=</span><span class="st">"months"</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Pipe to a new event table</span>
@@ -374,21 +374,21 @@
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">250</span>, by<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Add some sampling times (not required)</span>
     <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span>nSub<span class="op">=</span><span class="fl">3</span>, omega<span class="op">=</span><span class="va">omega</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Solve the simulation</span>
     <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pt</span>, <span class="va">q</span>, <span class="va">qp</span>, <span class="va">pstar</span><span class="op">)</span> <span class="co"># Plot it, plotting the variables of interest</span></code></pre></div>
-<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 <p>Note there are two different things that were added to this simulation: - <code>nSub</code> to specify how many subjects are in the model - <code>omega</code> to specify the between subject variability.</p>
 </div>
 <div id="simulation-with-unexplained-variability" class="section level2">
 <h2 class="hasAnchor">
 <a href="#simulation-with-unexplained-variability" class="anchor"></a>Simulation with unexplained variability</h2>
 <p>You can even add unexplained variability quite easily:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Ribba2012</span> <span class="op">%&gt;%</span> <span class="co"># Use RxODE</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time.units<span class="op">=</span><span class="st">"months"</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Pipe to a new event table</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">1</span>, time<span class="op">=</span><span class="fl">50</span>, until<span class="op">=</span><span class="fl">58</span>, ii<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Add dosing every 1.5 months</span>
      <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">250</span>, by<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Add some sampling times (not required)</span>
     <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span>nSub<span class="op">=</span><span class="fl">3</span>, omega<span class="op">=</span><span class="va">omega</span>, sigma<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">prop.err</span> <span class="op">~</span> <span class="fl">0.05</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Solve the simulation</span>
     <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pt</span>, <span class="va">q</span>, <span class="va">qp</span>, <span class="va">pstar</span><span class="op">)</span> <span class="co"># Plot it, plotting the variables of interest</span></code></pre></div>
-<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <p>In this case we only added the <code>sigma</code> matrix to have unexplained variability on the <code>pstar</code> or total tumor tissue.</p>
 <p>You can even simulate with uncertainty in the <code>theta</code> <code>omega</code> and <code>sigma</code> values if you wish.</p>
 </div>
@@ -396,7 +396,7 @@
 <h2 class="hasAnchor">
 <a href="#simulation-with-uncertainty-in-all-the-parameters-by-matrices" class="anchor"></a>Simulation with uncertainty in all the parameters (by matrices)</h2>
 <p>If we assume these parameters came from <code>95</code> subjects with <code>8</code> observations apiece, the degrees of freedom for the omega matrix would be <code>95</code>, and the degrees of freedom of the <code>sigma</code> matrix would be <code>95*8=760</code> because <code>95</code> items informed the <code>omega</code> matrix, and <code>760</code> items informed the <code>sigma</code> matrix.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Ribba2012</span> <span class="op">%&gt;%</span> <span class="co"># Use RxODE</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time.units<span class="op">=</span><span class="st">"months"</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Pipe to a new event table</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">1</span>, time<span class="op">=</span><span class="fl">50</span>, until<span class="op">=</span><span class="fl">58</span>, ii<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Add dosing every 1.5 months</span>
@@ -404,10 +404,10 @@
     <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span>nSub<span class="op">=</span><span class="fl">3</span>, nStud<span class="op">=</span><span class="fl">3</span>, omega<span class="op">=</span><span class="va">omega</span>, sigma<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">prop.err</span> <span class="op">~</span> <span class="fl">0.05</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>,
             dfSub<span class="op">=</span><span class="fl">760</span>, dfObs<span class="op">=</span><span class="fl">95</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Solve the simulation</span>
     <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pt</span>, <span class="va">q</span>, <span class="va">qp</span>, <span class="va">pstar</span><span class="op">)</span> <span class="co"># Plot it, plotting the variables of interest</span></code></pre></div>
-<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <p>Often in simulations we have a full covariance matrix for the fixed effect parameters. In this case, we do not have the matrix, but it could be specified by <code>thetaMat</code>.</p>
 <p>While we do not have a full covariance matrix, we can have information about the diagonal elements of the covariance matrix from the model paper. These can be converted as follows:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rseVar</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">est</span>, <span class="va">rse</span><span class="op">)</span><span class="op">{</span>
     <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">est</span><span class="op">*</span><span class="va">rse</span><span class="op">/</span><span class="fl">100</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span>
 <span class="op">}</span>
@@ -448,7 +448,7 @@ plot(pt, q, qp, pstar) # Plot it, plotting the variables of interest
 #&gt;  Some ID(s) could not solve the ODEs correctly; These values are replaced with NA.</code></pre>
 <p>To correct these problems you simply need to use a truncated multivariate normal and specify the reasonable ranges for the parameters. For <code>theta</code> this is specified by <code>thetaLower</code> and <code>thetaUpper</code>. Similar parameters are there for the other matrices: <code>omegaLower</code>, <code>omegaUpper</code>, <code>sigmaLower</code> and <code>sigmaUpper</code>. These may be named vectors, one numeric value, or a numeric vector matching the number of parameters specified in the <code>thetaMat</code> matrix.</p>
 <p>In this case the simulation simply has to be modified to have <code>thetaLower=0</code> to make sure all rates are positive:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Ribba2012</span> <span class="op">%&gt;%</span> <span class="co"># Use RxODE</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time.units<span class="op">=</span><span class="st">"months"</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Pipe to a new event table</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">1</span>, time<span class="op">=</span><span class="fl">50</span>, until<span class="op">=</span><span class="fl">58</span>, ii<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Add dosing every 1.5 months</span>
@@ -458,14 +458,14 @@ plot(pt, q, qp, pstar) # Plot it, plotting the variables of interest
             thetaLower<span class="op">=</span><span class="fl">0</span>, <span class="co"># Make sure the rates are reasonable</span>
             dfSub<span class="op">=</span><span class="fl">760</span>, dfObs<span class="op">=</span><span class="fl">95</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Solve the simulation</span>
     <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pt</span>, <span class="va">q</span>, <span class="va">qp</span>, <span class="va">pstar</span><span class="op">)</span> <span class="co"># Plot it, plotting the variables of interest</span></code></pre></div>
-<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 </div>
 </div>
 <div id="summarizing-the-simulation-output" class="section level1">
 <h1 class="hasAnchor">
 <a href="#summarizing-the-simulation-output" class="anchor"></a>Summarizing the simulation output</h1>
 <p>While it is easy to use <code>dplyr</code> and <code>data.table</code> to perform your own summary of simulations, <code>RxODE</code> also provides this ability by the <code>confint</code> function.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## This takes a little more time; Most of the time is the summary</span>
 <span class="co">## time.</span>
 
@@ -481,12 +481,12 @@ plot(pt, q, qp, pstar) # Plot it, plotting the variables of interest
 <span class="co">#&gt; summarizing data...done</span>
 
 <span class="va">sim0</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Plot the simulation intervals</span></code></pre></div>
-<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <div id="simulating-from-a-data-frame-of-parameters" class="section level2">
 <h2 class="hasAnchor">
 <a href="#simulating-from-a-data-frame-of-parameters" class="anchor"></a>Simulating from a data-frame of parameters</h2>
 <p>While the simulation from matrices can be very useful and a fast way to simulate information, sometimes you may want to simulate more complex scenarios. For instance, there may be some reason to believe that <code>tkde</code> needs to be above <code>tlambdap</code>, therefore these need to be simulated more carefully. You can generate the data frame in whatever way you want. The internal method of simulating the new parameters is exported too.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Attaching package: 'dplyr'</span>
@@ -543,7 +543,7 @@ plot(pt, q, qp, pstar) # Plot it, plotting the variables of interest
 <span class="co">#&gt; summarizing data...done</span>
 <span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">sim2</span>, file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"RxODE"</span><span class="op">)</span>, <span class="st">"pipeline-sim2.rds"</span><span class="op">)</span>, version <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
 <span class="va">sim2</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 </div>
 </div>
   </div>
