@@ -1,5 +1,3 @@
-## Nesting in RxODE
-
 More than one level of nesting is possible in RxODE; In this example
 we will be using the following uncertainties and sources of variability:
 
@@ -17,6 +15,7 @@ we will be using the following uncertainties and sources of variability:
 ### Event table
 
 This event table contains nesting variables:
+
  - inv: investigator id
  - id: subject id
  - eye: eye id (left or right)
