@@ -127,7 +127,7 @@ navbar:
     icon: fas fa-stethoscope
     menu:
         - text: "nlmixr/RxODE dataset overview"
-          href: articles/RxODE-dataset.html
+          href: articles/RxODE-datasets.html
         - text: "Supported Event Types"
           href: articles/RxODE-event-types.html
         - text: "Easy RxODE Event Tables"
@@ -167,7 +167,7 @@ navbar:
         href: https://nlmixrdevelopment.github.io/RxODE-manual/
       - text: nlmixr
         href: https://nlmixrdevelopment.github.io/nlmixr/
-  - icon: fa-github fa-lg
+  - icon: fa-github
     href: https://github.com/nlmixrdevelopment/RxODE
   - icon: fa-download
     href: https://github.com/nlmixrdevelopment/RxODE/releases
