@@ -108,7 +108,7 @@ static int matexp_scale_factor(const double *x, const int n)
 	    return 0;
     }
 
-    int i = (int) std::ceil(log2(x_1/theta[4]));
+    int i = (int) ceil(log2(x_1/theta[4]));
     return 1 << i;
 }
 
