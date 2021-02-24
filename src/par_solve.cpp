@@ -278,7 +278,7 @@ extern "C" int par_progress(int c, int n, int d, int cores, clock_t t0, int stop
 	  if (ts < 60){
 	    RSprintf("0:00:%02.f ", std::floor(ts));
 	  } else {
-	    double f = std::floor(ts/60);
+	    double f = std::floor((double)(ts/60.0));
 	    double s = ts-f*60;
 	    if (f >= 60){
 	      double h = std::floor(f/60);
@@ -640,7 +640,7 @@ extern "C" rx_solve *getRxSolve_(){
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0){
   *wh = evid;
   *cmt = 0;
-  *wh100 = std::floor(*wh/1e5L);
+  *wh100 = std::floor(wh/1e5L);
   *whI   = std::floor(*wh/1e4L-*wh100*10);
   *wh    = *wh - *wh100*1e5 - (*whI-1)*1e4;
   *wh0 = std::floor((*wh%10000)/100);
