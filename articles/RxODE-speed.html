@@ -42,7 +42,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.4.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.5</span>
       </span>
     </div>
 
@@ -245,7 +245,7 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
-<span class="co">#&gt; RxODE 1.0.4.1 using 1 threads (see ?getRxThreads)</span>
+<span class="co">#&gt; RxODE 1.0.5 using 1 threads (see ?getRxThreads)</span>
 <span class="co">#&gt;   no cache: create with `rxCreateCache()`</span>
 
 <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/joshuaulrich/microbenchmark/" class="external-link">microbenchmark</a></span><span class="op">)</span>
@@ -330,10 +330,10 @@
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">bench</span><span class="op">)</span>
 <span class="co">#&gt; Unit: milliseconds</span>
 <span class="co">#&gt;               expr      min        lq      mean    median        uq      max</span>
-<span class="co">#&gt;           runFor() 268.2461 276.80165 285.57400 283.59190 290.89475 375.9929</span>
-<span class="co">#&gt;        runSapply() 266.9087 274.03840 283.35900 278.78700 287.53650 374.1613</span>
-<span class="co">#&gt;  runSingleThread()  43.2287  45.13505  46.19224  45.73185  46.65900  55.4324</span>
-<span class="co">#&gt;       run2Thread()  24.8881  26.70755  28.38018  27.79425  29.48575  35.2470</span>
+<span class="co">#&gt;           runFor() 252.4564 267.31775 275.30842 274.33685 282.77895 300.3919</span>
+<span class="co">#&gt;        runSapply() 248.0616 264.87125 273.26682 271.59975 277.78300 387.7402</span>
+<span class="co">#&gt;  runSingleThread()  39.1292  43.20505  45.00510  45.17760  46.52045  51.7620</span>
+<span class="co">#&gt;       run2Thread()  22.5223  25.24735  27.12398  26.68215  28.62080  37.4115</span>
 <span class="co">#&gt;  neval</span>
 <span class="co">#&gt;    100</span>
 <span class="co">#&gt;    100</span>
@@ -355,9 +355,9 @@
                                            collapse<span class="op">=</span><span class="st">","</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">bench</span><span class="op">)</span>
 <span class="co">#&gt; Unit: milliseconds</span>
-<span class="co">#&gt;          expr     min       lq     mean  median      uq     max neval</span>
-<span class="co">#&gt;  runThread(1) 44.8990 45.80990 46.29363 46.1795 46.5942 52.1527   100</span>
-<span class="co">#&gt;  runThread(2) 26.3152 27.50235 29.76966 28.5043 30.7339 47.8238   100</span></code></pre></div>
+<span class="co">#&gt;          expr     min      lq     mean   median      uq     max neval</span>
+<span class="co">#&gt;  runThread(1) 37.7611 43.8541 45.87228 45.63865 47.6798 56.4687   100</span>
+<span class="co">#&gt;  runThread(2) 22.4517 26.1465 28.21924 27.91665 29.6103 40.2668   100</span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">bench</span><span class="op">)</span>
 <span class="co">#&gt; Coordinate system already present. Adding new coordinate system, which will replace the existing one.</span></code></pre></div>
@@ -438,7 +438,7 @@
 <span class="va">Stoplapply</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>
   
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">Stoplapply</span> <span class="op">-</span> <span class="va">Startlapply</span><span class="op">)</span>
-<span class="co">#&gt; Time difference of 8.287256 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 7.642258 secs</span></code></pre></div>
 <p>By applying some of the new parallel solving concepts you can simply run the same simulation both with less code and faster:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rx</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
@@ -477,7 +477,7 @@
 <span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">rx</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, returnType<span class="op">=</span><span class="st">"data.table"</span><span class="op">)</span>
 <span class="va">endParallel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">endParallel</span> <span class="op">-</span> <span class="va">startParallel</span><span class="op">)</span>
-<span class="co">#&gt; Time difference of 0.1748145 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 0.1716771 secs</span></code></pre></div>
 <p>You can see a striking time difference between the two methods; A few things to keep in mind:</p>
 <ul>
 <li><p><code>RxODE</code> use the thread-safe sitmo <code>threefry</code> routines for simulation of <code>eta</code> values. Therefore the results are expected to be different (also the random samples are taken in a different order which would be different)</p></li>
@@ -516,7 +516,7 @@
 <span class="co">#&gt; </span>
 <span class="co">#&gt; other attached packages:</span>
 <span class="co">#&gt; [1] MASS_7.3-53          data.table_1.14.0    qs_0.23.6           </span>
-<span class="co">#&gt; [4] ggplot2_3.3.3        microbenchmark_1.4-7 RxODE_1.0.4.1       </span>
+<span class="co">#&gt; [4] ggplot2_3.3.3        microbenchmark_1.4-7 RxODE_1.0.5         </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; loaded via a namespace (and not attached):</span>
 <span class="co">#&gt;  [1] tidyselect_1.1.0    xfun_0.21           bslib_0.2.4        </span>
@@ -531,7 +531,7 @@
 <span class="co">#&gt; [28] sys_3.4             fansi_0.4.2         highr_0.8          </span>
 <span class="co">#&gt; [31] Rcpp_1.0.6          scales_1.1.1        backports_1.2.1    </span>
 <span class="co">#&gt; [34] checkmate_2.0.0     cachem_1.0.4        desc_1.2.0         </span>
-<span class="co">#&gt; [37] RcppParallel_5.0.2  jsonlite_1.7.2      farver_2.0.3       </span>
+<span class="co">#&gt; [37] RcppParallel_5.0.3  jsonlite_1.7.2      farver_2.0.3       </span>
 <span class="co">#&gt; [40] mime_0.10           systemfonts_1.0.1   fs_1.5.0           </span>
 <span class="co">#&gt; [43] textshaping_0.3.1   digest_0.6.27       stringi_1.5.3      </span>
 <span class="co">#&gt; [46] lotri_0.3.1         dplyr_1.0.4         grid_4.0.4         </span>
@@ -556,13 +556,11 @@
 
 
       <footer><div class="copyright">
-  <p></p>
-<p>Developed by Matthew L. Fidler, Melissa Hallow, Wenping Wang.</p>
+  <p>Developed by Matthew L. Fidler, Melissa Hallow, Wenping Wang.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 1.6.1.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link external-link">pkgdown</a> 1.6.1.9000.</p>
 </div>
 
       </footer>
