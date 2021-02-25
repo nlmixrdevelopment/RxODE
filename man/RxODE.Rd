@@ -292,7 +292,11 @@ assigned, or used as a state but can be accessed in the RxODE code:
 }
 
 However the following variables are cannot be used in a model
-specification - \code{evid} - \code{ii}
+specification:
+\itemize{
+\item \code{evid}
+\item \code{ii}
+}
 
 Sometimes RxODE generates variables that are fed back to RxODE.
 Similarly, nlmixr generates some variables that are used in nlmixr

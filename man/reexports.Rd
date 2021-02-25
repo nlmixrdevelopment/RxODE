@@ -9,8 +9,6 @@
 \alias{geom_line}
 \alias{ggplot}
 \alias{scale_type}
-\alias{set_units}
-\alias{drop_units}
 \alias{ylab}
 \alias{xlab}
 \alias{waiver}
@@ -38,8 +36,6 @@ below to see their documentation.
   \item{lotri}{\code{\link[lotri]{lotri}}}
 
   \item{magrittr}{\code{\link[magrittr:pipe]{\%>\%}}}
-
-  \item{units}{\code{\link[units]{drop_units}}, \code{\link[units]{set_units}}}
 }}
 
 \value{ Inherited from parent routine }

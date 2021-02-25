@@ -4,25 +4,28 @@
 #' @param ... see [type_sum][pillar::type_sum]
 #' @param width see [type_sum][pillar::type_sum]
 #' @return type_sum units
-type_sum.units <- loadNamespace("units")$type_sum.units
+type_sum.units <- function(x) {
+  stop("needs units")
+}
 
 #' @name tibble
-format_type_sum.type_sum_units <- loadNamespace("units")$format_type_sum.type_sum_units
+format_type_sum.type_sum_units <- function(x, width, ...){
+  stop("needs units")
+}
 
 #' @name tibble
-pillar_shaft.units <- loadNamespace("units")$pillar_shaft.units
+pillar_shaft.units <- function(x, ...){
+  stop("needs units")
+}
 
 #' @name tibble
-type_sum.mixed_units <- loadNamespace("units")$type_sum.mixed_units
+type_sum.mixed_units <- function(x) {
+  stop("needs units")
+}
 
 #' @name tibble
-pillar_shaft.mixed_units <- loadNamespace("units")$pillar_shaft.mixed_units
-function(x, ...) {
-  if (!requireNamespace("pillar", quietly = TRUE)) {
-    stop("package 'xpillar' not available", .call = FALSE)
-  }
-  out <- format(x, ...)
-  pillar::new_pillar_shaft_simple(out, align = "right", min_width = 6)
+pillar_shaft.mixed_units <- function(x, ...){
+  stop("needs units")
 }
 
 #' @export
@@ -65,14 +68,6 @@ ggplot2::ggplot
 #' @importFrom ggplot2 scale_type
 #' @export
 ggplot2::scale_type
-
-#' @importFrom units set_units
-#' @export
-units::set_units
-
-#' @importFrom units drop_units
-#' @export
-units::drop_units
 
 #' @importFrom ggplot2 ylab
 #' @export

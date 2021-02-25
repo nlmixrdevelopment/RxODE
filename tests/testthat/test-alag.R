@@ -1,7 +1,7 @@
 ## Tests for absorption lag time.
 rxodeTest(
 {
-
+  if (requireNamespace("units", quietly = TRUE)) {
     ## 6.1
     mod <- RxODE({
       a <- 6
@@ -31,6 +31,7 @@ rxodeTest(
       et$add.dosing(
         dose = 2 / 24, start.time = 0,
         nbr.doses = 10, dosing.interval = 1
+
       )
 
 
@@ -81,6 +82,7 @@ rxodeTest(
       expect_error(solve(mod3, et))
 
     }
+  }
   },
   test = "lvl2"
 )

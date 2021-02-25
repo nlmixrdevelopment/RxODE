@@ -1,7 +1,8 @@
 rxodeTest(
-  {
-    context("plot tests")
+{
 
+  context("plot tests")
+  if (requireNamespace("units", quietly = TRUE)) {
     test_that("plot tests", {
       skip_if(utils::packageVersion("ggplot2") < "3.3.0")
 
@@ -274,6 +275,7 @@ rxodeTest(
       })
 
     })
+  }
 
   },
   silent = TRUE,

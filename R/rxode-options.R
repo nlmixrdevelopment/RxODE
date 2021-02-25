@@ -4,6 +4,7 @@
     assignInMyNamespace("guide_none", .ggplot2$guide_none)
   }
 }
+.hasUnits <- FALSE
 .onLoad <- function(libname, pkgname) { ## nocov start
   if (requireNamespace("pillar", quietly = TRUE)) {
     .s3register("pillar::type_sum", "rxEvid")
@@ -21,6 +22,22 @@
   }
   if (requireNamespace("data.table", quietly = TRUE)) {
     .s3register("data.table::as.data.table", "rxEt")
+  }
+  if (requireNamespace("units", quietly=TRUE)) {
+    .s3register("units::set_units", "rxEt")
+    .s3register("units::set_units", "rxRateDur")
+    .s3register("units::drop_units", "rxEt")
+    .s3register("units::drop_units", "rxSolve")
+    .s3register("units::units<-","rxEvid")
+    assignInMyNamespace(".hasUnits", TRUE)
+    .units <- loadNamespace("units")
+    assignInMyNamespace("type_sum.units", .units$type_sum.units)
+    assignInMyNamespace("format_type_sum.type_sum_units", .units$format_type_sum.type_sum_units)
+    assignInMyNamespace("pillar_shaft.units ", .units$pillar_shaft.units)
+    assignInMyNamespace("type_sum.mixed_units", .units$type_sum.mixed_units)
+    assignInMyNamespace("pillar_shaft.mixed_units ", .units$pillar_shaft.mixed_units)
+  } else {
+    assignInMyNamespace(".hasUnits", FALSE)
   }
   backports::import(pkgname)
   ## Setup RxODE.prefer.tbl

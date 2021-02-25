@@ -26,16 +26,41 @@ void setEvCur(RObject cur){
 List getEtRxsolve(Environment e);
 
 Function loadNamespace2("loadNamespace", R_BaseNamespace);
-Environment unitsPkg = loadNamespace2("units");
+Environment unitsPkg;
+bool _assignUnits = false;
+bool _assignUnitsVal = false;
+bool assignUnits() {
+  if (!_assignUnits) {
+    Function rn("requireNamespace", R_BaseNamespace);
+    if (as<bool>(rn("units",_["quietly"]=true))) {
+      unitsPkg = loadNamespace2("units");
+      _assignUnits = true;
+      _assignUnitsVal=true;
+      return true;
+    } else {
+      _assignUnits = true;
+      _assignUnitsVal=false;
+      return false;
+    }
+  } else {
+    return _assignUnitsVal;
+  }
+}
 NumericVector setUnits(NumericVector obj, std::string unit){
-  Function f = as<Function>(unitsPkg["set_units"]);
-  if (unit == ""){
+  if (assignUnits()) {
+    Function f = as<Function>(unitsPkg["set_units"]);
+    if (unit == ""){
+      obj.attr("class") = R_NilValue;
+      obj.attr("units") = R_NilValue;
+      return obj;
+    } else {
+      return asNv(f(_["x"] = obj, _["value"] = unit, _["mode"] = "standard"),
+		  "set_units(obj)");
+    }
+  } else {
     obj.attr("class") = R_NilValue;
     obj.attr("units") = R_NilValue;
     return obj;
-  } else {
-    return asNv(f(_["x"] = obj, _["value"] = unit, _["mode"] = "standard"),
-		"set_units(obj)");
   }
 }
 
@@ -820,16 +845,20 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
 }
 
 CharacterVector deparseUnit(NumericVector nv){
-  if (rxIs(nv, "units")){
-    Function f = as<Function>(unitsPkg["deparse_unit"]);
-    NumericVector nv0 = NumericVector::create(0); // Create to fix NA issues.
-    nv0.attr("units") = nv.attr("units");
-    nv0.attr("class") = "units";
-    CharacterVector ret = f(nv0);
-    if (as<std::string>(ret) == "NA"){
-      return CharacterVector::create(NA_STRING);
+  if (rxIs(nv, "units")) {
+    if (assignUnits()) {
+      Function f = as<Function>(unitsPkg["deparse_unit"]);
+      NumericVector nv0 = NumericVector::create(0); // Create to fix NA issues.
+      nv0.attr("units") = nv.attr("units");
+      nv0.attr("class") = "units";
+      CharacterVector ret = f(nv0);
+      if (as<std::string>(ret) == "NA"){
+	return CharacterVector::create(NA_STRING);
+      } else {
+	return ret;
+      }
     } else {
-      return ret;
+      return CharacterVector::create(NA_STRING);
     }
   } else {
     return CharacterVector::create(NA_STRING);

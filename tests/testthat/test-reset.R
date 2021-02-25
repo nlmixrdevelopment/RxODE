@@ -1,5 +1,6 @@
 rxodeTest(
-  {
+{
+  if (requireNamespace("units", quietly = TRUE)) {
     context("Test reset event EVID=3")
 
     ## 6.1
@@ -70,6 +71,7 @@ rxodeTest(
     })
 
     ## library(ggplot2);x2 %>% ggplot(aes(time,blood)) + geom_line()
+  }
   },
   test = "lvl2"
 )

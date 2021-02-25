@@ -1,5 +1,6 @@
 rxodeTest(
-  {
+{
+  if (requireNamespace("units", quietly = TRUE)) {
     for (meth in c("liblsoda", "lsoda")) { ## Dop is very close but doesn't match precisely.
 
       context(sprintf("Simple test for time-varying covariates (%s)", meth))
@@ -63,9 +64,9 @@ rxodeTest(
       unlink(t)
 
       cov.lin <- approxfun(out$time, out$c,
-        yleft = cov$c[1], yright = cov$c[length(cov$c)],
-        method = "constant", f = 1
-      )
+                           yleft = cov$c[1], yright = cov$c[length(cov$c)],
+                           method = "constant", f = 1
+                           )
       lin.interp$c2 <- cov.lin(lin.interp$t)
 
       test_that("NOCB Approximation similar to approxfun.", {
@@ -87,8 +88,8 @@ rxodeTest(
       unlink(t)
 
       cov.lin <- approxfun(out$time, out$c,
-        yleft = cov$c[1], yright = cov$c[length(cov$c)],
-        method = "constant", f = 0.5)
+                           yleft = cov$c[1], yright = cov$c[length(cov$c)],
+                           method = "constant", f = 0.5)
 
       lin.interp$c2 <- cov.lin(lin.interp$t)
 
@@ -112,9 +113,9 @@ rxodeTest(
       unlink(t)
 
       cov.lin <- approxfun(out$time, out$c,
-        yleft = cov$c[1], yright = cov$c[length(cov$c)],
-        method = "constant"
-      )
+                           yleft = cov$c[1], yright = cov$c[length(cov$c)],
+                           method = "constant"
+                           )
 
       lin.interp$c2 <- cov.lin(lin.interp$t)
 
@@ -249,10 +250,10 @@ rxodeTest(
       })
 
       tmp <- rxSolve(mod1, d3, structure(c(2.02103, 4.839305, 3.518676, -1.391113, 0.108127023, -0.064170725, 0.087765769),
-        .Names = c(sprintf("THETA[%d]", 1:4), sprintf("ETA[%d]", 1:3))
-      ),
-      add.cov = TRUE,
-      method = meth)
+                                         .Names = c(sprintf("THETA[%d]", 1:4), sprintf("ETA[%d]", 1:3))
+                                         ),
+                     add.cov = TRUE,
+                     method = meth)
 
       test_that("Data Frame single subject solve", {
         expect_equal(tmp %>%
@@ -400,6 +401,7 @@ rxodeTest(
 
       expect_equal(x1$CL, x2$CL)
     })
+  }
   },
   silent = TRUE,
   test = "lvl2"

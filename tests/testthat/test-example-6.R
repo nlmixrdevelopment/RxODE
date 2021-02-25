@@ -1,6 +1,8 @@
 
 rxodeTest(
-  {
+{
+
+  if (requireNamespace("units", quietly = TRUE)) {
     require(RxODE)
     context("Example 6")
     require(digest)
@@ -438,6 +440,7 @@ d/dt(blood) = - b*blood
     test_that("bolus model bid works", {
       expect_equal(round(as.data.frame(pk2), 4), dat4)
     })
+  }
   },
   silent = TRUE,
   test = "lvl2"

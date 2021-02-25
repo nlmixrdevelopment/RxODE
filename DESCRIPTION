@@ -68,6 +68,7 @@ Suggests:
     xgxr,
     pillar,
     tibble,
+    units (>= 0.6-0),
     rsconnect,
     patchwork
 Imports:
@@ -87,7 +88,6 @@ Imports:
     rex,
     qs,
     sys,
-    units (>= 0.6-0),
     tools,
     utils
 Description: Facilities for running simulations from ordinary
