@@ -79,6 +79,9 @@ Repeat an RxODE event table
 
 \donttest{
 
+library(RxODE)
+library(units)
+
 ## Model from RxODE tutorial
 mod1 <-RxODE({
     KA=2.94E-01;
