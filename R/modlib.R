@@ -191,14 +191,9 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
       function(x) {
         .minfo(sprintf("copy '%s'", basename(x)))
         .f0 <- readLines(x)
-        if (.pkg == "RxODE") {
-          .f0[1] <- "#include \"../inst/include/RxODE.h\"\n#include \"../inst/include/RxODE_model_shared.h\""
-        } else {
-          .f0[1] <- "#include <RxODE.h>\n#include <RxODE_model_shared.h>"
-        }
-        .w <- which(.f0 == "#include \"extraC.h\"")[1]
-        .f0[.w] <- .extraCnow
-        .f0 <- .f0[-.w]
+        .f0 <- c("#include <RxODE.h>\n#include <RxODE_model_shared.h>", .f0)
+        .w <- which(.f0 == "#include \"extraC.h\"")
+        if (length(.w) > 0) .f0 <- .f0[-.w[1]]
         writeLines(text = .f0, con = file.path(devtools::package_file("src"), basename(x)))
       }
     )
