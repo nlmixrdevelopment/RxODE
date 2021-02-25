@@ -1,30 +1,20 @@
-#' type_sum function for units
-#' @name tibble
-#' @param x see [type_sum][pillar::type_sum]
-#' @param ... see [type_sum][pillar::type_sum]
-#' @param width see [type_sum][pillar::type_sum]
-#' @return type_sum units
-type_sum.units <- function(x) {
+type_sum.units <- function(x, ...) {
   stop("needs units")
 }
 
-#' @name tibble
 format_type_sum.type_sum_units <- function(x, width, ...){
   stop("needs units")
 }
 
-#' @name tibble
 pillar_shaft.units <- function(x, ...){
   stop("needs units")
 }
 
-#' @name tibble
-type_sum.mixed_units <- function(x) {
+type_sum.mixed_units <- function(x, ...) {
   stop("needs units")
 }
 
-#' @name tibble
-pillar_shaft.mixed_units <- function(x, ...){
+pillar_shaft.mixed_units <- function(x, ...) {
   stop("needs units")
 }
 
