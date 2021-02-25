@@ -73,7 +73,7 @@ def <- def[1:w]
 def <- gsub("=NULL", "", def)
 def <- gsub("[^ ]* *[*]?([^;]*);", "\\1", def)
 
-def <- c(def, c("_sum", "_sign", "_prod", "_max", "_min", "_transit4P", "_transit3P", "_assignFuns0", "_assignFuns", "_getRxSolve_"))
+def <- unique(c(def, c("_sum", "_sign", "_prod", "_max", "_min", "_transit4P", "_transit3P", "_assignFuns0", "_assignFuns", "_getRxSolve_", "_solveData")))
 
 ## deparse1 came from R 4.0, use deparse2
 deparse2 <- function (expr, collapse = " ", width.cutoff = 500L, ...) {
@@ -81,13 +81,16 @@ deparse2 <- function (expr, collapse = " ", width.cutoff = 500L, ...) {
 }
 
 final <- c("#include <time.h>",
-           "void writeHeader() {",
-           "time_t timeId;",
-           "timeId = time(NULL);",
-           paste0("sAppend(&sbOut, \"#define ", def, " ", def, "%ld\\n\", timeId);"),
+           "#include <stdlib.h>",
+           "void writeHeader(const char *md5) {",
+           "unsigned long int timeId=0;",
+           paste0("sAppend(&sbOut, \"#define ", def, " _rx%s%ld\\n\", md5, timeId++);"),
            "}",
            "void writeBody() {",
            paste0("sAppendN(&sbOut, ", vapply(paste0(l, "\n"), deparse2, character(1)), ", ", nchar(l) + 1, ");"),
+           "}",
+           "void writeFooter() {",
+           paste0("sAppendN(&sbOut, \"#undef ", def, "\\n\", ", nchar(def) + 8, ");"),
            "}"
            )
 

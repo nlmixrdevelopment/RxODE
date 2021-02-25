@@ -82,7 +82,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     int i, j;
     char *buf;
     if (show_ode == 1){
-      writeHeader();
+      writeHeader(md5);
       sAppendN(&sbOut,"#include <RxODE_model_shared.h>\n",32);
       int mx = maxSumProdN;
       if (SumProdLD > mx) mx = SumProdLD;
@@ -579,6 +579,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   gCode(10); //mat
   gCode(11); //matF
   gCode(4); // Registration
+  writeFooter(); // undef
   fclose(fpIO);
   parseFree(0);
   reset();
