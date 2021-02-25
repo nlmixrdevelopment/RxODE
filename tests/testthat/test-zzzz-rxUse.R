@@ -1,5 +1,6 @@
 rxodeTest({
-  if (requireNamespace("units", quietly = TRUE)) {
+  if (requireNamespace("units", quietly = TRUE) &
+        requireNamespace("devtools", quietly=TRUE)) {
     test_that("build package", {
 
       mod <- RxODE({

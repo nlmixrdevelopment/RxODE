@@ -88,19 +88,21 @@ rxodeTest(
       o <- pnorm(a)
     })
 
-    expect_error(rxS(m), NA)
+    if (requireNamespace("units", quietly = TRUE)) {
+      expect_error(rxS(m), NA)
 
-    m <- RxODE({
-      o <- pnorm(a, b)
-    })
+      m <- RxODE({
+        o <- pnorm(a, b)
+      })
 
-    expect_error(rxS(m), NA)
+      expect_error(rxS(m), NA)
 
-    m <- RxODE({
-      o <- pnorm(a, b, c)
-    })
+      m <- RxODE({
+        o <- pnorm(a, b, c)
+      })
 
-    expect_error(rxS(m), NA)
+      expect_error(rxS(m), NA)
+    }
   },
   test = "lvl2"
 )

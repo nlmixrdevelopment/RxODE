@@ -340,7 +340,6 @@ rxodeTest(
                        "one or more covariates were all 'NA' for subject 'id=2'")
       })
     }
-    ## devtools::install();library(RxODE);rxTest("cov")
 
     context("time-varying covariates work with ODEs")
 

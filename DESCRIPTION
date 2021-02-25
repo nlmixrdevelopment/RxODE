@@ -44,7 +44,6 @@ Suggests:
     crayon,
     curl,
     data.table (>= 1.12.4),
-    devtools,
     digest,
     dplyr (>= 0.8.0),
     ggrepel,
