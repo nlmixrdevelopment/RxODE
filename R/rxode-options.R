@@ -33,9 +33,9 @@
     .units <- loadNamespace("units")
     assignInMyNamespace("type_sum.units", .units$type_sum.units)
     assignInMyNamespace("format_type_sum.type_sum_units", .units$format_type_sum.type_sum_units)
-    assignInMyNamespace("pillar_shaft.units ", .units$pillar_shaft.units)
+    assignInMyNamespace("pillar_shaft.units", .units$pillar_shaft.units)
     assignInMyNamespace("type_sum.mixed_units", .units$type_sum.mixed_units)
-    assignInMyNamespace("pillar_shaft.mixed_units ", .units$pillar_shaft.mixed_units)
+    assignInMyNamespace("pillar_shaft.mixed_units", .units$pillar_shaft.mixed_units)
   } else {
     assignInMyNamespace(".hasUnits", FALSE)
   }
