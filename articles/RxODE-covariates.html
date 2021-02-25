@@ -227,7 +227,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Covariates</h1>
             
-            <h4 data-toc-skip class="date">2021-02-24</h4>
+            <h4 data-toc-skip class="date">2021-02-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-covariates.Rmd" class="external-link"><code>vignettes/RxODE-covariates.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-covariates.Rmd</code></div>
@@ -246,7 +246,7 @@
 ##   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-quantities/units/" class="external-link">units</a></span><span class="op">)</span></code></pre></div>
-<pre><code>## udunits system database from /usr/share/xml/udunits</code></pre>
+<pre><code>## udunits database from /usr/share/xml/udunits/udunits2.xml</code></pre>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://opensource.nibr.com/xgx" class="external-link">xgxr</a></span><span class="op">)</span>
 
@@ -346,7 +346,7 @@
 
 <span class="co">## Create data frame of 8 am dosing for the first dose This is done</span>
 <span class="co">## with base R but it can be done with dplyr or data.table</span>
-<span class="va">ev</span><span class="op">$</span><span class="va">ctime</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">ev</span><span class="op">$</span><span class="va">time</span><span class="op">+</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">8</span>,<span class="va">hr</span><span class="op">)</span><span class="op">)</span> <span class="op">%%</span> <span class="fl">24</span></code></pre></div>
+<span class="va">ev</span><span class="op">$</span><span class="va">ctime</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">ev</span><span class="op">$</span><span class="va">time</span><span class="op">+</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">8</span>,<span class="va">hr</span><span class="op">)</span><span class="op">)</span> <span class="op">%%</span> <span class="fl">24</span></code></pre></div>
 <p>Now there is a covariate present in the event dataset, the system can be solved by combining the dataset and the model:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">r1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">mod3</span>, <span class="va">ev</span>, covs_interpolation<span class="op">=</span><span class="st">"linear"</span><span class="op">)</span>

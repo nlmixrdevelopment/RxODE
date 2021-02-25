@@ -227,7 +227,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Data Frames</h1>
             
-            <h4 data-toc-skip class="date">2021-02-24</h4>
+            <h4 data-toc-skip class="date">2021-02-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-data-frame.Rmd" class="external-link"><code>vignettes/RxODE-data-frame.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-data-frame.Rmd</code></div>
@@ -360,7 +360,7 @@
     <span class="va">drop_units</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op">&lt;=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="va">as.tbl</span>
 <span class="co">## or keep them and compare with the proper units.</span>
 <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">theta</span>,<span class="va">ev</span>,<span class="va">inits</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/set_units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">hr</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="va">as.tbl</span>
+    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">hr</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="va">as.tbl</span>
 <span class="va">x</span>
 <span class="co">#&gt; # A tibble: 4 x 7</span>
 <span class="co">#&gt;    time    C2    C3  depot centr  peri   eff</span>
