@@ -89,6 +89,7 @@ rxodeTest(
     })
 
     if (requireNamespace("units", quietly = TRUE)) {
+
       expect_error(rxS(m), NA)
 
       m <- RxODE({
