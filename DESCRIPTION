@@ -69,6 +69,7 @@ Suggests:
     tibble,
     units (>= 0.6-0),
     rsconnect,
+    devtools,
     patchwork
 Imports:
     PreciseSums (>= 0.3),

@@ -9,8 +9,6 @@
 
 * Changed `ODR` model names from time id to md5 hash id
 
-* Drop `devtools` as a `Suggests` dependency
-
 # RxODE 1.0.4
 ## Breaking changes
 
