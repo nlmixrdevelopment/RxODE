@@ -4,6 +4,11 @@
   `double` for internal C functions.  This should allow a successful
   compile on Solaris CRAN.
 
+* Changed `units` from an Imports to a Suggests to allow testing on
+  Solaris rhub
+
+* Changed `ODR` model names from time id to md5 hash id
+
 # RxODE 1.0.4
 ## Breaking changes
 
