@@ -9,6 +9,7 @@ events that RxODE supports](RxODE-event-types.html).
 
 ```{r}
 library(RxODE)
+library(units)
 (ev <- eventTable())
 ```
 
