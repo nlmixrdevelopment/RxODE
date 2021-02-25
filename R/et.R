@@ -678,7 +678,7 @@ set_units.rxEt <- function(x, value, ..., mode = .setUnitsMode()) {
       stop("the only valid number defining a unit is '1', signifying a unitless unit", call. = FALSE)
     }
   }
-  if (identical(value, .unitsless())) {
+  if (identical(value, .unitless())) {
     warning("clearing both amount and time units\nfor more precise control use 'et(amountUnits=\"\")' or 'et(timeUnits=\"\")'",
       call. = FALSE
     )
