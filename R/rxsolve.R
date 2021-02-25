@@ -1347,7 +1347,6 @@ dimnames.rxSolve <- function(x) {
   }
 }
 
-#' @export
 drop_units.rxSolve <- function(x) {
   dropUnitsRxSolve(x)
 }

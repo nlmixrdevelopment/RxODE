@@ -7,7 +7,6 @@ To load `RxODE` package and compile the model:
 
 ```{r}
 library(RxODE)
-library(units)
 
 mod1 <-RxODE({
     C2 = centr/V2;

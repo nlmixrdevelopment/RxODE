@@ -659,7 +659,6 @@ simulate.rxEt <- # nolint
     }
   }
 
-#' @export
 drop_units.rxEt <- function(x) {
   if (requireNamespace("units", quietly = TRUE)) {
     stop("requires package 'units'", call.=FALSE)
@@ -667,7 +666,6 @@ drop_units.rxEt <- function(x) {
   .Call(`_RxODE_et_`, list(amountUnits = NA_character_, timeUnits = NA_character_), x)
 }
 
-#' @export
 set_units.rxEt <- function(x, value, ..., mode = .setUnitsMode()) {
   if (is.null(mode)) {
     stop("requires package 'units'", call.=FALSE)
@@ -1239,7 +1237,6 @@ as.character.rxEvid <- function(x, ...) {
   as.rxEvid(NextMethod())
 }
 
-#' @export
 `units<-.rxEvid` <- function(x, value) {
   stop("'evid' is unitless", call. = FALSE)
 }
@@ -1369,7 +1366,6 @@ pillar_shaft.rxRateDur <- function(x, ...) {
 #' @export
 as.data.frame.rxRateDur <- base::as.data.frame.difftime
 
-#' @export
 set_units.rxRateDur <- function(x, value, ..., mode = .setUnitsMode()) {
   if (is.null(mode)) {
     stop("requires package 'units'", call.=FALSE)
