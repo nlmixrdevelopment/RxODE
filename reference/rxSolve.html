@@ -419,16 +419,16 @@ some-times optional <code>params</code> and <code>inits</code>.</p>
 <span class='fu'><a href='https://rdrr.io/r/stats/simulate.html'>simulate</a></span><span class='op'>(</span><span class='va'>object</span>, nsim <span class='op'>=</span> <span class='fl'>1L</span>, seed <span class='op'>=</span> <span class='cn'>NULL</span>, <span class='va'>...</span><span class='op'>)</span>
 
 <span class='co'># S3 method for rxSolve</span>
-<span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
+<span class='fu'><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
 
 <span class='co'># S3 method for RxODE</span>
-<span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
+<span class='fu'><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
 
 <span class='co'># S3 method for rxParams</span>
-<span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
+<span class='fu'><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
 
 <span class='co'># S3 method for rxEt</span>
-<span class='fu'><a href='https://rdrr.io/r/base/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
+<span class='fu'><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
 
 <span class='fu'>rxControl</span><span class='op'>(</span><span class='va'>...</span>, params <span class='op'>=</span> <span class='cn'>NULL</span>, events <span class='op'>=</span> <span class='cn'>NULL</span>, inits <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
 
@@ -876,7 +876,7 @@ currently supported types are:</p><ul>
 <li><p><code>"rxSolve"</code> (default) will return a reactive data frame
 that can change easily change different pieces of the solve and
 update the data frame.  This is the currently standard solving
-method in RxODE,  is used for <code>rxSolve(object, ...)</code>, <code><a href='https://rdrr.io/r/base/solve.html'>solve(object,...)</a></code>,</p></li>
+method in RxODE,  is used for <code>rxSolve(object, ...)</code>, <code><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve(object,...)</a></code>,</p></li>
 <li><p><code>"data.frame"</code> -- returns a plain, non-reactive data
 frame; Currently very slightly faster than <code>returnType="matrix"</code></p></li>
 <li><p><code>"matrix"</code> -- returns a plain matrix with column names attached
@@ -1124,13 +1124,13 @@ evaluated before exiting.  By default this is 100000</p></td>
     </tr>
     <tr>
       <th>a</th>
-      <td><p>when using <code><a href='https://rdrr.io/r/base/solve.html'>solve()</a></code>, this is equivalent to the
+      <td><p>when using <code><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve()</a></code>, this is equivalent to the
 <code>object</code> argument.  If you specify <code>object</code> later in
 the argument list it overwrites this parameter.</p></td>
     </tr>
     <tr>
       <th>b</th>
-      <td><p>when using <code><a href='https://rdrr.io/r/base/solve.html'>solve()</a></code>, this is equivalent to the
+      <td><p>when using <code><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve()</a></code>, this is equivalent to the
 <code>params</code> argument.  If you specify <code>params</code> as a
 named argument, this overwrites the output</p></td>
     </tr>
