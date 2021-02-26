@@ -13,7 +13,7 @@
  * Gerhard Wanner -- dop853 author
  * Goro Fuji -- Timsort author
  * Hadley Wickham -- Author of original findLhs in RxODE, also original author of .s3register (used with permission to anyone, both changed by Matthew Fidler)
- * Jack Dongarra -- LApack author; CRAN asked us to add
+ * Jack Dongarra -- LApack author
  * Linda Petzold -- LSODA
  * Martin Maechler -- expm author, used routines from there for inductive linearization
  * Morwenn -- Timsort author
@@ -23,7 +23,7 @@
  * Kevin Ushey -- Original author of fast factor, modified by Matthew Filder
  * Yu Feng -- thread safe liblsoda
  * Matt Dowle -- forder primary author (version modified by Matthew Fidler to allow different type of threading and exclude grouping)
- * Cleve Moler -- LApack author; CRAN asked us to add
+ * Cleve Moler -- LApack author
  * David Cooley -- Author of fast_factor which was modified and now is used RxODE to quickly create factors for IDs without sorting them like R does
  * Daniel C. Dillon -- Author of stripping utility to reduce size of RxODE/nlmixr executable
  * Drew Schmidt -- Drew Schmidt author of edits for exponential matrix utility taken from R package expm
