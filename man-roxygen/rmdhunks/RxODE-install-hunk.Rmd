@@ -53,7 +53,33 @@ discussion about this is likely the [data.table installation faq for
 MacOS](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac).
 The last thing to keep in mind is that `RxODE` uses the code very
 similar to the original `lsoda` which requires the `gfortran` compiler
-to be setup as well as the `OpenMP` compilers.s
+to be setup as well as the `OpenMP` compilers.
+
+If you are going to be using `RxODE` and `nlmixr` together and have an
+older mac computer, I would suggest trying the following:
+
+```r
+library(symengine)
+```
+
+If this crashes your R session then the binary does not work with your
+Mac machine.  To be able to run nlmixr, you will need to compile this
+package manually.  I will proceed assuming you have `homebrew`
+installed on your system.
+
+On your system terminal you will need to install the dependencies to
+compile `symengine`:
+
+```sh
+brew install cmake gmp mpfr libmpc
+```
+
+After installing the dependencies, you need to reinstall `symengine`:
+
+```r
+install.packages("symengine", type="source")
+library(symengine)
+```
 
 ### Linux
 
