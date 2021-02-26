@@ -22,7 +22,6 @@
   
   The check for Old Release Mac on our systems are clean:
   
+  https://github.com/nlmixrdevelopment/RxODE/runs/1983444522?check_suite_focus=true
 
-  We also verified the ASAN version on rhub (removing the same suggests as Solaris)
-  
-
+  We also verified the ASAN version on our machines
