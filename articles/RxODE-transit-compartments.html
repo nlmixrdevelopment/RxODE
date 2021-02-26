@@ -267,7 +267,7 @@
 <span class="va">transit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod</span>, <span class="va">et</span>, transit_abs<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">transit</span>, <span class="va">cen</span>, ylab<span class="op">=</span><span class="st">"Central Concentration"</span><span class="op">)</span></code></pre></div>
-<p><img src="RxODE-transit-compartments_files/figure-html/unnamed-chunk-2-1.png" width="100%"></p>
+<p><img src="RxODE-transit-compartments_files/figure-html/unnamed-chunk-3-1.png" width="100%"></p>
 <p>Another option is to specify the transit compartment function <code>transit</code> syntax. This specifies the parameters <code>transit(number of transit compartments, mean transit time, bioavailability)</code>. The bioavailability term is optional.</p>
 <p>Using the <code>transit</code> code also automatically turns on the <code>transit_abs</code> option. Therefore, the same model can be specified by:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -293,7 +293,7 @@
 <pre><code>## Warning: assumed transit compartment model since 'podo' is in the model</code></pre>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">transit</span>, <span class="va">cen</span>, ylab<span class="op">=</span><span class="st">"Central Concentration"</span><span class="op">)</span></code></pre></div>
-<p><img src="RxODE-transit-compartments_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
+<p><img src="RxODE-transit-compartments_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
