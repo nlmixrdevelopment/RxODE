@@ -1,4 +1,4 @@
-# Prediction only models
+## Prediction only models
 
 Prediction only models are simple to create.  You use the RxODE syntax
 without any ODE systems in them.  A very simple example is a one-compartment model.
@@ -19,7 +19,7 @@ cmt1 <- rxSolve(mod,et,params=c(ke=0.5))
 cmt1
 ```
 
-# Solved compartment models
+## Solved compartment models
 
 Solved models are also simple to create. You simply place the
 `linCmt()` psuedo-function into your code.  The `linCmt()` function
@@ -95,7 +95,7 @@ cmt1
 
 
 
-# Mixing Solved Systems and ODEs.
+## Mixing Solved Systems and ODEs
 
 In addition to pure ODEs, you may mix solved systems and ODEs.  The
 prior 2-compartment indirect response model can be simplified with a
