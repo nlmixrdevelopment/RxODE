@@ -25,3 +25,7 @@
   https://github.com/nlmixrdevelopment/RxODE/runs/1983444522?check_suite_focus=true
 
   We also verified the ASAN version on our machines
+  
+* New Release Mac Issue [here](https://www.r-project.org/nosvn/R.check/r-release-macos-x86_64/RxODE-00check.html)
+
+  This check cannot find the csv files in the vignette file; We moved this to a pkgdown-only 
