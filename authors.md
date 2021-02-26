@@ -33,7 +33,7 @@
 
  * Sherwin Sy -- Weight based dosing example
  * Justin Wilkins -- Documentation updates, logo and testing
- * Emma Schwager -- R IJK distribution author
+ * Emma Schwager -- [R IJK distribution](https://github.com/biobakery/banocc/blob/master/R/rlkj.R) author
  * J Coligne -- dop853 fortran author
  * Bill Denney -- Documentation updates, manual and minor bug fixes
  * Tim Waterhouse -- Fixed one bug with mac working directories
