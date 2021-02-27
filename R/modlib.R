@@ -81,6 +81,8 @@
   ))) != 0)
 }
 
+.rxUseI <- new.env(parent=emptyenv());#1
+.rxUseI$i <- 1L
 .rxUseCdir <- ""
 
 #' Use model object in your package
@@ -164,7 +166,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
             cat("#' }\n")
           }
           cat("#'\n")
-          cat(sprintf("#' \\emph{Model Code}\n",.f2))
+          cat("#' \\emph{Model Code}\n") # sprintf(,.f2)
           cat("#'\n")
           .code  <- deparse(body(eval(parse(text=paste("function(){",.norm2(.tmp),"}")))))
           .code[1]  <- "RxODE({"
@@ -186,11 +188,16 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
       dir.create(devtools::package_file("src"), recursive = TRUE)
     }
     .pkg <- basename(usethis::proj_get())
+    .rx <- loadNamespace("RxODE")
     sapply(
       list.files(.rxUseCdir, pattern = "[.]c", full.names = TRUE),
       function(x) {
         .minfo(sprintf("copy '%s'", basename(x)))
-        .f0 <- gsub("^#define (.*) _rx(.*)$", "#define \\1 _rxp\\2", readLines(x))
+        .env <- .rx$.rxUseI
+        .rxUseI <- .env$i
+        .f0 <- gsub("^#define (.*) _rx(.*)$",
+                    paste0("#define \\1 _rxp",.rxUseI, "\\2"), readLines(x))
+        assign("i", .rxUseI+1, envir=.env)
         .f0 <- c("#include <RxODE.h>\n#include <RxODE_model_shared.h>", .f0)
         .w <- which(.f0 == "#include \"extraC.h\"")
         if (length(.w) > 0) .f0 <- .f0[-.w[1]]
