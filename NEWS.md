@@ -7,7 +7,9 @@
 * Changed `units` from an Imports to a Suggests to allow testing on
   Solaris rhub
 
-* Changed `ODR` model names from time id to md5 hash id
+* Changed `ODR` model names from time id to `_rx` followed by the
+  `md5` hash id; For packages the id is `_rxp` followed by the `md5`
+  hash.
 
 # RxODE 1.0.4
 ## Breaking changes
