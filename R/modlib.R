@@ -190,7 +190,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
       list.files(.rxUseCdir, pattern = "[.]c", full.names = TRUE),
       function(x) {
         .minfo(sprintf("copy '%s'", basename(x)))
-        .f0 <- readLines(x)
+        .f0 <- gsub("^#define (.*) _rx(.*)$", "#define \\1 _rxp\\2", readLines(x))
         .f0 <- c("#include <RxODE.h>\n#include <RxODE_model_shared.h>", .f0)
         .w <- which(.f0 == "#include \"extraC.h\"")
         if (length(.w) > 0) .f0 <- .f0[-.w[1]]
