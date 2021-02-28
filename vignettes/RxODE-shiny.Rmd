@@ -15,5 +15,5 @@ htmltools::img(src = knitr::image_uri("logo.png"),
 options(width=80, cli.width=80)
 Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
 ```
-```{r child='../man-roxygen/rmdhunks/shiny.Rmd}
+```{r child='../man-roxygen/rmdhunks/shiny.Rmd'}
 ```
