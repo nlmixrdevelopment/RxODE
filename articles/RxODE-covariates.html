@@ -227,7 +227,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Covariates</h1>
             
-            <h4 data-toc-skip class="date">2021-02-27</h4>
+            <h4 data-toc-skip class="date">2021-02-28</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-covariates.Rmd" class="external-link"><code>vignettes/RxODE-covariates.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-covariates.Rmd</code></div>
@@ -253,10 +253,10 @@
 <span class="va">mod3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
     <span class="va">KA</span><span class="op">=</span><span class="fl">2.94E-01</span>;
     <span class="co">## Clearance with individuals</span>
-    <span class="va">CL</span><span class="op">=</span><span class="fl">1.86E+01</span> <span class="op">*</span> <span class="op">(</span><span class="va">WT</span> <span class="op">/</span> <span class="fl">70</span><span class="op">)</span> <span class="op">^</span> <span class="fl">0.75</span>; 
-    <span class="va">V2</span><span class="op">=</span><span class="fl">4.02E+01</span>; 
+    <span class="va">CL</span><span class="op">=</span><span class="fl">1.86E+01</span> <span class="op">*</span> <span class="op">(</span><span class="va">WT</span> <span class="op">/</span> <span class="fl">70</span><span class="op">)</span> <span class="op">^</span> <span class="fl">0.75</span>;
+    <span class="va">V2</span><span class="op">=</span><span class="fl">4.02E+01</span>;
     <span class="va">Q</span><span class="op">=</span><span class="fl">1.05E+01</span>;
-    <span class="va">V3</span><span class="op">=</span><span class="fl">2.97E+02</span>; 
+    <span class="va">V3</span><span class="op">=</span><span class="fl">2.97E+02</span>;
     <span class="va">Kin</span><span class="op">=</span><span class="fl">1</span>;
     <span class="va">Kout</span><span class="op">=</span><span class="fl">1</span>;
     <span class="va">EC50</span><span class="op">=</span><span class="fl">200</span>;
@@ -307,7 +307,7 @@
 ## # … with 394 more rows
 ## ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</code></pre>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r1</span>, <span class="va">C2</span>, log<span class="op">=</span><span class="st">"y"</span><span class="op">)</span> </code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r1</span>, <span class="va">C2</span>, log<span class="op">=</span><span class="st">"y"</span><span class="op">)</span></code></pre></div>
 <pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
 <p><img src="RxODE-covariates_files/figure-html/individual-covariates-1.png" width="700"></p>
 </div>
@@ -321,10 +321,10 @@
 
 <span class="va">mod3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
     <span class="va">KA</span><span class="op">=</span><span class="fl">2.94E-01</span>;
-    <span class="va">CL</span><span class="op">=</span><span class="fl">1.86E+01</span>; 
-    <span class="va">V2</span><span class="op">=</span><span class="fl">4.02E+01</span>; 
+    <span class="va">CL</span><span class="op">=</span><span class="fl">1.86E+01</span>;
+    <span class="va">V2</span><span class="op">=</span><span class="fl">4.02E+01</span>;
     <span class="va">Q</span><span class="op">=</span><span class="fl">1.05E+01</span>;
-    <span class="va">V3</span><span class="op">=</span><span class="fl">2.97E+02</span>; 
+    <span class="va">V3</span><span class="op">=</span><span class="fl">2.97E+02</span>;
     <span class="va">Kin0</span><span class="op">=</span><span class="fl">1</span>;
     <span class="va">Kout</span><span class="op">=</span><span class="fl">1</span>;
     <span class="va">EC50</span><span class="op">=</span><span class="fl">200</span>;
