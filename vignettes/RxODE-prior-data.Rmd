@@ -13,5 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r child='../man-roxygen/rmdhunks/prior-data.Rmd'}
+```{r echo=FALSE, results='asis'}
+cat(unlist(knitr::knit_child(text = readLines("../man-roxygen/rmdhunks/prior-data.Rmd"),
+                             envir = environment(), quiet = TRUE)), sep="\n")
 ```
