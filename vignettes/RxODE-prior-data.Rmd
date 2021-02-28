@@ -13,5 +13,5 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r child='../man/rmdhunks/prior-data.Rmd'}
+```{r child='../man-roxygen/rmdhunks/prior-data.Rmd'}
 ```
