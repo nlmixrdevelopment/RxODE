@@ -236,10 +236,6 @@
 
     
     
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
-<span class="co">#&gt; RxODE 1.0.5 using 1 threads (see ?getRxThreads)</span>
-<span class="co">#&gt;   no cache: create with `rxCreateCache()`</span></code></pre></div>
 <div id="single-subject-solving" class="section level1">
 <h1 class="hasAnchor">
 <a href="#single-subject-solving" class="anchor"></a>Single Subject solving</h1>
@@ -254,24 +250,27 @@
 <p>The first obvious difference is in speed; With multiple subjects you can run each subject ID in parallel. For more information and examples of the speed gains with multiple subject solving see the <a href="RxODE-speed.html">Speeding up RxODE</a> vignette.</p>
 <p>The next difference is the amount of information output in the final data.</p>
 <p>Taking the 2 compartment indirect response model originally in the tutorial:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">mod1</span> <span class="op">&lt;-</span><span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
-    <span class="va">KA</span><span class="op">=</span><span class="fl">2.94E-01</span>;
-    <span class="va">CL</span><span class="op">=</span><span class="fl">1.86E+01</span>;
-    <span class="va">V2</span><span class="op">=</span><span class="fl">4.02E+01</span>;
-    <span class="va">Q</span><span class="op">=</span><span class="fl">1.05E+01</span>;
-    <span class="va">V3</span><span class="op">=</span><span class="fl">2.97E+02</span>;
-    <span class="va">Kin</span><span class="op">=</span><span class="fl">1</span>;
-    <span class="va">Kout</span><span class="op">=</span><span class="fl">1</span>;
-    <span class="va">EC50</span><span class="op">=</span><span class="fl">200</span>;
-    <span class="va">C2</span> <span class="op">=</span> <span class="va">centr</span><span class="op">/</span><span class="va">V2</span>;
-    <span class="va">C3</span> <span class="op">=</span> <span class="va">peri</span><span class="op">/</span><span class="va">V3</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">=</span><span class="op">-</span><span class="va">KA</span><span class="op">*</span><span class="va">depot</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">centr</span><span class="op">)</span> <span class="op">=</span> <span class="va">KA</span><span class="op">*</span><span class="va">depot</span> <span class="op">-</span> <span class="va">CL</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">+</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span>  <span class="op">=</span>                    <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>;
-    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>;
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span>
+<span class="co">#&gt; RxODE 1.0.5 using 1 threads (see ?getRxThreads)</span>
+<span class="co">#&gt;   no cache: create with `rxCreateCache()`</span>
+<span class="va">mod1</span> <span class="op">&lt;-</span><span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
+    <span class="va">KA</span><span class="op">=</span><span class="fl">2.94E-01</span>
+    <span class="va">CL</span><span class="op">=</span><span class="fl">1.86E+01</span>
+    <span class="va">V2</span><span class="op">=</span><span class="fl">4.02E+01</span>
+    <span class="va">Q</span><span class="op">=</span><span class="fl">1.05E+01</span>
+    <span class="va">V3</span><span class="op">=</span><span class="fl">2.97E+02</span>
+    <span class="va">Kin</span><span class="op">=</span><span class="fl">1</span>
+    <span class="va">Kout</span><span class="op">=</span><span class="fl">1</span>
+    <span class="va">EC50</span><span class="op">=</span><span class="fl">200</span>
+    <span class="va">C2</span> <span class="op">=</span> <span class="va">centr</span><span class="op">/</span><span class="va">V2</span>
+    <span class="va">C3</span> <span class="op">=</span> <span class="va">peri</span><span class="op">/</span><span class="va">V3</span>
+    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">=</span><span class="op">-</span><span class="va">KA</span><span class="op">*</span><span class="va">depot</span>
+    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">centr</span><span class="op">)</span> <span class="op">=</span> <span class="va">KA</span><span class="op">*</span><span class="va">depot</span> <span class="op">-</span> <span class="va">CL</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">+</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>
+    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span>  <span class="op">=</span>                    <span class="va">Q</span><span class="op">*</span><span class="va">C2</span> <span class="op">-</span> <span class="va">Q</span><span class="op">*</span><span class="va">C3</span>
+    <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>  <span class="op">=</span> <span class="va">Kin</span> <span class="op">-</span> <span class="va">Kout</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">-</span><span class="va">C2</span><span class="op">/</span><span class="op">(</span><span class="va">EC50</span><span class="op">+</span><span class="va">C2</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="va">eff</span>
     <span class="fu">eff</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span> <span class="op">=</span> <span class="fl">1</span>
-<span class="op">}</span><span class="op">)</span>;
+<span class="op">}</span><span class="op">)</span>
 <span class="co">#&gt; qs v0.23.6.</span>
 
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">'mg'</span>, time.units<span class="op">=</span><span class="st">'hours'</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -279,7 +278,7 @@
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">20000</span>, nbr.doses<span class="op">=</span><span class="fl">5</span>, start.time<span class="op">=</span><span class="fl">120</span>, dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span> <span class="op">%&gt;%</span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span> <span class="co"># sampling</span></code></pre></div>
 <p>Now a simple solve</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod1</span>, <span class="va">et</span><span class="op">)</span>
 <span class="va">x</span>
 <span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
@@ -324,9 +323,9 @@
 <span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
-<p><img src="rxode-single-subject_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
+<p><img src="rxode-single-subject_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 <p>To better see the differences between the single solve, you can solve for 2 individuals</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">mod1</span>, <span class="va">et</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>id<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>CL<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">18.6</span>, <span class="fl">7.6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; Warning: 'ID' missing in 'parameters' dataset</span>
 <span class="co">#&gt; individual parameters are assumed to have the same order as the event dataset</span>
@@ -355,7 +354,7 @@
 <span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x2</span>, <span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
-<p><img src="rxode-single-subject_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
+<p><img src="rxode-single-subject_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
 <p>By observing the two solves, you can see:</p>
 <ul>
 <li>A multiple subject solve contains the <code>id</code> column both in the data frame and then data frame of parameters for each subject.</li>
@@ -394,72 +393,6 @@
 </tr>
 </tbody>
 </table>
-</div>
-<div id="session-information" class="section level2">
-<h2 class="hasAnchor">
-<a href="#session-information" class="anchor"></a>Session Information</h2>
-<p>The session information:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span>
-<span class="co">#&gt; R version 4.0.4 (2021-02-15)</span>
-<span class="co">#&gt; Platform: x86_64-pc-linux-gnu (64-bit)</span>
-<span class="co">#&gt; Running under: Ubuntu 16.04.7 LTS</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Matrix products: default</span>
-<span class="co">#&gt; BLAS:   /usr/lib/openblas-base/libblas.so.3</span>
-<span class="co">#&gt; LAPACK: /usr/lib/libopenblasp-r0.2.18.so</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; locale:</span>
-<span class="co">#&gt;  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              </span>
-<span class="co">#&gt;  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    </span>
-<span class="co">#&gt;  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   </span>
-<span class="co">#&gt;  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 </span>
-<span class="co">#&gt;  [9] LC_ADDRESS=C               LC_TELEPHONE=C            </span>
-<span class="co">#&gt; [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       </span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; attached base packages:</span>
-<span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; other attached packages:</span>
-<span class="co">#&gt; [1] qs_0.23.6   RxODE_1.0.5</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; loaded via a namespace (and not attached):</span>
-<span class="co">#&gt;   [1] bitops_1.0-6        fs_1.5.0            xgxr_1.1.0         </span>
-<span class="co">#&gt;   [4] RColorBrewer_1.1-2  rprojroot_2.0.2     Deriv_4.1.3        </span>
-<span class="co">#&gt;   [7] tools_4.0.4         backports_1.2.1     bslib_0.2.4        </span>
-<span class="co">#&gt;  [10] utf8_1.1.4          R6_2.5.0            rpart_4.1-15       </span>
-<span class="co">#&gt;  [13] Hmisc_4.4-2         colorspace_2.0-0    nnet_7.3-15        </span>
-<span class="co">#&gt;  [16] lotri_0.3.1         tidyselect_1.1.0    gridExtra_2.3      </span>
-<span class="co">#&gt;  [19] Exact_2.1           compiler_4.0.4      textshaping_0.3.1  </span>
-<span class="co">#&gt;  [22] cli_2.3.1           binom_1.1-1         htmlTable_2.1.0    </span>
-<span class="co">#&gt;  [25] expm_0.999-6        desc_1.2.0          labeling_0.4.2     </span>
-<span class="co">#&gt;  [28] stringfish_0.15.0   sass_0.3.1          scales_1.1.1       </span>
-<span class="co">#&gt;  [31] checkmate_2.0.0     mvtnorm_1.1-1       readr_1.4.0        </span>
-<span class="co">#&gt;  [34] pkgdown_1.6.1.9000  systemfonts_1.0.1   stringr_1.4.0      </span>
-<span class="co">#&gt;  [37] digest_0.6.27       foreign_0.8-81      rmarkdown_2.7      </span>
-<span class="co">#&gt;  [40] PreciseSums_0.4     base64enc_0.1-3     jpeg_0.1-8.1       </span>
-<span class="co">#&gt;  [43] pkgconfig_2.0.3     htmltools_0.5.1.1   highr_0.8          </span>
-<span class="co">#&gt;  [46] fastmap_1.1.0       htmlwidgets_1.5.3   rlang_0.4.10       </span>
-<span class="co">#&gt;  [49] rstudioapi_0.13     farver_2.0.3        jquerylib_0.1.3    </span>
-<span class="co">#&gt;  [52] generics_0.1.0      RApiSerialize_0.1.0 jsonlite_1.7.2     </span>
-<span class="co">#&gt;  [55] dplyr_1.0.4         RCurl_1.98-1.2      magrittr_2.0.1     </span>
-<span class="co">#&gt;  [58] Formula_1.2-4       Matrix_1.3-2        Rcpp_1.0.6         </span>
-<span class="co">#&gt;  [61] DescTools_0.99.40   munsell_0.5.0       fansi_0.4.2        </span>
-<span class="co">#&gt;  [64] lifecycle_1.0.0     stringi_1.5.3       yaml_2.2.1         </span>
-<span class="co">#&gt;  [67] MASS_7.3-53         rootSolve_1.8.2.1   grid_4.0.4         </span>
-<span class="co">#&gt;  [70] ggrepel_0.9.1       crayon_1.4.1        lmom_2.8           </span>
-<span class="co">#&gt;  [73] lattice_0.20-41     splines_4.0.4       pander_0.6.3       </span>
-<span class="co">#&gt;  [76] hms_1.0.0           sys_3.4             knitr_1.31         </span>
-<span class="co">#&gt;  [79] ps_1.5.0            pillar_1.5.0        boot_1.3-26        </span>
-<span class="co">#&gt;  [82] gld_2.6.2           glue_1.4.2          evaluate_0.14      </span>
-<span class="co">#&gt;  [85] dparser_0.1.8       latticeExtra_0.6-29 data.table_1.14.0  </span>
-<span class="co">#&gt;  [88] RcppParallel_5.0.3  vctrs_0.3.6         png_0.1-7          </span>
-<span class="co">#&gt;  [91] gtable_0.3.0        purrr_0.3.4         assertthat_0.2.1   </span>
-<span class="co">#&gt;  [94] cachem_1.0.4        ggplot2_3.3.3       xfun_0.21          </span>
-<span class="co">#&gt;  [97] e1071_1.7-4         ragg_1.1.1          class_7.3-18       </span>
-<span class="co">#&gt; [100] survival_3.2-7      minpack.lm_1.2-1    tibble_3.1.0       </span>
-<span class="co">#&gt; [103] memoise_2.0.0       units_0.7-0         cluster_2.1.0      </span>
-<span class="co">#&gt; [106] ellipsis_0.3.1</span></code></pre></div>
 </div>
 </div>
   </div>
