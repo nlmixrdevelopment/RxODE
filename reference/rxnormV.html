@@ -324,8 +324,8 @@ uses the vandercorput generator</p></td>
 <span class='fu'>rxnorm</span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxnorm you have to explicitly state n</span>
 </div><div class='output co'>#&gt;  [1]  0.1945161  0.3257924  1.1856819 -0.7793726 -0.7295080  0.5288050
 #&gt;  [7]  0.9454559  2.1334278 -2.0224568 -2.4576973</div><div class='input'><span class='fu'>rxnorm</span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span>,ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
-</div><div class='output co'>#&gt;  [1] -0.1615895  0.4190054 -0.7658105 -1.2929063 -0.6089959 -1.0364195
-#&gt;  [7] -0.5274504 -0.2963513 -0.1958067 -0.5099234</div><div class='input'>
+</div><div class='output co'>#&gt;  [1] -1.0364195 -0.5274504 -0.2963513 -0.1958067 -0.5099234 -0.1615895
+#&gt;  [7]  0.4190054 -0.7658105 -1.2929063 -0.6089959</div><div class='input'>
 <span class='fu'>rxnorm</span><span class='op'>(</span><span class='fl'>2</span>,<span class='fl'>3</span><span class='op'>)</span> <span class='co'>## The first 2 arguments are the mean and standard deviation</span>
 </div><div class='output co'>#&gt; [1] 1.693309</div><div class='input'>
 
