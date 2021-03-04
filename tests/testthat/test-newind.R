@@ -21,7 +21,6 @@ rxodeTest(
       add.sampling(0:4)
 
     ms <- c("liblsoda", "lsoda", "dop853")
-    if (grepl("SunOS", Sys.info()["sysname"])) ms <- "lsoda"
 
     for (m in ms) {
       s <- solve(ode.1c, et, addDosing = TRUE, method = m)

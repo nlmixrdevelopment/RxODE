@@ -27,7 +27,6 @@ rxodeTest(
     library(units)
 
     ms <- c("liblsoda", "lsoda", "dop853")
-    if (grepl("SunOS", Sys.info()["sysname"])) ms <- "lsoda"
 
     for (m in ms) {
       x2 <- solve(mod, et, method = m)
