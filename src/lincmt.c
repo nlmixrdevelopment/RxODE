@@ -36,6 +36,7 @@ extern double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned
   double dose = ind->dose[l];
   if (backward){
     p[0] = l-1;
+    if (p[0] < 0) p[0] = 0;
     while (p[0] > 0 && ind->dose[p[0]] != -dose){
       p[0]--;
     }
