@@ -35,7 +35,7 @@ void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 extern double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p){
   double dose = ind->dose[l];
   if (backward){
-    if (l == 0) {
+    if (l <= 0) {
       Rf_errorcall(R_NilValue, _("could not find a start to the infusion"));
     }
     p[0] = l-1;
@@ -47,7 +47,7 @@ extern double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned
     }
     return ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p[0]]];
   } else {
-    if (l == ind->ndoses) {
+    if (l >= ind->ndoses) {
       Rf_errorcall(R_NilValue, _("could not find an end to the infusion"));
     }
     p[0] = l+1;
