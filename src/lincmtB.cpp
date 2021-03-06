@@ -1,4 +1,6 @@
 //#undef NDEBUG
+// [[Rcpp::depends(RcppParallel)]]
+// [[Rcpp::depends(StanHeaders)]]
 #include <stan/math.hpp>
 #include <Rcpp.h>
 #include <RcppEigen.h>

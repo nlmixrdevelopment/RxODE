@@ -115,9 +115,10 @@ LinkingTo:
     RcppEigen (>= 0.3.3.3.0),
     RcppArmadillo (>= 0.9.300.2.0),
     sitmo,
-    StanHeaders (>= 2.18.0),
+    StanHeaders (>= 2.21.0),
     BH,
     checkmate,
+    RcppParallel (>= 5.0.1),
     qs
 Encoding: UTF-8
 LazyData: true
