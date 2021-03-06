@@ -3,7 +3,7 @@
 #include <RcppEigen.h>
 #include "../inst/include/RxODE.h"
 // #include <stan/math.hpp>
-#include <stan/math.hpp>
+#include "stan.h"
 using namespace Eigen;
 using namespace std;
 
