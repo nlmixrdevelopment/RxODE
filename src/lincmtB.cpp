@@ -1,6 +1,7 @@
 //#undef NDEBUG
-// Manually remove odeintr
-#include "stan.h"
+// [[Rcpp::depends(RcppParallel)]]
+// [[Rcpp::depends(StanHeaders)]]
+#include <stan/math.hpp>
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "../inst/include/RxODE.h"
