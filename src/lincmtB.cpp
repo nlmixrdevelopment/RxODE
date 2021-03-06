@@ -1,6 +1,6 @@
 //#undef NDEBUG
-#include <R.h>
 #include <stan/math.hpp>
+#include <Rcpp.h>
 #include <RcppEigen.h>
 #include "../inst/include/RxODE.h"
 #ifdef ENABLE_NLS
