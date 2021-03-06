@@ -133,7 +133,19 @@ jobs:
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_: false
-        run: rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "warning", check_dir = "check")
+        run: |
+          if (R.version$major < 4 && isTRUE(.Platform$OS.type == "windows")) {
+            dotR <- file.path(Sys.getenv("HOME"), ".R")
+            if (!file.exists(dotR)) dir.create(dotR)
+            path_makevars <- ifelse(.Platform$OS.type == "windows", "Makevars.win", "Makevars")
+            M <- file.path(dotR, path_makevars)
+            if (!file.exists(M)) file.create(M)
+            cat("\nCXX14FLAGS=-O3",
+                "CXX14 = $(BINPREF)g++ -m$(WIN) -std=c++1y",
+                "CXX11FLAGS=-O3",
+                file = M, sep = "\n", append = TRUE)
+          }
+          rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "warning", check_dir = "check")
         shell: Rscript {0}
 
       - name: Show testthat output
