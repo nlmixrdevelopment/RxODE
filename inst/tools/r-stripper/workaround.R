@@ -5,7 +5,10 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
   if (length(w) == 1) {
     l <- l[-w]
     message("Excluding RcppArmadillo from", f)
-    writeLines(l, f)
+    unlink(f)
+    file.out <- file(f, "wb")
+    writeLines(l, file.out)
+    close(file.out)
   }
 }
 
@@ -34,18 +37,24 @@ if (R.version$major < 4 && isTRUE(.Platform$OS.type == "windows")) {
 
 if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {
   .in <- gsub("@CXX14STD@", "-std=c++1y", .in)
+  file.out <- file("src/Makevars.win", "wb")
   writeLines(gsub("@ISYSTEM@", "I", .in),
-             "src/Makevars.win")
+             file.out)
+  close(file.out)
 } else {
   .in <- gsub("@CXX14STD@", "-std=gnu++14", .in)
+  file.out <- file("src/Makevars", "wb")
   writeLines(gsub("@ISYSTEM@", "isystem", .in),
-             "src/Makevars")
+             file.out)
+  close(file.out)
 }
 
 if (file.exists("src/Makevars.in.r-stripper.bak")) {
   ## Reset to old Makevars.in
   l <- readLines("src/Makevars.in.r-stripper.bak")
-  writeLines(l, "src/Makevars.in")
+  file.out <- file("src/Makevars.in", "wb")
+  writeLines(l, file.out)
+  close(file.out)
   unlink("src/Makevars.in.r-stripper.bak")
 }
 
@@ -53,7 +62,9 @@ if (file.exists("man/reexports.Rd")) {
   l <- readLines("man/reexports.Rd")
   if (!any(regexpr("[\\]value", l) != -1)) {
     l <- c(l, "\\value{ Inherited from parent routine }")
-    writeLines(l, "man/reexports.Rd")
+    file.out <- file("man/reexports.Rd", "wb")
+    writeLines(l, file.out)
+    close(file.out)
   }
 }
 
