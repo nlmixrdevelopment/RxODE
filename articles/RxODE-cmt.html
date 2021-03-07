@@ -334,12 +334,12 @@
       <span class="va">QRB</span><span class="op">*</span><span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span> <span class="op">-</span> <span class="va">QLU</span><span class="op">*</span><span class="va">Venous_Blood</span><span class="op">/</span><span class="va">VVB</span>;
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">Rest_of_Body</span><span class="op">)</span> <span class="op">=</span> <span class="va">QRB</span><span class="op">*</span><span class="op">(</span><span class="va">Arterial_Blood</span><span class="op">/</span><span class="va">VAB</span> <span class="op">-</span> <span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; qs v0.23.6.</code></pre>
+<pre><code>#&gt; qs v0.24.1.</code></pre>
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">pbpk</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.5 model named rx_7de3a3441c992050ba9486c383f85fe4 model (ready). 
-#&gt; DLL: /tmp/Rtmp7Bc4WY/RxODE/rx_7de3a3441c992050ba9486c383f85fe4__.rxd/rx_7de3a3441c992050ba9486c383f85fe4_.so
+<pre><code>#&gt; RxODE 1.0.5 model named rx_f210c2d3623585cb0c8f3da0717e74b9 model (ready). 
+#&gt; DLL: /tmp/Rtmpg9IzFd/RxODE/rx_f210c2d3623585cb0c8f3da0717e74b9__.rxd/rx_f210c2d3623585cb0c8f3da0717e74b9_.so
 #&gt; NULL
 #&gt; 
 #&gt; Calculated Variables:
@@ -530,7 +530,7 @@
 <p>You can see this change in the simple printout</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pbpk2</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.5 model named rx_75f65a8b132c33d53ea103b5afc7b8f3 model (ready). 
+<pre><code>#&gt; RxODE 1.0.5 model named rx_f252d9ba4ce2c7931f6e887917d6f435 model (ready). 
 #&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body
 #&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup
 #&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
@@ -549,7 +549,7 @@
     <span class="fu">cmt</span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ode.1c.ka</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.5 model named rx_792b45128ab6203d79c919f6d4dbe84b model (ready). 
+<pre><code>#&gt; RxODE 1.0.5 model named rx_17af9f827bc0a3e6b09469c8d8a9b145 model (ready). 
 #&gt; $state: depot, center
 #&gt; $stateExtra: eff
 #&gt; $params: V, KA, CL
