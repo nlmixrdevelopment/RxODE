@@ -1,3 +1,4 @@
+#ifndef __Rx_noSTAN__
 //#undef NDEBUG
 #include <Rcpp.h>
 #include <RcppEigen.h>
@@ -126,3 +127,5 @@ Matrix<T, Dynamic, 1> phiv3( double t, Matrix<T, Dynamic, Dynamic> A, VectorXd u
   //cout << w.adjoint() << endl;
 
 }
+
+#endif

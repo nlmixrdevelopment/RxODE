@@ -1,6 +1,32 @@
 //#undef NDEBUG
-// [[Rcpp::depends(RcppParallel)]]
-// [[Rcpp::depends(StanHeaders)]]
+#ifdef __Rx_noSTAN__
+#include <Rcpp.h>
+#include <RcppEigen.h>
+#include "../inst/include/RxODE.h"
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
+
+extern "C" double linCmtB(rx_solve *rx, unsigned int id,
+			  double _t, int linCmt,
+			  int ncmt, int trans, int val,
+			  double dd_p1, double dd_v1,
+			  double dd_p2, double dd_p3,
+			  double dd_p4, double dd_p5,
+			  double dd_tlag, double dd_F,
+			  double dd_rate, double dd_dur,
+			  // oral extra parameters
+			  double dd_ka, double dd_tlag2,
+			  double dd_F2, double dd_rate2, double dd_dur2) {
+  Rcpp::stop("Not supported on Windows R 3.6; Consider upgrading to R 4.0 with RTools 4.0");
+}
+
+#else
+
 #include <stan/math.hpp>
 #include <Rcpp.h>
 #include <RcppEigen.h>
@@ -2862,3 +2888,5 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
     Rf_errorcall(R_NilValue, "unsupported sensitivity");
   }
 }
+
+#endif
