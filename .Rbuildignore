@@ -36,6 +36,7 @@ News.md
 ^/?man-roxygen$
 ^/?man/figures/.*$
 ^/?man/figures$
+^*.log$
 tests/testthat/_snaps$
 vignettes/*.Rmdh
 vignettes/RxODE-wt.Rmd
