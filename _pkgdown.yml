@@ -107,6 +107,8 @@ navbar:
           href: articles/RxODE-speed.html
         - text: "Adaptive Data Frames with RxODE"
           href: articles/RxODE-data-frame.html
+        - text: "Plotting with RxODE"
+          href: articles/RxODE-plot.html
         - text: "--------------------------"
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"

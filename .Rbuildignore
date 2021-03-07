@@ -39,6 +39,7 @@ News.md
 ^.*[.]log$
 tests/testthat/_snaps$
 vignettes/*.Rmdh
+vignettes/RxODE-plot.Rmd
 vignettes/RxODE-wt.Rmd
 vignettes/RxODE-nesting.Rmd
 vignettes/RxODE-tutorials.Rmd
@@ -60,6 +61,7 @@ vignettes/RxODE-datasets.Rmd
 vignettes/RxODE-transit-compartments.Rmd
 vignettes/rxode-single-subject.Rmd
 vignettes/RxODE-wt_files
+vignettes/RxODE-plot_files
 vignettes/RxODE-nesting_files
 vignettes/RxODE-tutorial_files
 vignettes/RxODE-cmt_files
@@ -81,6 +83,7 @@ vignettes/RxODE-transit-compartments_files
 vignettes/rxode-single-subject_files
 vignettes/RxODE-cmt.html
 vignettes/RxODE-wt.html
+vignettes/RxODE-plot.html
 vignettes/RxODE-nesting.html
 vignettes/RxODE-tutorials.html
 vignettes/RxODE-covariates.html
@@ -98,8 +101,10 @@ vignettes/RxODE-speed.html
 vignettes/RxODE-stiff.html
 vignettes/RxODE-transit-compartments.html
 vignettes/RxODE-wt.Rmd
+vignettes/RxODE-plot.Rmd
 vignettes/RxODE-nesting.Rmd
 vignettes/RxODE-wt.html
+vignettes/RxODE-plot.html
 vignettes/RxODE-nesting.html
 vignettes/rxode-single-subject.html
 vignettes/alpha-lincmt.csv
