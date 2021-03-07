@@ -167,6 +167,10 @@
     <li>
       <a href="../articles/RxODE-nesting.html">Simulating Multiple levels of nesting (iov, between study etc)</a>
     </li>
+    <li class="divider">
+    <li>
+      <a href="../news/index.html">Changes/News</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -329,11 +333,11 @@
 <code class="sourceCode R"><span class="va">bench</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html" class="external-link">microbenchmark</a></span><span class="op">(</span><span class="fu">runFor</span><span class="op">(</span><span class="op">)</span>, <span class="fu">runSapply</span><span class="op">(</span><span class="op">)</span>, <span class="fu">runSingleThread</span><span class="op">(</span><span class="op">)</span>,<span class="fu">run2Thread</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">bench</span><span class="op">)</span>
 <span class="co">#&gt; Unit: milliseconds</span>
-<span class="co">#&gt;               expr      min        lq      mean    median       uq      max</span>
-<span class="co">#&gt;           runFor() 237.2531 242.60180 250.56585 246.70460 251.2977 376.9989</span>
-<span class="co">#&gt;        runSapply() 236.7357 242.35925 248.49189 245.97205 252.1909 292.2164</span>
-<span class="co">#&gt;  runSingleThread()  40.8011  41.76745  43.38423  42.88215  44.4155  50.5606</span>
-<span class="co">#&gt;       run2Thread()  22.8210  23.88345  25.38224  24.84000  26.1043  36.7144</span>
+<span class="co">#&gt;               expr      min        lq      mean    median        uq      max</span>
+<span class="co">#&gt;           runFor() 248.3229 249.55180 256.25236 251.84460 255.11625 351.8543</span>
+<span class="co">#&gt;        runSapply() 246.4178 247.83800 252.97350 249.39290 253.04200 307.6739</span>
+<span class="co">#&gt;  runSingleThread()  46.8771  47.05275  47.47716  47.13995  47.29855  54.2560</span>
+<span class="co">#&gt;       run2Thread()  26.3141  26.80620  28.54640  28.19510  29.95935  35.2569</span>
 <span class="co">#&gt;  neval</span>
 <span class="co">#&gt;    100</span>
 <span class="co">#&gt;    100</span>
@@ -356,8 +360,8 @@
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">bench</span><span class="op">)</span>
 <span class="co">#&gt; Unit: milliseconds</span>
 <span class="co">#&gt;          expr     min       lq     mean  median       uq     max neval</span>
-<span class="co">#&gt;  runThread(1) 40.7093 41.87235 43.40348 42.6789 44.72615 49.5017   100</span>
-<span class="co">#&gt;  runThread(2) 22.7190 23.69015 24.86341 24.3630 25.62245 34.6299   100</span></code></pre></div>
+<span class="co">#&gt;  runThread(1) 47.0826 48.51535 50.29985 49.3503 51.89035 58.5607   100</span>
+<span class="co">#&gt;  runThread(2) 26.5667 27.35625 29.33072 28.8623 30.85920 38.0203   100</span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">bench</span><span class="op">)</span>
 <span class="co">#&gt; Coordinate system already present. Adding new coordinate system, which will replace the existing one.</span></code></pre></div>
@@ -438,7 +442,7 @@
 <span class="va">Stoplapply</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>
   
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">Stoplapply</span> <span class="op">-</span> <span class="va">Startlapply</span><span class="op">)</span>
-<span class="co">#&gt; Time difference of 7.946906 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 7.426884 secs</span></code></pre></div>
 <p>By applying some of the new parallel solving concepts you can simply run the same simulation both with less code and faster:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rx</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
@@ -477,7 +481,7 @@
 <span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">rx</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, returnType<span class="op">=</span><span class="st">"data.table"</span><span class="op">)</span>
 <span class="va">endParallel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">endParallel</span> <span class="op">-</span> <span class="va">startParallel</span><span class="op">)</span>
-<span class="co">#&gt; Time difference of 0.1441395 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 0.1622062 secs</span></code></pre></div>
 <p>You can see a striking time difference between the two methods; A few things to keep in mind:</p>
 <ul>
 <li><p><code>RxODE</code> use the thread-safe sitmo <code>threefry</code> routines for simulation of <code>eta</code> values. Therefore the results are expected to be different (also the random samples are taken in a different order which would be different)</p></li>

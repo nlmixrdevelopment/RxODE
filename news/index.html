@@ -218,6 +218,10 @@
     <li>
       <a href="../articles/RxODE-nesting.html">Simulating Multiple levels of nesting (iov, between study etc)</a>
     </li>
+    <li class="divider"></li>
+    <li>
+      <a href="../news/index.html">Changes/News</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -288,7 +292,12 @@
 <li><p>Maintainance release – use <code>std::floor</code> and cast variables to <code>double</code> for internal C functions. This should allow a successful compile on Solaris CRAN.</p></li>
 <li><p>Changed <code>units</code> from an Imports to a Suggests to allow testing on Solaris rhub</p></li>
 <li><p>Changed <code>ODR</code> model names from time id to <code>_rx</code> followed by the <code>md5</code> hash id; For packages the id is <code>_rxp</code> followed by the <code>md5</code> hash.</p></li>
-<li><p>Took AD linear compartment solutions for Windows R 3.6, though they still work for Windows R 4.0. This will cause <code>nlmixr</code> to fail with solved systems on Windows 3.6. Currently the Stan Headers do not compile on this system so they are disabled at this time.</p></li>
+<li>
+<p>Removed AD linear compartment solutions for Windows R 3.6, though they still work for Windows R 4.0 (You can get them back for Windows R 3.6 if you install <code>BH</code> 1.66.0-1 and then recompile from source).</p>
+<ul>
+<li>This will cause <code>nlmixr</code> to fail with solved systems on Windows 3.6. Currently the Stan Headers do not compile on this system so they are disabled at this time.</li>
+</ul>
+</li>
 </ul>
 </div>
     <div id="rxode-104" class="section level1">
