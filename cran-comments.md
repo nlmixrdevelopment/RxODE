@@ -49,3 +49,5 @@ as on rhub with a successful check.
   suggested to upgrade R and Rtools or temporarily downgrade `BH`.
 
   With this new change, the R build for the old release works well:
+
+ https://github.com/nlmixrdevelopment/RxODE/runs/2050872097?check_suite_focus=true
