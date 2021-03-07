@@ -38,7 +38,7 @@ as on rhub with a successful check.
 * New Release Mac Issue [here](https://www.r-project.org/nosvn/R.check/r-release-macos-x86_64/RxODE-00check.html)
 
   This check cannot find the csv files in the vignette file; We moved
-  this to a pkgdown-only
+  this to a pkgdown-only.
 
 * Old Release Windows Issue [here](https://www.r-project.org/nosvn/R.check/r-oldrel-windows-ix86+x86_64/RxODE-00check.html)
 
