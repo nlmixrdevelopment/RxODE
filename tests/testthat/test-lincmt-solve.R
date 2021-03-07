@@ -4,7 +4,12 @@ rxodeTest(
   tol <- 5e-6 ## Current difference for all equations
   type <- 2
 
-  for (type in 1:4) {
+  types <- 1:4
+  if (!.rxHasStan()) {
+    types <- 1
+  }
+
+  for (type in types) {
 
     .txt <- switch(type, "linear", "sensitivity", "linear [no save]", "advanSens")
     sens <- switch(type, "linCmtA", "linCmtB", "linCmtC", "linCmtB")
@@ -1898,6 +1903,7 @@ rxodeTest(
     })
 
   }
+  if (length(types) > 1) {
     test_that(
       "double linCmt has error",
       expect_error(RxODE({
@@ -2012,7 +2018,7 @@ rxodeTest(
 
     ## forward/central differences don't work here...
 
-  for (type in c(1, 4)) {
+    for (type in c(1, 4)) {
       sens <- switch(type, "autodiff", "forward", "central", "advan")
 
       context(sprintf("1 cmt sensitivities (%s)", sens))
@@ -3032,131 +3038,131 @@ rxodeTest(
       })
     }
 
-  context("Make sure central differences are working")
-  test_that("central differences", {
+    context("Make sure central differences are working")
+    test_that("central differences", {
 
-    ## One compartment model without oral absorption
-    pred <- function() {
-      return(Central)
-    }
+      ## One compartment model without oral absorption
+      pred <- function() {
+        return(Central)
+      }
 
-    pk <- function() {
-      lCl <- THETA[1]
-      lVc <- THETA[2]
-      prop.err <- THETA[3]
-      lF <- THETA[4]
-      lLag <- THETA[5]
-      eta.Vc <- ETA[1]
-      eta.Cl <- ETA[2]
-      eta.f <- ETA[3]
-      eta.lag <- ETA[4]
-      Vc <- exp(lVc + eta.Vc)
-      Cl <- exp(lCl + eta.Cl)
-      fc <- exp(lF + eta.f)
-      lagc <- exp(lLag + eta.lag)
-    }
+      pk <- function() {
+        lCl <- THETA[1]
+        lVc <- THETA[2]
+        prop.err <- THETA[3]
+        lF <- THETA[4]
+        lLag <- THETA[5]
+        eta.Vc <- ETA[1]
+        eta.Cl <- ETA[2]
+        eta.f <- ETA[3]
+        eta.lag <- ETA[4]
+        Vc <- exp(lVc + eta.Vc)
+        Cl <- exp(lCl + eta.Cl)
+        fc <- exp(lF + eta.f)
+        lagc <- exp(lLag + eta.lag)
+      }
 
-    err <- function() {
-      return(prop(prop.err))
-    }
+      err <- function() {
+        return(prop(prop.err))
+      }
 
-    mod <- RxODE({
-      Central <- linCmt(Vc, Cl)
-      f(central) = fc
-      alag(central) = lagc
+      mod <- RxODE({
+        Central <- linCmt(Vc, Cl)
+        f(central) = fc
+        alag(central) = lagc
+      })
+
+      parms <- c(
+        "THETA[1]" = 20, "THETA[2]" = 25, "ETA[1]" = 1, "ETA[2]" = 1,
+        "THETA[3]" = 0.2, "THETA[4]"=log(1), "THETA[5]"=log(0.5),
+        "ETA[3]"=1, "ETA[4]"=1
+      )
+
+      et <- eventTable() %>%
+        add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%
+        add.sampling(seq(0, 48, length.out = 200))
+
+      pk2s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
+
+      s1 <- rxSolve(pk2s$inner, parms, et, sensType = "advan")
+
+      expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_3___)))
+      expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_4___)))
+
+      expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_3___)))
+      expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_4___)))
+
+      ## One compartment model with oral absorption
+
+      pred <- function() {
+        return(Central)
+      }
+
+      pk <- function() {
+        lCl <- THETA[1]
+        lVc <- THETA[2]
+        lQ <- THETA[3]
+        lVp <- THETA[4]
+        lKa <- THETA[5]
+        prop.err <- THETA[6]
+        lF <- THETA[7]
+        lLag <- THETA[8]
+        eta.Vc <- ETA[1]
+        eta.Cl <- ETA[2]
+        eta.Vp <- ETA[3]
+        eta.Q <- ETA[4]
+        eta.Ka <- ETA[5]
+        eta.F <- ETA[6]
+        eta.lag <- ETA[7]
+        Vc <- exp(lVc + eta.Vc)
+        Cl <- exp(lCl + eta.Cl)
+        Vp <- exp(lVp + eta.Vp)
+        Q <- exp(lQ + eta.Q)
+        Ka <- exp(lKa + eta.Ka)
+        F <- exp(lF + eta.F)
+        lag <- exp(lLag + eta.lag)
+      }
+
+      err <- function() {
+        return(prop(prop.err))
+      }
+
+      mod <- RxODE({
+        Central <- linCmt(Vc, Cl, Vp, Q, Ka)
+        f(depot) <- F
+        alag(depot) <- lag
+      })
+
+      pk2s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
+
+      et <- eventTable() %>%
+        add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%
+        add.sampling(seq(0, 48, length.out = 200))
+
+      parms <- c("THETA[1]" = log(18), ## Cl
+                 "THETA[2]" = log(40), ## Vc
+                 "THETA[3]" = log(10), ## Q
+                 "THETA[4]" = log(297), ## Vp
+                 "THETA[5]" = log(0.3), ## Ka
+                 "ETA[1]" = 0, "ETA[2]" = 0,
+                 "ETA[3]" = 0, "ETA[4]" = 0,
+                 "ETA[5]" = 0,
+                 "THETA[6]" = 0.2, "THETA[7]"=log(1.5), "THETA[8]"=log(0.5),
+                 "ETA[6]"=0, "ETA[7]"=0
+                 )
+
+      s1 <- rxSolve(pk2s$inner, parms, et, sensType = "advan")
+
+      expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_6___)))
+      expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_7___)))
+
+      expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_6___)))
+      expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_7___)))
+
     })
 
-    parms <- c(
-      "THETA[1]" = 20, "THETA[2]" = 25, "ETA[1]" = 1, "ETA[2]" = 1,
-      "THETA[3]" = 0.2, "THETA[4]"=log(1), "THETA[5]"=log(0.5),
-      "ETA[3]"=1, "ETA[4]"=1
-    )
 
-    et <- eventTable() %>%
-      add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%
-      add.sampling(seq(0, 48, length.out = 200))
-
-    pk2s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
-
-    s1 <- rxSolve(pk2s$inner, parms, et, sensType = "advan")
-
-    expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_3___)))
-    expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_4___)))
-
-    expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_3___)))
-    expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_4___)))
-
-    ## One compartment model with oral absorption
-
-    pred <- function() {
-      return(Central)
-    }
-
-    pk <- function() {
-      lCl <- THETA[1]
-      lVc <- THETA[2]
-      lQ <- THETA[3]
-      lVp <- THETA[4]
-      lKa <- THETA[5]
-      prop.err <- THETA[6]
-      lF <- THETA[7]
-      lLag <- THETA[8]
-      eta.Vc <- ETA[1]
-      eta.Cl <- ETA[2]
-      eta.Vp <- ETA[3]
-      eta.Q <- ETA[4]
-      eta.Ka <- ETA[5]
-      eta.F <- ETA[6]
-      eta.lag <- ETA[7]
-      Vc <- exp(lVc + eta.Vc)
-      Cl <- exp(lCl + eta.Cl)
-      Vp <- exp(lVp + eta.Vp)
-      Q <- exp(lQ + eta.Q)
-      Ka <- exp(lKa + eta.Ka)
-      F <- exp(lF + eta.F)
-      lag <- exp(lLag + eta.lag)
-    }
-
-    err <- function() {
-      return(prop(prop.err))
-    }
-
-    mod <- RxODE({
-      Central <- linCmt(Vc, Cl, Vp, Q, Ka)
-      f(depot) <- F
-      alag(depot) <- lag
-    })
-
-    pk2s <- rxSymPySetupPred(mod, predfn = pred, pkpars = pk, err = err)
-
-    et <- eventTable() %>%
-      add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%
-      add.sampling(seq(0, 48, length.out = 200))
-
-    parms <- c("THETA[1]" = log(18), ## Cl
-               "THETA[2]" = log(40), ## Vc
-               "THETA[3]" = log(10), ## Q
-               "THETA[4]" = log(297), ## Vp
-               "THETA[5]" = log(0.3), ## Ka
-               "ETA[1]" = 0, "ETA[2]" = 0,
-               "ETA[3]" = 0, "ETA[4]" = 0,
-               "ETA[5]" = 0,
-               "THETA[6]" = 0.2, "THETA[7]"=log(1.5), "THETA[8]"=log(0.5),
-               "ETA[6]"=0, "ETA[7]"=0
-               )
-
-    s1 <- rxSolve(pk2s$inner, parms, et, sensType = "advan")
-
-    expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_6___)))
-    expect_false(any(is.na(s1$rx__sens_rx_pred__BY_ETA_7___)))
-
-    expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_6___)))
-    expect_false(any(is.na(s1$rx__sens_rx_r__BY_ETA_7___)))
-
-  })
-
-
-
+  }
   },
   silent = TRUE,
   test = "lincmt"

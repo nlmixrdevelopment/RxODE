@@ -1,7 +1,6 @@
 rxodeTest(
   {
     ms <- c("liblsoda", "lsoda", "dop853")
-    if (grepl("SunOS", Sys.info()["sysname"])) ms <- "lsoda"
     for (m in ms) {
       et <- eventTable() %>%
         add.dosing(dose = 3, nbr.doses = 6, dosing.interval = 8) %>%

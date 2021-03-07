@@ -1,19 +1,19 @@
 # -*- mode: makefile-gmake -*-
-ARMA=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("RcppArmadillo"),"include"))'`
-BH=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("BH"),"include"))'`
-RCPP=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("Rcpp"),"include"))'`
-EG=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("RcppEigen"),"include"))'`
-SH=`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e 'cat(file.path(find.package("StanHeaders"),"include"))'`
+ARMA=@ARMA@
+BH=@BH@
+RCPP=@RCPP@
+EG=@EG@
+SH=@SH@
 CXX_STD = CXX14
-@CXX14STD@
+CXX14STD = @CXX14STD@
 
 ################################################################################
 ## Package library flags.
-PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
+PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS) @SL@
 
 # Release options
 PKG_CFLAGS  =  -D_isRxODE_
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -D_isRxODE_ -DBOOST_DISABLE_ASSERTS -DBOOST_NO_CXX11_STATIC_ASSERT -@ISYSTEM@"$(BH)" -@ISYSTEM@"$(EG)" -@ISYSTEM@"$(SH)" -@ISYSTEM@"$(RCPP)" -@ISYSTEM@"$(ARMA)"
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -D_isRxODE_ -DBOOST_DISABLE_ASSERTS -DBOOST_NO_CXX11_STATIC_ASSERT -DBOOST_PHOENIX_NO_VARIADIC_EXPRESSION -DBOOST_NO_AUTO_PTR -D_REENTRANT -@ISYSTEM@"$(BH)" -@ISYSTEM@"$(EG)" $(SH) -@ISYSTEM@"$(RCPP)" -@ISYSTEM@"$(ARMA)"
 
 
 SOURCES_C = print_node.c genModelVars.c codegen.c getOption.c sbuf.c parseLinCmt.c tran.c lincmt.c utilc.c call_dvode.c dop853.c omegaChol.c init.c cfode.c common.c corfailure.c correction.c daxpy.c ddot.c dgefa.c dgesl.c dscal.c fnorm.c idamax.c intdy.c lsoda.c methodswitch.c orderswitch.c prja.c scaleh.c solsy.c stoda.c vmnorm.c strdup_printf.c rprintf.c box.c matexp_HM98.c checkmate_stub.c

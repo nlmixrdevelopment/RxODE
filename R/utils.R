@@ -1067,3 +1067,14 @@ rxUnloadAll <- function(){
   setwd(wd) # nolint
   force(code)
 }
+
+#' Does this have stan AD compiled?
+#'
+#' @return Boolean indicating if the stan AD linCmt() was built-in
+#'
+#' @export
+#'
+#' .rxHasStan()
+.rxHasStan <- function() {
+  .Call(`_hasStan`)
+}

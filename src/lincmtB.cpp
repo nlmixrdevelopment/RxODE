@@ -1,6 +1,41 @@
 //#undef NDEBUG
-#include <R.h>
+#ifdef __Rx_noSTAN__
+#include <Rcpp.h>
+#include <RcppEigen.h>
+#include "../inst/include/RxODE.h"
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(String) dgettext ("RxODE", String)
+/* replace pkg as appropriate */
+#else
+#define _(String) (String)
+#endif
+
+extern "C" double linCmtB(rx_solve *rx, unsigned int id,
+			  double _t, int linCmt,
+			  int ncmt, int trans, int val,
+			  double dd_p1, double dd_v1,
+			  double dd_p2, double dd_p3,
+			  double dd_p4, double dd_p5,
+			  double dd_tlag, double dd_F,
+			  double dd_rate, double dd_dur,
+			  // oral extra parameters
+			  double dd_ka, double dd_tlag2,
+			  double dd_F2, double dd_rate2, double dd_dur2) {
+  Rf_errorcall(R_NilValue, "Not supported on Windows R 3.6\nConsider upgrading to R 4.0 with RTools 4.0,\nor temporarily downgrade BH to 1.66.0-1 and recompile RxODE");
+}
+
+extern "C" SEXP _hasStan() {
+  SEXP ret = PROTECT(Rf_allocVector(LGLSXP, 1));
+  INTEGER(ret)[0] = 0;
+  UNPROTECT(1);
+  return ret;
+}
+
+#else
+
 #include <stan/math.hpp>
+#include <Rcpp.h>
 #include <RcppEigen.h>
 #include "../inst/include/RxODE.h"
 #ifdef ENABLE_NLS
@@ -17,6 +52,13 @@ extern "C" int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind);
 extern "C" double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p);
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 extern "C" void RSprintf(const char *format, ...);
+
+extern "C" SEXP _hasStan() {
+  SEXP ret = PROTECT(Rf_allocVector(LGLSXP, 1));
+  INTEGER(ret)[0] = 1;
+  UNPROTECT(1);
+  return ret;
+}
 
 namespace stan {
   namespace math {
@@ -2860,3 +2902,5 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
     Rf_errorcall(R_NilValue, "unsupported sensitivity");
   }
 }
+
+#endif

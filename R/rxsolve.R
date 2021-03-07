@@ -733,6 +733,9 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
         }
       }
     } else {
+      if (inherits(method, "numeric")) {
+        method <- as.integer(method)
+      }
       if (!rxIs(method, "integer")) {
         method <- match.arg(method)
       }
@@ -749,11 +752,8 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       matrix <- as.integer(matrix)
     }
     if (!rxIs(method, "integer")) {
-      .methodIdx <- c("lsoda" = 1, "dop853" = 0, "liblsoda" = 2, "indLin" = 3)
-      method <- as.integer(.methodIdx[method])
-    }
-    if (Sys.info()[["sysname"]] == "SunOS" && method == 2) {
-      method <- 1
+      .methodIdx <- c("lsoda" = 1L, "dop853" = 0L, "liblsoda" = 2L, "indLin" = 3L)
+      method <- .methodIdx[method]
     }
     if (length(covsInterpolation) > 1) covsInterpolation <- covsInterpolation[1]
     if (!rxIs(covsInterpolation, "integer")) {

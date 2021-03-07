@@ -9,19 +9,41 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
   }
 }
 
+.in <- suppressWarnings(readLines("src/Makevars.in"))
+.in <- gsub("@ARMA@", file.path(find.package("RcppArmadillo"),"include"), .in)
+.in <- gsub("@BH@", file.path(find.package("BH"),"include"), .in)
+.in <- gsub("@RCPP@", file.path(find.package("Rcpp"),"include"), .in)
+.in <- gsub("@EG@", file.path(find.package("RcppEigen"),"include"), .in)
+
+.badStan <- ""
+if (R.version$major < 4 && isTRUE(.Platform$OS.type == "windows")) {
+  # See https://github.com/nlmixrdevelopment/nlmixr/issues/429#issuecomment-729993005
+  if (compareVersion(as.character(packageVersion("BH")), "1.66.0-1") > 0) {
+    .badStan <- " -D__Rx_noSTAN__ "
+  }
+}
+.in <- gsub("@SH@", gsub("-I", "-@ISYSTEM@",
+                         paste(## capture.output(StanHeaders:::CxxFlags()),
+                               ## capture.output(RcppParallel:::CxxFlags()),
+                               paste0("-@ISYSTEM@'", system.file('include', 'src', package = 'StanHeaders', mustWork = TRUE), "'"),
+                               .badStan)),
+            .in)
+
+.in <- gsub("@SL@", "", ##paste(capture.output(StanHeaders:::LdFlags()), capture.output(RcppParallel:::RcppParallelLibs())),
+            .in)
+
 if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {
-  writeLines(gsub("@ISYSTEM@", "I",
-                  gsub("@CXX14STD@", "CXX14STD = -std=c++1y",
-                       suppressWarnings(readLines("src/Makevars.in")))),
+  .in <- gsub("@CXX14STD@", "-std=c++1y", .in)
+  writeLines(gsub("@ISYSTEM@", "I", .in),
              "src/Makevars.win")
 } else {
-  writeLines(gsub("@ISYSTEM@", "isystem",
-                  gsub("@CXX14STD@", "CXX14STD = -std=gnu++14",
-                       suppressWarnings(readLines("src/Makevars.in")))),
+  .in <- gsub("@CXX14STD@", "-std=gnu++14", .in)
+  writeLines(gsub("@ISYSTEM@", "isystem", .in),
              "src/Makevars")
 }
 
 if (file.exists("src/Makevars.in.r-stripper.bak")) {
+  ## Reset to old Makevars.in
   l <- readLines("src/Makevars.in.r-stripper.bak")
   writeLines(l, "src/Makevars.in")
   unlink("src/Makevars.in.r-stripper.bak")

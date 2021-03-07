@@ -3,7 +3,6 @@ rxodeTest(
     library(dplyr)
     library(testthat)
     ms <- c("liblsoda", "lsoda", "dop853")
-    if (grepl("SunOS", Sys.info()["sysname"])) ms <- "lsoda"
 
     for (m in ms) {
       context(sprintf("Modeled rate (%s)", m))
