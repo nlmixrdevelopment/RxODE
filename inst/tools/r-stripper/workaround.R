@@ -14,15 +14,21 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
 .in <- gsub("@BH@", file.path(find.package("BH"),"include"), .in)
 .in <- gsub("@RCPP@", file.path(find.package("Rcpp"),"include"), .in)
 .in <- gsub("@EG@", file.path(find.package("RcppEigen"),"include"), .in)
+
 .badStan <- ""
 if (R.version$major < 4 && isTRUE(.Platform$OS.type == "windows")) {
-  .badStan <- " -D__Rx_noSTAN__ "
+  # See https://github.com/nlmixrdevelopment/nlmixr/issues/429#issuecomment-729993005
+  if (compareVersion(as.character(packageVersion("BH")), "1.66.0-1") > 0) {
+    .badStan <- " -D__Rx_noSTAN__ "
+  }
 }
 .in <- gsub("@SH@", gsub("-I", "-@ISYSTEM@",
-                         paste(paste0("-@ISYSTEM@'", system.file('include', 'src', package = 'StanHeaders', mustWork = TRUE), "'"),
+                         paste(capture.output(StanHeaders:::CxxFlags()),
+                               capture.output(RcppParallel:::CxxFlags()),
+                               paste0("-@ISYSTEM@'", system.file('include', 'src', package = 'StanHeaders', mustWork = TRUE), "'"),
                                .badStan)),
             .in)
-.in <- gsub("@SL@", "", .in)
+.in <- gsub("@SL@", paste(capture.output(StanHeaders:::LdFlags()), capture.output(RcppParallel:::RcppParallelLibs())), .in)
 
 
 if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {

@@ -22,7 +22,14 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
 			  // oral extra parameters
 			  double dd_ka, double dd_tlag2,
 			  double dd_F2, double dd_rate2, double dd_dur2) {
-  Rcpp::stop("Not supported on Windows R 3.6; Consider upgrading to R 4.0 with RTools 4.0");
+  Rf_errorcall(R_NilValue, "Not supported on Windows R 3.6\nConsider upgrading to R 4.0 with RTools 4.0,\nor temporarily downgrade BH to 1.66.0-1 and recompile RxODE");
+}
+
+extern "C" SEXP _hasStan() {
+  SEXP ret = PROTECT(Rf_allocVector(LGLSXP, 1));
+  INTEGER(ret)[0] = 0;
+  UNPROTECT(1);
+  return ret;
 }
 
 #else
@@ -45,6 +52,13 @@ extern "C" int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind);
 extern "C" double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p);
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 extern "C" void RSprintf(const char *format, ...);
+
+extern "C" SEXP _hasStan() {
+  SEXP ret = PROTECT(Rf_allocVector(LGLSXP, 1));
+  INTEGER(ret)[0] = 1;
+  UNPROTECT(1);
+  return ret;
+}
 
 namespace stan {
   namespace math {

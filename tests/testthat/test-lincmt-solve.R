@@ -5,7 +5,7 @@ rxodeTest(
   type <- 2
 
   types <- 1:4
-  if (R.version$major < 4 && isTRUE(.Platform$OS.type == "windows")) {
+  if (!.rxHasStan()) {
     types <- 1
   }
 
