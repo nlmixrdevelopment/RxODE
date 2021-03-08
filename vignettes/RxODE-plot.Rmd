@@ -17,7 +17,7 @@ The first step to explain the RxODE model plots is to setup:
 2. An event table
 3. A solved object
 
-```r
+```{r}
 library(RxODE)
 ## Model from RxODE tutorial
 m1 <- RxODE({
