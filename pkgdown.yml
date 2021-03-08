@@ -13,6 +13,7 @@ articles:
   RxODE-model-types: RxODE-model-types.html
   RxODE-nesting: RxODE-nesting.html
   RxODE-pipeline: RxODE-pipeline.html
+  RxODE-plot: RxODE-plot.html
   RxODE-prior-data: RxODE-prior-data.html
   RxODE-rxUse: RxODE-rxUse.html
   RxODE-shiny: RxODE-shiny.html
@@ -24,7 +25,7 @@ articles:
   RxODE-tutorials: RxODE-tutorials.html
   RxODE-wt: RxODE-wt.html
   rxode-single-subject: rxode-single-subject.html
-last_built: 2021-03-07T20:50Z
+last_built: 2021-03-08T02:50Z
 urls:
   reference: https://nlmixrdevelopment.github.io/RxODE/reference
   article: https://nlmixrdevelopment.github.io/RxODE/articles
