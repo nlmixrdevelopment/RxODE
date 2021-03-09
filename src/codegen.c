@@ -82,7 +82,9 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     int i, j;
     char *buf;
     if (show_ode == 1){
-      writeHeader(md5);
+      const char *extra = "";
+      if (strncmp("rx_", libname, 3) != 0) extra = libname;
+      writeHeader(md5, extra);
       sAppendN(&sbOut,"#include <RxODE_model_shared.h>\n",32);
       int mx = maxSumProdN;
       if (SumProdLD > mx) mx = SumProdLD;

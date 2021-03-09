@@ -35,6 +35,15 @@ as on rhub with a successful check.
 
   We also verified the ASAN version on our machines
 
+  When rerun on the CRAN machine, this error disappeared, but the following error appeared:
+
+>    Warning message:
+>     The `wrap` argument of `test_dir()` is deprecated as of testthat 3.0.0.
+>     This warning is displayed once every 8 hours.
+>     Call `lifecycle::last_warnings()` to see where this warning was generated.
+
+  We took out the `wrap` so this warning will not be displayed and cause an error
+
 * New Release Mac Issue [here](https://www.r-project.org/nosvn/R.check/r-release-macos-x86_64/RxODE-00check.html)
 
   This check cannot find the csv files in the vignette file; We moved
