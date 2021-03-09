@@ -5,31 +5,31 @@
   }
 }
 .hasUnits <- FALSE
-.rcppVersion <- packageVersion("Rcpp")
-.PreciseSumsVersion <- packageVersion("PreciseSums")
-.dparserVersion <- packageVersion("dparser")
-.checkmateVersion <- packageVersion("checkmate")
+.rcppVersion <- utils::packageVersion("Rcpp")
+.PreciseSumsVersion <- utils::packageVersion("PreciseSums")
+.dparserVersion <- utils::packageVersion("dparser")
+.checkmateVersion <- utils::packageVersion("checkmate")
 .onLoad <- function(libname, pkgname) { ## nocov start
-  if (!identical(.rcppVersion, packageVersion("Rcpp"))) {
+  if (!identical(.rcppVersion, utils::packageVersion("Rcpp"))) {
     stop("RxODE compiled with Rcpp '", as.character(.rcppVersion),
-         "' but Rcpp '", as.character(packageVersion("Rcpp")), "' is loaded\nRecompile RxODE with the new version of Rcpp",
+         "' but Rcpp '", as.character(utils::packageVersion("Rcpp")), "' is loaded\nRecompile RxODE with the new version of Rcpp",
          call.=FALSE)
   }
-  if (!identical(.dparserVersion, packageVersion("dparser"))) {
+  if (!identical(.dparserVersion, utils::packageVersion("dparser"))) {
     stop("RxODE compiled with dparser '", as.character(.dparserVersion),
-         "' but dparser '", as.character(packageVersion("dparser")),
+         "' but dparser '", as.character(utils::packageVersion("dparser")),
          "' is loaded\nRecompile RxODE with the this version of dparser",
          call.=FALSE)
   }
-  if (!identical(.checkmateVersion, packageVersion("checkmate"))) {
+  if (!identical(.checkmateVersion, utils::packageVersion("checkmate"))) {
     stop("RxODE compiled with checkmate '", as.character(.checkmateVersion),
-         "' but checkmate '", as.character(packageVersion("checkmate")),
+         "' but checkmate '", as.character(utils::packageVersion("checkmate")),
          "' is loaded\nRecompile RxODE with the this version of checkmate",
          call.=FALSE)
   }
-  if (!identical(.PreciseSumsVersion, packageVersion("PreciseSums"))) {
+  if (!identical(.PreciseSumsVersion, utils::packageVersion("PreciseSums"))) {
     stop("RxODE compiled with PreciseSums '", as.character(.PreciseSumsVersion),
-         "' but PreciseSums '", as.character(packageVersion("PreciseSums")),
+         "' but PreciseSums '", as.character(utils::packageVersion("PreciseSums")),
          "' is loaded\nRecompile RxODE with the this version of PreciseSums",
          call.=FALSE)
   }
