@@ -47,15 +47,26 @@ rxGetMuRef <- function(model, theta, eta){
 }
 
 ## .rxGetMuRefSumFirst(quote(t.cl+eta.cl+eta.cl2+eta.cl3),theta="t.cl", eta="eta.cl")
+## .rxGetMuRefSumFirst(quote(t.cl + eta.cl + cov.wt*wt + cov.wt2/70*wt), theta=c("t.cl", "cov.wt", "cov.wt2"), "eta.cl")
+## .rxGetMuRefSumFirst(quote(t.cl + eta.cl + cov.wt*wt + cov.wt2/70*wt), theta=c("t.cl", "cov.wt", "cov.wt2"), "eta.cl")
 .rxGetMuRefSumFirst <- function(expr, theta=c(), eta=c()) {
   ## Looking for eta + theta + theta*cov  ## This function is the initial function called for any sum
   .env <- new.env(parent=emptyenv())
   .env$.thetaSingle <- NULL
   .env$.etaSingle <- NULL
   .env$.covThetaMu <- NULL
-  .env$.badThetaMu
+  .env$.badThetaMu <- NULL
   .rxGetMuRefSumRecur(expr, theta, eta, .env)
   ## print(.env$.thetaSingle)
   ## print(.env$.etaSingle)
   ## print(.env$.covThetaMu)
+
+  ## Case 1: exp()
+  ## exp(t.cl + eta.cl + theta*cov + extra)
+  ## exp(t.cl + eta.cl + theta*cov)*exp(extra)
+  ## mu1 = exp(t.cl + eta.cl + theta*cov)
+
+  ## Case 2/3: expit() Can't be as easily decomposed as exp/add
 }
+
+.rx
