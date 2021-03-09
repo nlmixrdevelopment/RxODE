@@ -19,6 +19,13 @@
      Currently the Stan Headers do not compile on this system so they are
      disabled at this time.
 
+ * RxODE imports but does not link to `qs` any longer; This change
+   should make recompilation of RxODE to work with different releases
+   of `qs` unnecessary.
+
+ * RxODE now checks for binary compatibility for `Rcpp`, `dparser`,
+   `checkmate`, and `PreciseSums`
+
 # RxODE 1.0.4
 ## Breaking changes
 
