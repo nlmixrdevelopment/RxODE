@@ -265,13 +265,12 @@
   <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">peri</span><span class="op">)</span> <span class="op">~</span> <span class="va">A1</span><span class="op">*</span><span class="va">Q</span><span class="op">/</span><span class="va">V1</span> <span class="op">-</span> <span class="va">A2</span><span class="op">*</span><span class="va">Q</span><span class="op">/</span><span class="va">V2</span>;
   <span class="va">DV</span> <span class="op">=</span> <span class="va">centr</span> <span class="op">/</span> <span class="va">V1</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">prop.err</span><span class="op">)</span>
 <span class="op">}</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; qs v0.24.1.</code></pre>
 </div>
 <div id="simulating-covariates" class="section level1">
 <h1 class="hasAnchor">
 <a href="#simulating-covariates" class="anchor"></a>Simulating Covariates</h1>
 <p>This simulation correlates age, sex, and weight. Since we will be using weight based dosing, this needs to be simulated first</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; 
@@ -282,7 +281,7 @@
 <pre><code>#&gt; The following objects are masked from 'package:base':
 #&gt; 
 #&gt;     intersect, setdiff, setequal, union</code></pre>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">nsub</span><span class="op">=</span><span class="fl">30</span>
 <span class="co"># Simulate Weight based on age and gender</span>
 <span class="va">AGE</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">nsub</span>,min<span class="op">=</span><span class="fl">18</span>,max<span class="op">=</span><span class="fl">70</span><span class="op">)</span><span class="op">)</span>
@@ -314,7 +313,7 @@
 <div id="creating-weight-based-event-table" class="section level1">
 <h1 class="hasAnchor">
 <a href="#creating-weight-based-event-table" class="anchor"></a>Creating weight based event table</h1>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">s</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0.25</span>,<span class="fl">0.5</span>,<span class="fl">0.75</span>,<span class="fl">1</span>,<span class="fl">1.5</span>,<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">24</span>,by<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>
 <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">s</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">{</span><span class="va">.x</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">x</span>; <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="va">.x</span>, <span class="va">x</span> <span class="op">+</span> <span class="va">.x</span><span class="op">)</span><span class="op">}</span><span class="op">)</span>
 
@@ -349,7 +348,7 @@
 <div id="solving-daptomycin-simulation" class="section level1">
 <h1 class="hasAnchor">
 <a href="#solving-daptomycin-simulation" class="anchor"></a>Solving Daptomycin simulation</h1>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">e</span>,
              <span class="co">## Lotri uses lower-triangular matrix rep. for named matrix</span>
              omega<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">eta.cl</span> <span class="op">~</span> <span class="fl">.306</span>, 
@@ -391,7 +390,7 @@
 #&gt; 6     1     0    NA   NA  0.921 21.1      1  49.4    83
 #&gt; # ... with 894 more rows
 #&gt; ________________________________________________________________________________</code></pre>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data</span>, log<span class="op">=</span><span class="st">"y"</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; Warning in self$trans$transform(x): NaNs produced</code></pre>
 <pre><code>#&gt; Warning: Transformation introduced infinite values in continuous y-axis</code></pre>

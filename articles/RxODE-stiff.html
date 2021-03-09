@@ -266,10 +266,9 @@
     <span class="fu">dy</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span> <span class="op">=</span> <span class="fl">0</span>
     <span class="co">## mu</span>
     <span class="va">mu</span> <span class="op">=</span> <span class="fl">1</span> <span class="co">## nonstiff; 10 moderately stiff; 1000 stiff</span>
-<span class="op">}</span><span class="op">)</span></code></pre></div>
-<pre><code>## qs v0.24.1.</code></pre>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span><span class="op">)</span>;
+<span class="op">}</span><span class="op">)</span>
+
+<span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span><span class="op">)</span>;
 <span class="va">et</span><span class="op">$</span><span class="fu">add.sampling</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>;
 <span class="va">et</span><span class="op">$</span><span class="fu">add.dosing</span><span class="op">(</span><span class="fl">20</span>, start.time<span class="op">=</span><span class="fl">0</span><span class="op">)</span>;
 
@@ -295,7 +294,7 @@
 ## # ... with 194 more rows
 ## ________________________________________________________________________________</code></pre>
 <p>While this is not stiff at mu=1, mu=1000 is a stiff system</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">s2</span> <span class="op">&lt;-</span> <span class="va">Vtpol2</span> <span class="op">%&gt;%</span>  <span class="fu"><a href="https://rdrr.io/pkg/symengine/man/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>mu<span class="op">=</span><span class="fl">1000</span><span class="op">)</span>, <span class="va">et</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">s2</span><span class="op">)</span></code></pre></div>
 <pre><code>## ______________________________ Solved RxODE object _____________________________

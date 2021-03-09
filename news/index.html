@@ -301,6 +301,8 @@
 <li>This will cause <code>nlmixr</code> to fail with solved systems on Windows 3.6. Currently the Stan Headers do not compile on this system so they are disabled at this time.</li>
 </ul>
 </li>
+<li><p>RxODE imports but does not link to <code>qs</code> any longer; This change should make recompilation of RxODE to work with different releases of <code>qs</code> unnecessary.</p></li>
+<li><p>RxODE now checks for binary compatibility for <code>Rcpp</code>, <code>dparser</code>, <code>checkmate</code>, and <code>PreciseSums</code></p></li>
 </ul>
 </div>
     <div id="rxode-104" class="section level1">

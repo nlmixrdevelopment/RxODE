@@ -341,12 +341,11 @@
       <span class="va">QRB</span><span class="op">*</span><span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span> <span class="op">-</span> <span class="va">QLU</span><span class="op">*</span><span class="va">Venous_Blood</span><span class="op">/</span><span class="va">VVB</span>;
     <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">Rest_of_Body</span><span class="op">)</span> <span class="op">=</span> <span class="va">QRB</span><span class="op">*</span><span class="op">(</span><span class="va">Arterial_Blood</span><span class="op">/</span><span class="va">VAB</span> <span class="op">-</span> <span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; qs v0.24.1.</code></pre>
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">pbpk</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.5 model named rx_f210c2d3623585cb0c8f3da0717e74b9 model (ready). 
-#&gt; DLL: /tmp/Rtmpgkg8cC/RxODE/rx_f210c2d3623585cb0c8f3da0717e74b9__.rxd/rx_f210c2d3623585cb0c8f3da0717e74b9_.so
+<pre><code>#&gt; RxODE 1.0.5 model named rx_cfb42626129d51c00d59c4e1b3c1ed1b model (ready). 
+#&gt; DLL: /tmp/RtmpV2VecU/RxODE/rx_cfb42626129d51c00d59c4e1b3c1ed1b__.rxd/rx_cfb42626129d51c00d59c4e1b3c1ed1b_.so
 #&gt; NULL
 #&gt; 
 #&gt; Calculated Variables:
@@ -440,7 +439,7 @@
 <h1 class="hasAnchor">
 <a href="#changing-compartment-numbers-by-pre-declaring-the-compartments" class="anchor"></a>Changing compartment numbers by pre-declaring the compartments</h1>
 <p>To add the compartments to the RxODE model in the order you desire you simply need to pre-declare the compartments with <code>cmt</code>. For example specifying is <code>Venous_Blood</code> and <code>Skin</code> to be the 1st and 2nd compartments, respectively, is simple:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pbpk2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
   <span class="co">## Now this is the first compartment, ie cmt=1</span>
   <span class="fu">cmt</span><span class="op">(</span><span class="va">Venous_Blood</span><span class="op">)</span>
@@ -535,9 +534,9 @@
   <span class="va">d</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">Rest_of_Body</span><span class="op">)</span> <span class="op">=</span> <span class="va">QRB</span><span class="op">*</span><span class="op">(</span><span class="va">Arterial_Blood</span><span class="op">/</span><span class="va">VAB</span> <span class="op">-</span> <span class="va">Rest_of_Body</span><span class="op">/</span><span class="va">KbRB</span><span class="op">/</span><span class="va">VRB</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span></code></pre></div>
 <p>You can see this change in the simple printout</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pbpk2</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.5 model named rx_f252d9ba4ce2c7931f6e887917d6f435 model (ready). 
+<pre><code>#&gt; RxODE 1.0.5 model named rx_d5ca590295ae94aac427f5a7ec6c43aa model (ready). 
 #&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body
 #&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup
 #&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
@@ -548,7 +547,7 @@
 <a href="#appending-compartments-to-the-model" class="anchor"></a>Appending compartments to the model</h1>
 <p>You can also append “compartments” to the model. Because of the ODE solving internals, you cannot add fake compartments to the model until after all the differential equations are defined.</p>
 <p>For example this is legal:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ode.1c.ka</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
     <span class="va">C2</span> <span class="op">=</span> <span class="va">center</span><span class="op">/</span><span class="va">V</span>;
     <span class="va">d</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="va">depot</span><span class="op">)</span> <span class="op">=</span> <span class="op">-</span><span class="va">KA</span> <span class="op">*</span> <span class="va">depot</span>
@@ -556,7 +555,7 @@
     <span class="fu">cmt</span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ode.1c.ka</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.5 model named rx_17af9f827bc0a3e6b09469c8d8a9b145 model (ready). 
+<pre><code>#&gt; RxODE 1.0.5 model named rx_2f7f4f31a620c66143706d6907b4897f model (ready). 
 #&gt; $state: depot, center
 #&gt; $stateExtra: eff
 #&gt; $params: V, KA, CL
