@@ -8,7 +8,6 @@
 rxGetMuRef <- function(model, theta, eta){
   assignInMyNamespace(".rxGetMuRefTheta", theta)
   assignInMyNamespace(".rxGetMuRefEta", eta)
-
 }
 
 .rxGetMuRefSumRecur <- function(expr, theta, eta, env) {
@@ -69,4 +68,89 @@ rxGetMuRef <- function(model, theta, eta){
   ## Case 2/3: expit() Can't be as easily decomposed as exp/add
 }
 
-.rx
+##' Determine if expression x is "clean"
+##'
+##' Clean means that it is free from calculated variables (lhs), and state.
+##'
+##' The expression needs to be clean of these calculated variables and
+##' states to safely extract into a mu expression at the top of the
+##' model.
+##'
+##' @param x The expression that is evaluated
+##' @param info The expression information list;  It should have $state and $lhs elements
+##' @param env Environment for assigning information
+##' @return A boolean indicating if the environment is clean from confounding elements
+##' @author Matthew Fidler
+##' @examples
+##'
+##' info <- list(state= c("depot", "center"), lhs=c("ka", "cl", "v", "cp"))
+##'
+##' env <- new.env(parent=emptyenv())
+##'
+##' .rxMuRefIsClean(quote(exp(tka + eta.ka)), info, env)
+##' .rxMuRefIsClean(quote(exp(tka + eta.ka + depot)), info, env)
+##' .rxMuRefIsClean(quote(exp(tka + eta.ka + cp)), info, env)
+##'
+##' @noRd
+.rxMuRefIsClean <- function(x, info, env) {
+  if (is.name(x)) {
+    .n <- as.character(x)
+    if (any(.n == info$state)) {
+      return(FALSE)
+    } else if (any(.n == info$lhs)) {
+      return(FALSE)
+    }
+    return(TRUE)
+  } else if (is.call(x)) {
+    return(all(unlist(lapply(x[-1], .rxMuRefIsClean, info=info, env=env))))
+  } else {
+    return(TRUE)
+  }
+}
+
+.rxMuRef0 <- function(x, info, env) {
+  if (is.call(x)) {
+    if (identical(x[[1]], quote(`+`))) {
+      print(x)
+    } else if (.rxMuRefIsClean(x, info, env)) {
+      # This expression doesn't depend on state values or calculated
+      # values and can be extracted or moved; Set the transformation
+      # type that will be moved.  Currently, 'exp', 'expit', 'probitInv' are
+      # recognized and possibly moved
+      if (identical(x[[1]], quote(`exp`))) {
+        env$curEval <- "exp"
+      } else if (identical(x[[1]], quote(`expit`))) {
+        env$curEval <- "expit"
+      } else if (identical(x[[1]], quote(`probitInv`))) {
+        env$curEval <- "probitInv"
+      } else {
+        env$curEval <- ""
+      }
+    } else {
+      env$curEval <- ""
+    }
+    lapply(x[-1], .rxMuRef0, info=info, env=env)
+  }
+}
+
+## 1. $state : states
+## 2. $params : params
+## 3. $lhs: lhs
+## 4. theta: theta from ini
+## 5. eta: eta from ini
+rxMuRef <- function(mod, theta=NULL, eta=NULL) {
+ .mv  <- rxModelVars(mod)
+ .expr <- eval(parse(text=paste0("quote({",rxNorm(.mv),"})")))
+ .state <- .mv$state
+ .params <- .mv$params
+ .lhs <- .mv$lhs
+ # Covariates are model based parameters not described by theta/eta
+ .info <- list(state=.state,
+               lhs=.lhs,
+               theta=theta,
+               eta=eta,
+               cov=setdiff(.params, c(theta, eta)))
+ .env <- new.env(parent=emptyenv())
+ .rxMuRef0(.expr, .info, .env)
+ return(invisible())
+}
