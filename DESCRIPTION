@@ -117,8 +117,7 @@ LinkingTo:
     sitmo,
     StanHeaders (>= 2.21.0),
     BH,
-    checkmate,
-    qs
+    checkmate
 Encoding: UTF-8
 LazyData: true
 Language: en-US
