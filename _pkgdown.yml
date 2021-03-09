@@ -107,6 +107,8 @@ navbar:
           href: articles/RxODE-speed.html
         - text: "Adaptive Data Frames with RxODE"
           href: articles/RxODE-data-frame.html
+        - text: "Plotting with RxODE"
+          href: articles/RxODE-plot.html
         - text: "--------------------------"
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"
@@ -157,6 +159,9 @@ navbar:
          href: articles/RxODE-wt.html
        - text: Simulating Multiple levels of nesting (iov, between study etc)
          href: articles/RxODE-nesting.html
+       - text: "--------------------------"
+       - text: Changes/News
+         href: news/index.html
   - text: "Functions"
     icon: fa-file-code-o
     href: https://nlmixrdevelopment.github.io/RxODE/reference/index.html

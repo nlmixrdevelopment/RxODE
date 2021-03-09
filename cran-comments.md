@@ -38,7 +38,7 @@ as on rhub with a successful check.
 * New Release Mac Issue [here](https://www.r-project.org/nosvn/R.check/r-release-macos-x86_64/RxODE-00check.html)
 
   This check cannot find the csv files in the vignette file; We moved
-  this to a pkgdown-only
+  this to a pkgdown-only.
 
 * Old Release Windows Issue [here](https://www.r-project.org/nosvn/R.check/r-oldrel-windows-ix86+x86_64/RxODE-00check.html)
 
@@ -51,3 +51,10 @@ as on rhub with a successful check.
   With this new change, the R build for the old release works well:
 
  https://github.com/nlmixrdevelopment/RxODE/runs/2050872097?check_suite_focus=true
+
+* Warning on r-devel-windows-x86_64-gcc10-UCRT issue [here](https://www.r-project.org/nosvn/R.check/r-devel-windows-x86_64-gcc10-UCRT/RxODE-00check.html)
+
+  The configure calls R to figure out configuration variables.  This
+  warning was caused by `writeLines()` being called on windows.
+  However, it was changed by using a binary connection so `LF` instead
+  of `CRLF` will be used for the output.

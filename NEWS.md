@@ -11,10 +11,13 @@
   `md5` hash id; For packages the id is `_rxp` followed by the `md5`
   hash.
 
-* Took AD linear compartment solutions for Windows R 3.6, though they
-  still work for Windows R 4.0.  This will cause `nlmixr` to fail with
-  solved systems on Windows 3.6.  Currently the Stan Headers do not
-  compile on this system so they are disabled at this time.
+* Removed AD linear compartment solutions for Windows R 3.6, though
+  they still work for Windows R 4.0 (You can get them back for Windows
+  R 3.6 if you install `BH` 1.66.0-1 and then recompile from source).
+
+   - This will cause `nlmixr` to fail with solved systems on Windows 3.6.
+     Currently the Stan Headers do not compile on this system so they are
+     disabled at this time.
 
 # RxODE 1.0.4
 ## Breaking changes
