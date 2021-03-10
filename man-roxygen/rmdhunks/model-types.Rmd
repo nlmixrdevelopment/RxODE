@@ -63,7 +63,7 @@ if (knitr::is_latex_output()) {
 The last parameterization possible is using `alpha` and `V` and/or
 `A`/`B`/`C`. Some example translations are below:
 
-```{r}
+```{r, echo=FALSE}
 alphaLinCmt <- read.csv("../../vignettes/alpha-lincmt.csv");
 if (knitr::is_latex_output()) {
   kbl(alphaLinCmt, longtable=TRUE, booktabs=TRUE, caption="alpha Based linCmt() parameterizations") %>%
