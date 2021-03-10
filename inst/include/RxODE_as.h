@@ -1,7 +1,6 @@
 #ifndef RxODE_as
 #define RxODE_as
 //#define asError
-#include <Rcpp.h>
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -10,6 +9,8 @@
 #else
 #define _(String) (String)
 #endif
+
+using namespace Rcpp;
 
 static inline bool rxIsNull(RObject obj) {
   return obj.sexp_type() == 0;

@@ -2,7 +2,7 @@
 
 #include <Rcpp.h>
 using namespace Rcpp;
-#include <checkmate.h>
+#include "checkmate.h"
 #include "../inst/include/RxODE_as.h"
 //
 // The unique ordered by occurrence comes from David Cooley:

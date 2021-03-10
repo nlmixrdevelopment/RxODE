@@ -8,7 +8,7 @@
 #include <omp.h>
 #endif
 #include <R.h>
-#include <checkmate.h>
+#include "checkmate.h"
 #ifdef ENABLE_NLS
 #include <libintl.h>
 #define _(String) dgettext ("RxODE", String)
@@ -1403,8 +1403,6 @@ extern "C" void simeta(int id) {
     }
   }
 }
-
-SEXP qassertS(SEXP in, const char *test, const char *what);
 
 //[[Rcpp::export]]
 SEXP rxRmvnSEXP(SEXP nS,

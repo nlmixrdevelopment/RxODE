@@ -3,9 +3,10 @@
 #include <R.h>
 #include <threefry.h>
 #include <libintl.h>
-#include <checkmate.h>
+#include "checkmate.h"
 #include <boost/algorithm/string/predicate.hpp>
 #include "../inst/include/RxODE.h"
+#include "../inst/include/RxODE_as.h"
 extern "C"{
   typedef SEXP (*lotriMat_type) (SEXP, SEXP, SEXP);
   lotriMat_type lotriMat;
@@ -40,7 +41,6 @@ static inline void setupLotri() {
 
 using namespace Rcpp;
 using namespace arma;
-#include "../inst/include/RxODE_as.h"
 bool rxIs(const RObject &obj, std::string cls);
 
 LogicalVector rxSolveFree();
@@ -332,8 +332,6 @@ arma::mat rcvC1(arma::vec sdEst, double nu = 3.0,
   return ret;
 }
 
-SEXP qassertS(SEXP in, const char *test, const char *what);
-
 double getDbl(SEXP in, const char *var){
   double ret = 0;
   if (qtest(in, "I1")) {
@@ -503,9 +501,6 @@ SEXP cvPost_(SEXP nuS, SEXP omegaS, SEXP nS, SEXP omegaIsCholS,
   return R_NilValue;
 }
 
-SEXP qstrictS(SEXP nn, const char *what);
-SEXP qstrictSn(SEXP x, const char *what);
-SEXP qstrictSdn(SEXP x_, const char *what);
 extern "C" SEXP _vecDF(SEXP cv, SEXP n_);
 void rxModelsAssign(std::string str, SEXP assign);
 
@@ -708,7 +703,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     RObject dimnames = omegaR.attr("dimnames");
     qstrictSdn(omegaS, "omega");
     SEXP omegaIsCholS = PROTECT(control[Rxc_omegaIsChol]); pro++;
-    qassert(omegaIsCholS, "b1", "omega");
+    qassertS(omegaIsCholS, "b1", "omega");
     bool omegaIsChol = as<bool>(omegaIsCholS);
     arma::mat omega = as<arma::mat>(omegaS);
     if (omegaIsChol) {
@@ -927,7 +922,7 @@ SEXP expandPars_(SEXP objectS, SEXP paramsS, SEXP eventsS, SEXP controlS) {
     RObject dimnames = Rf_getAttrib(sigmaR, R_DimNamesSymbol);
     qstrictSdn(sigmaS, "sigma");
     SEXP sigmaIsCholS = PROTECT(control[Rxc_sigmaIsChol]); pro++;
-    qassert(sigmaIsCholS, "b1", "sigma");
+    qassertS(sigmaIsCholS, "b1", "sigma");
     bool sigmaIsChol = as<bool>(sigmaIsCholS);
     arma::mat sigma = as<arma::mat>(sigmaS);
     if (sigmaIsChol) {

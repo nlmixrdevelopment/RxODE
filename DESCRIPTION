@@ -116,8 +116,7 @@ LinkingTo:
     RcppArmadillo (>= 0.9.300.2.0),
     sitmo,
     StanHeaders (>= 2.21.0),
-    BH,
-    checkmate
+    BH
 Encoding: UTF-8
 LazyData: true
 Language: en-US
