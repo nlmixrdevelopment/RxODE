@@ -33,10 +33,16 @@ and clearances. Clearances are specified by NONMEM-style names of
 Peripheral/Tissue (`VP`, `VT`).  While more translations are
 available, some example translations are below:
 
-```{r}
-clLinCmt <- read.csv("../../vignettes/cl-lincmt.csv");
-library(DT)
-datatable(clLinCmt, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
+```{r, echo=FALSE}
+clLinCmt <- read.csv("../../vignettes/cl-lincmt.csv")
+if (knitr::is_latex_output()) {
+  library(kableExtra)
+  kbl(clLinCmt, longtable=TRUE, booktabs=TRUE, caption="Clearance Based linCmt() parameterizations") %>%
+    kable_styling(latex_options=c("repeat_header"))
+} else {
+  library(DT)
+  datatable(clLinCmt, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
+}
 ```
 
 
@@ -44,9 +50,14 @@ Another popular parameterization is in terms of micro-constants. RxODE
 assumes compartment `1` is the central compartment.  The elimination
 constant would be specified by `K`, `Ke` or `Kel`. Some example translations are below:
 
-```{r}
+```{r, echo=FALSE}
 kelLinCmt <- read.csv("../../vignettes/kel-lincmt.csv");
-datatable(kelLinCmt, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
+if (knitr::is_latex_output()) {
+  kbl(kelLinCmt, longtable=TRUE, booktabs=TRUE, caption="Kel Based linCmt() parameterizations") %>%
+    kable_styling(latex_options=c("repeat_header"))
+} else {
+  datatable(kelLinCmt, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
+}
 ```
 
 The last parameterization possible is using `alpha` and `V` and/or
@@ -54,7 +65,12 @@ The last parameterization possible is using `alpha` and `V` and/or
 
 ```{r}
 alphaLinCmt <- read.csv("../../vignettes/alpha-lincmt.csv");
-datatable(alphaLinCmt, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
+if (knitr::is_latex_output()) {
+  kbl(alphaLinCmt, longtable=TRUE, booktabs=TRUE, caption="alpha Based linCmt() parameterizations") %>%
+    kable_styling(latex_options=c("repeat_header"))
+} else {
+  datatable(alphaLinCmt, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
+}
 ```
 
 
