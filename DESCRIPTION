@@ -35,7 +35,7 @@ Authors@R: c(
    )
 Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
-    R (>= 3.6.0)
+    R (>= 4.0.0)
 Suggests:
     spelling,
     Matrix,
