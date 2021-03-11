@@ -76,43 +76,44 @@ rxGetMuRef <- function(model, theta, eta){
 ##' states to safely extract into a mu expression at the top of the
 ##' model.
 ##'
-##' @param x The expression that is evaluated
-##' @param info The expression information list;  It should have $state and $lhs elements
+##' @param x The expression that is evaluated; must include an `info`
+##'   that has a list of defined states and lhs values
 ##' @param env Environment for assigning information
-##' @return A boolean indicating if the environment is clean from confounding elements
+##' @return A boolean indicating if the environment is clean from
+##'   confounding elements
 ##' @author Matthew Fidler
 ##' @examples
 ##'
-##' info <- list(state= c("depot", "center"), lhs=c("ka", "cl", "v", "cp"))
-##'
 ##' env <- new.env(parent=emptyenv())
 ##'
-##' .rxMuRefIsClean(quote(exp(tka + eta.ka)), info, env)
-##' .rxMuRefIsClean(quote(exp(tka + eta.ka + depot)), info, env)
-##' .rxMuRefIsClean(quote(exp(tka + eta.ka + cp)), info, env)
+##' env$info <- list(state= c("depot", "center"), lhs=c("ka", "cl", "v", "cp"))
+##'
+##' .rxMuRefIsClean(quote(exp(tka + eta.ka)), env)
+##' .rxMuRefIsClean(quote(exp(tka + eta.ka + depot)), env)
+##' .rxMuRefIsClean(quote(exp(tka + eta.ka + cp)), env)
 ##'
 ##' @noRd
-.rxMuRefIsClean <- function(x, info, env) {
+.rxMuRefIsClean <- function(x, env) {
   if (is.name(x)) {
     .n <- as.character(x)
-    if (any(.n == info$state)) {
+    if (any(.n == env$info$state)) {
       return(FALSE)
-    } else if (any(.n == info$lhs)) {
+    } else if (any(.n == env$info$lhs)) {
       return(FALSE)
     }
     return(TRUE)
   } else if (is.call(x)) {
-    return(all(unlist(lapply(x[-1], .rxMuRefIsClean, info=info, env=env))))
+    return(all(unlist(lapply(x[-1], .rxMuRefIsClean, env=env))))
   } else {
     return(TRUE)
   }
 }
 
-.rxMuRef0 <- function(x, info, env) {
+.rxMuRef0 <- function(x, env) {
   if (is.call(x)) {
     if (identical(x[[1]], quote(`+`))) {
       print(x)
-    } else if (.rxMuRefIsClean(x, info, env)) {
+    } else if (.rxMuRefIsClean(x, env)) {
       # This expression doesn't depend on state values or calculated
       # values and can be extracted or moved; Set the transformation
       # type that will be moved.  Currently, 'exp', 'expit', 'probitInv' are
@@ -129,7 +130,7 @@ rxGetMuRef <- function(model, theta, eta){
     } else {
       env$curEval <- ""
     }
-    lapply(x[-1], .rxMuRef0, info=info, env=env)
+    lapply(x[-1], .rxMuRef0, env=env)
   }
 }
 
@@ -151,6 +152,7 @@ rxMuRef <- function(mod, theta=NULL, eta=NULL) {
                eta=eta,
                cov=setdiff(.params, c(theta, eta)))
  .env <- new.env(parent=emptyenv())
- .rxMuRef0(.expr, .info, .env)
+ .env$info <- .info
+ .rxMuRef0(.expr, .env)
  return(invisible())
 }
