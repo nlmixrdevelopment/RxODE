@@ -19,12 +19,6 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
 .in <- gsub("@EG@", file.path(find.package("RcppEigen"),"include"), .in)
 
 .badStan <- ""
-if (R.version$major < 4 && isTRUE(.Platform$OS.type == "windows")) {
-  # See https://github.com/nlmixrdevelopment/nlmixr/issues/429#issuecomment-729993005
-  if (compareVersion(as.character(packageVersion("BH")), "1.66.0-1") > 0) {
-    .badStan <- " -D__Rx_noSTAN__ "
-  }
-}
 .in <- gsub("@SH@", gsub("-I", "-@ISYSTEM@",
                          paste(## capture.output(StanHeaders:::CxxFlags()),
                                ## capture.output(RcppParallel:::CxxFlags()),

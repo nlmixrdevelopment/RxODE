@@ -23,5 +23,5 @@ You can create other types of models with RxODE:
 - 1, 2 and 3 solved compartment models (`ADVAN/TRANS` in NONMEM).
 - Mixing any of these items with ODE systems.
 
-```{r child='../man-roxygen/rmdhunks/model-types.Rmdh'}
+```{r child='../man-roxygen/rmdhunks/model-types.Rmd'}
 ```

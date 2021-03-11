@@ -1078,3 +1078,11 @@ rxUnloadAll <- function(){
 .rxHasStan <- function() {
   .Call(`_hasStan`)
 }
+
+.qassert <- function(x, rules, .var.name=checkmate::vname(x)) {
+  .val <- try(checkmate::qassert(x, rules, .var.name=.var.name), silent=TRUE)
+  if (inherits(.val, "try-error")) {
+    return(attr(.val, "condition")$message)
+  }
+  return("")
+}

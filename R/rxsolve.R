@@ -732,6 +732,8 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
           .Deprecated("method = \"dop853\"", old = "stiff=FALSE")
         }
       }
+    } else if (missing(method) && grepl("SunOS", Sys.info()["sysname"])) {
+      method <- 1L
     } else {
       if (inherits(method, "numeric")) {
         method <- as.integer(method)

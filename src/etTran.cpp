@@ -15,7 +15,7 @@
 
 #define rxModelVars(a) rxModelVars_(a)
 using namespace Rcpp;
-#include <checkmate.h>
+#include "checkmate.h"
 #include "../inst/include/RxODE_as.h"
 
 void RSprintf(const char *format, ...);

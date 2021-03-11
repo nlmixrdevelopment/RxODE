@@ -1,5 +1,5 @@
 Package: RxODE
-Version: 1.0.5
+Version: 1.0.6
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Matthew L.","Fidler",
@@ -35,7 +35,7 @@ Authors@R: c(
    )
 Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
-    R (>= 3.6.0)
+    R (>= 4.0.0)
 Suggests:
     spelling,
     Matrix,
@@ -116,8 +116,7 @@ LinkingTo:
     RcppArmadillo (>= 0.9.300.2.0),
     sitmo,
     StanHeaders (>= 2.21.0),
-    BH,
-    checkmate
+    BH
 Encoding: UTF-8
 LazyData: true
 Language: en-US
