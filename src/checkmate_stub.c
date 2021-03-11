@@ -1,5 +1,8 @@
-#include <checkmate.h>
-#include <checkmate_stub.c>
+#include <R.h>
+#include <Rinternals.h>
+#include <R_ext/Rdynload.h>
+#include <Rmath.h>
+#include "checkmate.h"
 #include <ctype.h>
 
 // Some unexported functions which were re-implemented here (with some changes)
@@ -14,7 +17,7 @@ R_xlen_t find_missing_string(SEXP x) {
     }
     return 0;
 }
-static R_xlen_t check_strict_names(SEXP x) {
+R_xlen_t check_strict_names(SEXP x) {
     const R_xlen_t nx = xlength(x);
     const char *str;
     for (R_xlen_t i = 0; i < nx; i++) {

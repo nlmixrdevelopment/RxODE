@@ -1,29 +1,34 @@
 //#undef NDEBUG
 #include <Rcpp.h>
-#include <checkmate.h>
+#include "checkmate.h"
 
 using namespace Rcpp;
 
-extern "C" R_xlen_t find_missing_string(SEXP);
-static R_xlen_t check_strict_names(SEXP x) {
-  const R_xlen_t nx = Rf_xlength(x);
-  const char *str;
-  for (R_xlen_t i = 0; i < nx; i++) {
-    str = CHAR(STRING_ELT(x, i));
-    while (*str == '.')
-      str++;
-    if (!isalpha(*str))
-      return i + 1;
-    for (; *str != '\0'; str++) {
-      if (!isalnum(*str) && *str != '.' && *str != '_')
-	return i + 1;
-    }
+Function getRxFn(std::string name);
+
+Rcpp::Function loadNamespaceCheckmate("loadNamespace", R_BaseNamespace);
+Rcpp::Environment checkmateNs;
+bool loadCheckmateNs = false;
+
+static void loadCheckmate() {
+  if (!loadCheckmateNs) {
+    checkmateNs = loadNamespaceCheckmate("checkmate");
+    loadCheckmateNs = true;
   }
-  return 0;
+}
+
+bool qtest(SEXP in, const char *test) {
+  loadCheckmate();
+  Rcpp::Function _qtest = as<Function>(checkmateNs["qtest"]);
+  SEXP testSXP = PROTECT(Rf_allocVector(STRSXP, 1));
+  SET_STRING_ELT(testSXP, 0, Rf_mkChar(test));
+  bool ret = as<bool>(_qtest(in, testSXP));
+  UNPROTECT(1);
+  return ret;
 }
 
 // Modified by Matt
-SEXP qstrictS(SEXP nn, const char *what){
+SEXP qstrictS(SEXP nn, const char *what) {
   BEGIN_RCPP
   R_xlen_t pos = find_missing_string(nn);
   if (pos > 0) {
@@ -118,8 +123,4 @@ SEXP qassertS(SEXP in, const char *test, const char *what){
   }
   return R_NilValue;
   END_RCPP
-}
-
-SEXP qassertS(RObject in, const char *test, const char *what){
-  return qassertS(as<SEXP>(in), test, what);
 }

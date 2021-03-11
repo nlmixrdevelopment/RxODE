@@ -5,10 +5,8 @@
 #define SORT gfx::timsort
 using namespace Rcpp;
 
-#include <checkmate.h>
+#include "checkmate.h"
 #include "../inst/include/RxODE_as.h"
-
-SEXP qassertS(SEXP in, const char *test, const char *what);
 
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();

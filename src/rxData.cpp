@@ -21,7 +21,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <climits>
-#include <checkmate.h>
+#include "checkmate.h"
 #include <stdint.h>    // for uint64_t rather than unsigned long long
 #include "../inst/include/RxODE.h"
 #include "ode.h"
