@@ -1,3 +1,11 @@
+# RxODE 1.0.6
+
+* RxODE imports but does not link to `checkmate` any longer.  This change
+   should make recompilation of RxODE to work with different releases
+   of `checkmate` unnecessary.
+
+* Default Solaris solver changed back to "lsoda"
+
 # RxODE 1.0.5
 
 * Maintainance release -- use `std::floor` and cast variables to
