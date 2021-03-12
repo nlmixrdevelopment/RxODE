@@ -975,5 +975,5 @@ rxodeTest(
       expect_false(all(x$centr == 0))
     })
   },
-  test = "cran"
+  test = "lvl2"
 )
