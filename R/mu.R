@@ -108,6 +108,39 @@ rxGetMuRef <- function(model, theta, eta){
     return(TRUE)
   }
 }
+##' Does this have a parameter or covariate in the expression?
+##'
+##' @inheritParams .rxMuRefIsClean
+##' @return boolean saying if the expression has a parameter or
+##'   covariate
+##' @author Matthew Fidler
+##' @examples
+##'
+##' env <- new.env(parent=emptyenv())
+##'
+##' env$info <- list(theta="tka", eta="eta.ka", cov="wt")
+##'
+##' .rxMuRefHasParamOrCov(quote(exp(tka + eta.ka)/v), env)
+##' .rxMuRefHasParamOrCov(quote(cp/v), env)
+##'
+##' @noRd
+.rxMuRefHasParamOrCov <- function(x, env) {
+  if (is.name(x)) {
+    .n <- as.character(x)
+    if (any(.n == env$info$theta)) {
+      return(TRUE)
+    } else if (any(.n == env$info$eta)) {
+      return(TRUE)
+    } else if (any(.n == env$info$cov)) {
+      return(TRUE)
+    }
+    return(FALSE)
+  } else if (is.call(x)) {
+    return(any(unlist(lapply(x[-1], .rxMuRefHasParamOrCov, env=env))))
+  } else {
+    return(FALSE)
+  }
+}
 
 .rxMuRef0 <- function(x, env) {
   if (is.call(x)) {
