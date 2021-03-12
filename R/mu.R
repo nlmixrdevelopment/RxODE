@@ -142,21 +142,82 @@ rxGetMuRef <- function(model, theta, eta){
   }
 }
 
+##' This determines if a whole line is "clean"
+##'
+##' This not only determines if the lhs of the line is independent of
+##' any prior declarations (by `.rxMuRefIsClean()`), but it makes sure
+##' that the rhs is not a special RxODE expression like `d/dt(depot)`
+##' or `rate(depot)` `depot(0)` etc.
+##'
+##' This also assigns the line status in the enviroment `env` to
+##' `curLineClean` and also resets the current evaluation function to
+##' `curEval`
+##'
+##' @inheritParams .rxMuRefIsClean
+##' @return boolean indicating if the line is clean
+##' @author Matthew Fidler
+##' @noRd
+.rxMuRefLineIsClean <- function(x, env) {
+  # First figure out if the
+  .clean <- FALSE
+  if (length(x[[2]]) == 1L && is.name(x[[2]])){
+    env$info$lhs <- c(as.character(x[[2]]), env$info$lhs)
+    .clean <- TRUE
+  }
+  if (.clean) .clean <- .rxMuRefIsClean(x[[3]], env)
+  assign("curLineClean", .clean, env)
+  assign("curEval", "", env)
+  return(env$curLineClean)
+}
+
+##' Does this line have an eta?
+##'
+##' @inheritParams .rxMuRefIsClean
+##' @return boolean indicating the line has etas
+##' @author Matthew Fidler
+##' @noRd
+.rxMuRefLineHasEta <- function(x, env) {
+  if (is.name(x)) {
+    .n <- as.character(x)
+    if (any(.n == env$info$eta)) {
+      return(TRUE)
+    }
+    return(FALSE)
+  } else if (is.call(x)) {
+    return(any(unlist(lapply(x[-1], .rxMuRefHasParamOrCov, env=env))))
+  } else {
+    return(FALSE)
+  }
+}
+
+
 .rxMuRef0 <- function(x, env) {
   if (is.call(x)) {
-    if (identical(x[[1]], quote(`=`)) ||
-          identical(x[[1]], quote(`~`))) {
-      assign("curLine", x, env)
-      .clean <- FALSE
-      if (length(x[[2]]) == 1L && is.name(x[[2]])){
-        env$info$lhs <- c(as.character(x[[2]]), env$info$lhs)
-        .clean <- TRUE
+    if (env$top && identical(x[[1]], quote(`{`))) {
+      .env$top <- FALSE
+      y <- x[-1]
+      for (.i in seq_along(y)) {
+        x <- y[[.i]]
+        if (identical(x[[1]], quote(`=`)) ||
+              identical(x[[1]], quote(`~`))) {
+          if (.rxMuRefLineHasEta(x[[3]], env)){
+            # This line has etas and might need to be separated into
+            # mu-referenced line
+            .rxMuRefLineIsClean(x, env)
+            lapply(x, .rxMuRef0, env=env)
+          } else {
+            # This line does not depend on etas or covariates
+            # simply add to the body
+            .env$body <- c(.env$body, list(x))
+          }
+        } else {
+          ## This line is a special statement, simply add to the body
+          .env$body <- c(.env$body, list(x))
+        }
       }
-      if (.clean) .clean <- .rxMuRefIsClean(x[[3]], env)
-      assign("curLineClean", .clean, env)
-      assign("curEval", "", env)
+      stop()
     } else if (identical(x[[1]], quote(`+`))) {
-
+      print(x)
     } else {
       assign("curEval", as.character(x[[1]]), env)
     }
@@ -182,7 +243,10 @@ rxMuRef <- function(mod, theta=NULL, eta=NULL) {
                eta=eta,
                cov=setdiff(.params, c(theta, eta)))
  .env <- new.env(parent=emptyenv())
+ .env$param <- list()
+ .env$body <- list()
  .env$info <- .info
+ .env$top <- TRUE
  .rxMuRef0(.expr, .env)
  return(invisible())
 }
