@@ -2,71 +2,9 @@
 ## "F = expit(t.f + eta.f  + cov.f*wt  + cov.w2/0.5*wt)"
 ## "F = probitInv()"
 
-
-.rxGetMuRefTheta <- NULL
-.rxGetMuRefEta <- NULL
-rxGetMuRef <- function(model, theta, eta){
-  assignInMyNamespace(".rxGetMuRefTheta", theta)
-  assignInMyNamespace(".rxGetMuRefEta", eta)
-}
-
-.rxGetMuRefSumRecur <- function(expr, theta, eta, env) {
-  if (is.name(expr)) {
-    .n <- as.character(expr)
-    if (any(.n == theta)) {
-      assign(".thetaSingle", unique(c(env$.thetaSingle, .n)), envir=env)
-    } else if (any(.n == eta)) {
-      assign(".etaSingle", unique(c(env$.etaSingle, .n)), envir=env)
-    }
-  } else if (identical(expr[[1]], quote(`+`)) ||
-               identical(expr[[1]], quote(`-`))) {
-    lapply(expr[-1], .rxGetMuRefSumRecur, theta=theta, eta=eta, env=env)
-  } else if (length(expr) == 3) {
-    if (identical(expr[[1]], quote(`*`)) && is.name(expr[[2]]) && is.name(expr[[3]])) {
-      .expr <- vapply(expr[-1], as.character, character(1))
-      .idx <- .expr %in% theta
-      if (sum(.idx) == 1L) {
-        # This expression is theta=mu
-        .theta <- .expr[.idx]
-        .cov <- .expr[!.idx]
-        .w <- which(names(env$.covThetaMu) == .theta)
-        if (length(.w) == 1) {
-          ## In this case
-          ## t.cl + eta.cl + t.wt*wt + t.wt*wt2
-          ## Perhaps warn, but at least this should not be a mu-referenced covariate
-          assign(".covThetaMu", .covThetaMu[-.w], envir=env)
-          assign(".badThetaMu", unique(c(.badThetaMu, .theta)), envir=env)
-        } else if (!any(.theta == env$.badThetaMu)) { # Make sure this isn't a bad mu-referenced theta
-          assign(".covThetaMu", c(stats::setNames(list(.cov), .theta),
-                                  env$.covThetaMu), envir=env)
-        }
-      }
-    }
-  }
-}
-
 ## .rxGetMuRefSumFirst(quote(t.cl+eta.cl+eta.cl2+eta.cl3),theta="t.cl", eta="eta.cl")
 ## .rxGetMuRefSumFirst(quote(t.cl + eta.cl + cov.wt*wt + cov.wt2/70*wt), theta=c("t.cl", "cov.wt", "cov.wt2"), "eta.cl")
 ## .rxGetMuRefSumFirst(quote(t.cl + eta.cl + cov.wt*wt + cov.wt2/70*wt), theta=c("t.cl", "cov.wt", "cov.wt2"), "eta.cl")
-.rxGetMuRefSumFirst <- function(expr, theta=c(), eta=c()) {
-  ## Looking for eta + theta + theta*cov  ## This function is the initial function called for any sum
-  .env <- new.env(parent=emptyenv())
-  .env$.thetaSingle <- NULL
-  .env$.etaSingle <- NULL
-  .env$.covThetaMu <- NULL
-  .env$.badThetaMu <- NULL
-  .rxGetMuRefSumRecur(expr, theta, eta, .env)
-  ## print(.env$.thetaSingle)
-  ## print(.env$.etaSingle)
-  ## print(.env$.covThetaMu)
-
-  ## Case 1: exp()
-  ## exp(t.cl + eta.cl + theta*cov + extra)
-  ## exp(t.cl + eta.cl + theta*cov)*exp(extra)
-  ## mu1 = exp(t.cl + eta.cl + theta*cov)
-
-  ## Case 2/3: expit() Can't be as easily decomposed as exp/add
-}
 
 ##' Determine if expression x is "clean"
 ##'
@@ -94,7 +32,7 @@ rxGetMuRef <- function(model, theta, eta){
 ##'
 ##' @noRd
 .rxMuRefIsClean <- function(x, env) {
-  if (is.name(x)) {
+  if (is.name(x) ) {
     .n <- as.character(x)
     if (any(.n == env$info$state)) {
       return(FALSE)
@@ -108,10 +46,10 @@ rxGetMuRef <- function(model, theta, eta){
     return(TRUE)
   }
 }
-##' Does this have a parameter or covariate in the expression?
+##' Does this have an eta parameter or covariate in the expression?
 ##'
 ##' @inheritParams .rxMuRefIsClean
-##' @return boolean saying if the expression has a parameter or
+##' @return boolean saying if the expression has an eta parameter or
 ##'   covariate
 ##' @author Matthew Fidler
 ##' @examples
@@ -120,23 +58,21 @@ rxGetMuRef <- function(model, theta, eta){
 ##'
 ##' env$info <- list(theta="tka", eta="eta.ka", cov="wt")
 ##'
-##' .rxMuRefHasParamOrCov(quote(exp(tka + eta.ka)/v), env)
-##' .rxMuRefHasParamOrCov(quote(cp/v), env)
+##' .rxMuRefHasEtaOrCov(quote(exp(tka + eta.ka)/v), env)
+##' .rxMuRefHasEtaOrCov(quote(cp/v), env)
 ##'
 ##' @noRd
-.rxMuRefHasParamOrCov <- function(x, env) {
+.rxMuRefHasEtaOrCov <- function(x, env) {
   if (is.name(x)) {
     .n <- as.character(x)
-    if (any(.n == env$info$theta)) {
-      return(TRUE)
-    } else if (any(.n == env$info$eta)) {
+    if (any(.n == env$info$eta)) {
       return(TRUE)
     } else if (any(.n == env$info$cov)) {
       return(TRUE)
     }
     return(FALSE)
   } else if (is.call(x)) {
-    return(any(unlist(lapply(x[-1], .rxMuRefHasParamOrCov, env=env))))
+    return(any(unlist(lapply(x[-1], .rxMuRefHasEtaOrCov, env=env))))
   } else {
     return(FALSE)
   }
@@ -184,35 +120,76 @@ rxGetMuRef <- function(model, theta, eta){
     }
     return(FALSE)
   } else if (is.call(x)) {
-    return(any(unlist(lapply(x[-1], .rxMuRefHasParamOrCov, env=env))))
+    return(any(unlist(lapply(x[-1], .rxMuRefLineHasEta, env=env))))
   } else {
     return(FALSE)
   }
 }
 
+## To reduce code from nlmixr, the
+## Covariate references should have the following structure:
+## ------------------------------
+## > f$cov.ref
+## $age
+## cov.age
+##   "tcl"
+##
+## $wt
+## cov.wt
+##  "tcl"
+
+
+## To reduce code from nlmixr the mu reference:
+## -------------------------------
+## > f$nmodel$mu.ref
+## $eta.ka
+## [1] "tka"
+##
+## $eta.cl
+## [1] "tcl"
+##
+## $eta.v
+## [1] "tv"
+
+## f$probit.theta.low  f$probit.theta.hi
+## f$probit.theta
+## f$logit.theta
+## f$log.theta
+## "tka"     "tcl"     "cov.wt"  "cov.age" "tv"
+
+## f$probit.eta.low  f$probit.eta.hi
+## f$probit.eta
+## f$probit.eta.low  f$probit.eta.hi
+## f$logit.eta
+## f$log.eta
+## "eta.ka" "eta.cl" "eta.v"
+##
+## > f$oneTheta
+## "tka" "tcl" "tv"
+
 
 .rxMuRef0 <- function(x, env) {
   if (is.call(x)) {
     if (env$top && identical(x[[1]], quote(`{`))) {
-      .env$top <- FALSE
+      env$top <- FALSE
       y <- x[-1]
       for (.i in seq_along(y)) {
         x <- y[[.i]]
         if (identical(x[[1]], quote(`=`)) ||
               identical(x[[1]], quote(`~`))) {
-          if (.rxMuRefLineHasEta(x[[3]], env)){
-            # This line has etas and might need to be separated into
-            # mu-referenced line
+          if (.rxMuRefHasEtaOrCov(x[[3]], env)){
+            # This line has etas or covariates and might need to be
+            # separated into mu-referenced line
             .rxMuRefLineIsClean(x, env)
             lapply(x, .rxMuRef0, env=env)
           } else {
             # This line does not depend on etas or covariates
             # simply add to the body
-            .env$body <- c(.env$body, list(x))
+            env$body <- c(env$body, list(x))
           }
         } else {
           ## This line is a special statement, simply add to the body
-          .env$body <- c(.env$body, list(x))
+          env$body <- c(env$body, list(x))
         }
       }
       stop()
@@ -220,8 +197,11 @@ rxGetMuRef <- function(model, theta, eta){
       print(x)
     } else {
       assign("curEval", as.character(x[[1]]), env)
+      lapply(x[-1], .rxMuRef0, env=env)
     }
-    lapply(x[-1], .rxMuRef0, env=env)
+  } else if (is.name(x)) {
+    .name <- as.character(x)
+    if (any(.name == .env$info$theta))
   }
 }
 
@@ -247,6 +227,12 @@ rxMuRef <- function(mod, theta=NULL, eta=NULL) {
  .env$body <- list()
  .env$info <- .info
  .env$top <- TRUE
+ .env$probit.theta.low <- NULL
+ .env$probit.theta.hi <- NULL
+ .env$probit.theta <- NULL
+ .env$logit.theta <- NULL
+ .env$log.theta <- NULL
+ .env$cov.ref <- NULL
  .rxMuRef0(.expr, .env)
  return(invisible())
 }
