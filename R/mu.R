@@ -111,24 +111,21 @@ rxGetMuRef <- function(model, theta, eta){
 
 .rxMuRef0 <- function(x, env) {
   if (is.call(x)) {
-    if (identical(x[[1]], quote(`+`))) {
-      print(x)
-    } else if (.rxMuRefIsClean(x, env)) {
-      # This expression doesn't depend on state values or calculated
-      # values and can be extracted or moved; Set the transformation
-      # type that will be moved.  Currently, 'exp', 'expit', 'probitInv' are
-      # recognized and possibly moved
-      if (identical(x[[1]], quote(`exp`))) {
-        env$curEval <- "exp"
-      } else if (identical(x[[1]], quote(`expit`))) {
-        env$curEval <- "expit"
-      } else if (identical(x[[1]], quote(`probitInv`))) {
-        env$curEval <- "probitInv"
-      } else {
-        env$curEval <- ""
+    if (identical(x[[1]], quote(`=`)) ||
+          identical(x[[1]], quote(`~`))) {
+      assign("curLine", x, env)
+      .clean <- FALSE
+      if (length(x[[2]]) == 1L && is.name(x[[2]])){
+        env$info$lhs <- c(as.character(x[[2]]), env$info$lhs)
+        .clean <- TRUE
       }
+      if (.clean) .clean <- .rxMuRefIsClean(x[[3]], env)
+      assign("curLineClean", .clean, env)
+      assign("curEval", "", env)
+    } else if (identical(x[[1]], quote(`+`))) {
+
     } else {
-      env$curEval <- ""
+      assign("curEval", as.character(x[[1]]), env)
     }
     lapply(x[-1], .rxMuRef0, env=env)
   }
@@ -147,7 +144,7 @@ rxMuRef <- function(mod, theta=NULL, eta=NULL) {
  .lhs <- .mv$lhs
  # Covariates are model based parameters not described by theta/eta
  .info <- list(state=.state,
-               lhs=.lhs,
+               lhs=NULL,
                theta=theta,
                eta=eta,
                cov=setdiff(.params, c(theta, eta)))
