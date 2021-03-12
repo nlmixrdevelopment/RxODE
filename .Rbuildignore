@@ -111,11 +111,10 @@ vignettes/alpha-lincmt.csv
 vignettes/*.html
 vignettes/cl-lincmt.csv
 vignettes/kel-lincmt.csv
+vignettes/RxODE-intro.Rmd
+vignettes/RxODE-intro.html
 vignettes/RxODE-syntax.Rmd
 vignettes/RxODE-syntax.html
-vignettes/RxODE-syntax.html
-vignettes/syntax-functions.csv
-vignettes/reserved-keywords.csv
 vignettes/build.R
 vignettes/theo_sd.qs
 ^README\.Rmd$
