@@ -97,9 +97,8 @@ A brief description of the built-in functions are
 in the following table:
 
 ```{r}
-syntax <- read.csv("syntax-functions.csv");
 library(DT)
-datatable(syntax, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T) )
+datatable(rxSyntaxFunctions, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T) )
 ```
 
 Note that `lag(cmt) = ` is equivalent to `alag(cmt) = ` and not the same as `= lag(wt)`
@@ -109,7 +108,7 @@ Note that `lag(cmt) = ` is equivalent to `alag(cmt) = ` and not the same as `= l
 There are a few reserved keywords in a RxODE model.  They are  in the following table:
 
 ```{r}
-syntax <- read.csv("reserved-keywords.csv");
+
 library(DT)
 datatable(syntax, rownames = FALSE, filter="top", options = list(pageLength = 10, scrollX=T) )
 ```

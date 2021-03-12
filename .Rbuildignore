@@ -113,8 +113,6 @@ vignettes/cl-lincmt.csv
 vignettes/kel-lincmt.csv
 vignettes/RxODE-intro.Rmd
 vignettes/RxODE-intro.html
-vignettes/RxODE-syntax.Rmd
-vignettes/RxODE-syntax.html
 vignettes/build.R
 vignettes/theo_sd.qs
 ^README\.Rmd$
