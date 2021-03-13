@@ -7,9 +7,9 @@
 \format{
 A data frame with 3 columns and 98 or more rows
 \describe{
-\item{Reserved Name}{Reserved variable Name}
-\item{Description}{Description of variable}
-\item{Aliases}{Variable Aliases}
+\item{Function}{Reserved function Name}
+\item{Description}{Description of function}
+\item{Aliases}{Function Aliases}
 }
 }
 \usage{
