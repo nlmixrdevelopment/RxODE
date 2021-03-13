@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Temporarily set options then restore them while running code — .rxWithWd • RxODE</title>
+<title>A list and description of Rode supported syntax functions — rxReservedKeywords • RxODE</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -52,8 +52,8 @@
 
 
 
-<meta property="og:title" content="Temporarily set options then restore them while running code — .rxWithWd" />
-<meta property="og:description" content="Temporarily set options then restore them while running code" />
+<meta property="og:title" content="A list and description of Rode supported syntax functions — rxReservedKeywords" />
+<meta property="og:description" content="A list and description of Rode supported syntax functions" />
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
 
 
@@ -284,43 +284,28 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Temporarily set options then restore them while running code</h1>
-    <small class="dont-index">Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/R/utils.R'><code>R/utils.R</code></a></small>
-    <div class="hidden name"><code>dot-rxWithWd.Rd</code></div>
+    <h1>A list and description of Rode supported syntax functions</h1>
+    <small class="dont-index">Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/R/rxReservedKeywords.R'><code>R/rxReservedKeywords.R</code></a></small>
+    <div class="hidden name"><code>rxReservedKeywords.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Temporarily set options then restore them while running code</p>
+    <p>A list and description of Rode supported syntax functions</p>
     </div>
 
-    <pre class="usage"><span class='fu'>.rxWithWd</span><span class='op'>(</span><span class='va'>wd</span>, <span class='va'>code</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='va'>rxReservedKeywords</span></pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>wd</th>
-      <td><p>working directory to temporarily set the system to while
-evaluating the code</p></td>
-    </tr>
-    <tr>
-      <th>code</th>
-      <td><p>The code to run during the sink</p></td>
-    </tr>
-    </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
 
-    <p>value of code</p>
+    <p>A data frame with 3 columns and 98 or more rows</p><dl>
+<dt>Function</dt><dd><p>Function Name</p></dd>
+<dt>Description</dt><dd><p>Function Description</p></dd>
+<dt>Aliases</dt><dd><p>Function Alaises</p></dd>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
-<span class='fu'>.rxWithWd</span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/tempfile.html'>tempdir</a></span><span class='op'>(</span><span class='op'>)</span>, <span class='op'>{</span>
-   <span class='fu'><a href='https://rdrr.io/r/base/getwd.html'>getwd</a></span><span class='op'>(</span><span class='op'>)</span>
-<span class='op'>}</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; [1] "/tmp/Rtmp4lSgVY"</div><div class='input'>
-<span class='fu'><a href='https://rdrr.io/r/base/getwd.html'>getwd</a></span><span class='op'>(</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; [1] "/tmp/Rtmp4lSgVY/file3b7c494d9d22/reference"</div></pre>
+</dl>
+
+
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
