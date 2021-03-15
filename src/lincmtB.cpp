@@ -18,13 +18,6 @@ extern "C" double _getDur(int l, rx_solving_options_ind *ind, int backward, unsi
 extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 extern "C" void RSprintf(const char *format, ...);
 
-extern "C" SEXP _hasStan() {
-  SEXP ret = PROTECT(Rf_allocVector(LGLSXP, 1));
-  INTEGER(ret)[0] = 1;
-  UNPROTECT(1);
-  return ret;
-}
-
 namespace stan {
   namespace math {
 

@@ -1068,17 +1068,6 @@ rxUnloadAll <- function(){
   force(code)
 }
 
-#' Does this have stan AD compiled?
-#'
-#' @return Boolean indicating if the stan AD linCmt() was built-in
-#'
-#' @export
-#'
-#' .rxHasStan()
-.rxHasStan <- function() {
-  .Call(`_hasStan`)
-}
-
 .qassert <- function(x, rules, .var.name=checkmate::vname(x)) {
   .val <- try(checkmate::qassert(x, rules, .var.name=.var.name), silent=TRUE)
   if (inherits(.val, "try-error")) {

@@ -25,7 +25,7 @@ M_LN_SQRT_PI,log(sqrt(pi)),
 M_LN_SQRT_2PI,log(sqrt(2*pi)),
 M_LN_SQRT_PId2,log(sqrt(pi/2)),
 pi,pi,
-NA,R’s NA value,
+NA,R's NA value,
 NaN,Not a Number Value,
 Inf,Infinite Value,
 newind,1: First record of individual; 2: Subsequent record of individual,NEWIND

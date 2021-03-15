@@ -193,8 +193,6 @@ SEXP _RxODE_rxRmvn0(SEXP, SEXP, SEXP, SEXP, SEXP,
 		    SEXP, SEXP, SEXP, SEXP, SEXP,
 		    SEXP);
 
-SEXP _hasStan();
-
 SEXP _RxODE_invWR1d(SEXP dSEXP, SEXP nuSEXP, SEXP omegaIsCholSEXP);
 
 SEXP _RxODE_rxSimThetaOmega(SEXP paramsSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaLowerSEXP, SEXP omegaUpperSEXP,
@@ -444,7 +442,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_isNullZero", (DL_FUNC) _RxODE_isNullZero, 1},
     {"_RxODE_invWR1d", (DL_FUNC) _RxODE_invWR1d, 3},
     {"_RxODE_rxSimThetaOmega", (DL_FUNC) _RxODE_rxSimThetaOmega, 27},
-    {"_hasStan", (DL_FUNC) _hasStan, 0},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
