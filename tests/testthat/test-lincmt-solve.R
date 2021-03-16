@@ -5,9 +5,6 @@ rxodeTest(
   type <- 2
 
   types <- 1:4
-  if (!.rxHasStan()) {
-    types <- 1
-  }
 
   for (type in types) {
 
