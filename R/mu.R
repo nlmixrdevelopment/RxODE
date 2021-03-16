@@ -152,8 +152,6 @@
 .rxMuRefHandleLimits <- function(x, env) {
   if (length(x) == 4) {
     # expit(x, 1, 2)
-    print(x[[1]])
-    print(x[[2]])
     if (is.numeric(x[[3]])) {
       env$curLow <- as.numeric(x[[3]])
     } else {
@@ -252,7 +250,6 @@
           env$body <- c(env$body, list(x))
         }
       }
-      stop()
     } else if (.rxIsOp(x)) {
       print(x)
     } else if (!.rxIsLogicalOp(x)){
@@ -302,7 +299,7 @@ rxMuRef <- function(mod, theta=NULL, eta=NULL) {
  .env$err <- NULL
  .rxMuRef0(.expr, env=.env)
  if (length(.env$err) > 0) {
-   stop(paste0("syntax/parsing errors:",
+   stop(paste0("syntax/parsing errors:\n",
                paste(.env$err, collapse="\n")),
         call.=FALSE)
  }
