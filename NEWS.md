@@ -6,6 +6,9 @@
 
 * Default Solaris solver changed back to "lsoda"
 
+* Fix Bug #393, where in certain circumstances `rxSolve(...,theta=)`
+  did not solve for all subjects.
+
 # RxODE 1.0.5
 
 * Maintainance release -- use `std::floor` and cast variables to
