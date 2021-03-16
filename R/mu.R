@@ -58,21 +58,23 @@
 ##'
 ##' env$info <- list(theta="tka", eta="eta.ka", cov="wt")
 ##'
-##' .rxMuRefHasEtaOrCov(quote(exp(tka + eta.ka)/v), env)
-##' .rxMuRefHasEtaOrCov(quote(cp/v), env)
+##' .rxMuRefHasThetaEtaOrCov(quote(exp(tka + eta.ka)/v), env)
+##' .rxMuRefHasThetaEtaOrCov(quote(cp/v), env)
 ##'
 ##' @noRd
-.rxMuRefHasEtaOrCov <- function(x, env) {
+.rxMuRefHasThetaEtaOrCov <- function(x, env) {
   if (is.name(x)) {
     .n <- as.character(x)
     if (any(.n == env$info$eta)) {
+      return(TRUE)
+    } else if (any(.n == env$info$theta)) {
       return(TRUE)
     } else if (any(.n == env$info$cov)) {
       return(TRUE)
     }
     return(FALSE)
   } else if (is.call(x)) {
-    return(any(unlist(lapply(x[-1], .rxMuRefHasEtaOrCov, env=env))))
+    return(any(unlist(lapply(x[-1], .rxMuRefHasThetaEtaOrCov, env=env))))
   } else {
     return(FALSE)
   }
@@ -126,6 +128,65 @@
   }
 }
 
+.rxIsOp <- function(x) {
+  (identical(x[[1]], quote(`*`)) ||
+     identical(x[[1]], quote(`^`)) ||
+     identical(x[[1]], quote(`+`)) ||
+     identical(x[[1]], quote(`-`)) ||
+     identical(x[[1]], quote(`/`)))
+}
+
+.rxIsLogicalOp <- function(x) {
+  (identical(x[[1]], quote(`==`)) ||
+     identical(x[[1]], quote(`>`)) ||
+     identical(x[[1]], quote(`<`)) ||
+     identical(x[[1]], quote(`<=`)) ||
+     identical(x[[1]], quote(`>=`)) ||
+     identical(x[[1]], quote(`!=`)) ||
+     identical(x[[1]], quote(`&&`)) ||
+     identical(x[[1]], quote(`||`)) ||
+     identical(x[[1]], quote(`|`)) ||
+     identical(x[[1]], quote(`&`)))
+}
+
+.rxMuRefHandleLimits <- function(x, env) {
+  if (length(x) == 4) {
+    # expit(x, 1, 2)
+    print(x[[1]])
+    print(x[[2]])
+    if (is.numeric(x[[3]])) {
+      env$curLow <- as.numeric(x[[3]])
+    } else {
+      env$err <- unique(c(env$err, paste0("syntax error '", deparse1(x), "': limits must be numeric")))
+      env$curLow <- -Inf
+    }
+    if (is.numeric(x[[4]])) {
+      env$curHi <- as.numeric(x[[4]])
+    } else {
+      env$err <- unique(c(env$err, paste0("syntax error '", deparse1(x), "': limits must be numeric")))
+      env$curHi <- Inf
+    }
+    x <- x[1:2]
+  } else if (length(x) == 3) {
+    # expit(x, 1)
+    if (is.numeric(x[[3]])) {
+      env$curLow <- as.numeric(x[[3]])
+    } else {
+      env$err <- unique(c(env$err, paste0("syntax error '", deparse1(x), "': limits must be numeric")))
+      env$curLow <- -Inf
+    }
+    env$curHi <- 1
+    x <- x[1:2]
+  } else {
+    env$curLow <- 0
+    env$curHi <- 1
+  }
+  if (env$curLow >= env$curHi) {
+    env$err <- unique(c(env$err, paste0("syntax error '", deparse1(x), "': limits must be lower, higher")))
+  }
+  x
+}
+
 ## To reduce code from nlmixr, the
 ## Covariate references should have the following structure:
 ## ------------------------------
@@ -166,9 +227,8 @@
 ##
 ## > f$oneTheta
 ## "tka" "tcl" "tv"
-
-
 .rxMuRef0 <- function(x, env) {
+  force(env)
   if (is.call(x)) {
     if (env$top && identical(x[[1]], quote(`{`))) {
       env$top <- FALSE
@@ -177,7 +237,7 @@
         x <- y[[.i]]
         if (identical(x[[1]], quote(`=`)) ||
               identical(x[[1]], quote(`~`))) {
-          if (.rxMuRefHasEtaOrCov(x[[3]], env)){
+          if (.rxMuRefHasThetaEtaOrCov(x[[3]], env)){
             # This line has etas or covariates and might need to be
             # separated into mu-referenced line
             .rxMuRefLineIsClean(x, env)
@@ -193,15 +253,21 @@
         }
       }
       stop()
-    } else if (identical(x[[1]], quote(`+`))) {
+    } else if (.rxIsOp(x)) {
       print(x)
-    } else {
+    } else if (!.rxIsLogicalOp(x)){
       assign("curEval", as.character(x[[1]]), env)
+      if (env$curEval == "probitInv" ||
+            env$curEval == "expit") {
+        x <- .rxMuRefHandleLimits(x, env)
+      }
       lapply(x[-1], .rxMuRef0, env=env)
     }
   } else if (is.name(x)) {
     .name <- as.character(x)
-    if (any(.name == .env$info$theta))
+    if (any(.name == env$info$theta)) {
+      env$oneTheta <- unique(.name, env$oneTheta)
+    }
   }
 }
 
@@ -233,6 +299,12 @@ rxMuRef <- function(mod, theta=NULL, eta=NULL) {
  .env$logit.theta <- NULL
  .env$log.theta <- NULL
  .env$cov.ref <- NULL
- .rxMuRef0(.expr, .env)
+ .env$err <- NULL
+ .rxMuRef0(.expr, env=.env)
+ if (length(.env$err) > 0) {
+   stop(paste0("syntax/parsing errors:",
+               paste(.env$err, collapse="\n")),
+        call.=FALSE)
+ }
  return(invisible())
 }
