@@ -255,7 +255,9 @@
     } else if (!.rxIsLogicalOp(x)){
       assign("curEval", as.character(x[[1]]), env)
       if (env$curEval == "probitInv" ||
-            env$curEval == "expit") {
+            env$curEval == "expit" ||
+            env$curEval == "logit" ||
+            env$curEval == "probit") {
         x <- .rxMuRefHandleLimits(x, env)
       }
       lapply(x[-1], .rxMuRef0, env=env)

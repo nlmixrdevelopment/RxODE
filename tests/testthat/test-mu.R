@@ -25,9 +25,13 @@ rxodeTest({
       expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, a)"), theta=c("tka", "tcl", "tv", "add.sd"),
                            eta=c("eta.ka", "eta.cl", "eta.v")))
 
+      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 4)"), theta=c("tka", "tcl", "tv", "add.sd"),
+                           eta=c("eta.ka", "eta.cl", "eta.v")))
     }
 
+    testBounded("logit")
     testBounded("expit")
+    testBounded("probit")
     testBounded("probitInv")
 
   })
