@@ -1401,6 +1401,13 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
     tmp1.attr("dimnames") = List::create(R_NilValue, tmpN);
     parMat = tmp1;
   }
+  if (parMat.nrow() == 1) {
+    NumericVector ret(parMat.ncol());
+    List dn = parMat.attr("dimnames");
+    ret.names() = dn[1];
+    std::copy(parMat.begin(), parMat.end(), ret.begin());
+    return(as<RObject>(ret));
+  }
   return as<RObject>(parMat);
 }
 
