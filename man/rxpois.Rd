@@ -43,7 +43,7 @@ can run the same number of cores as you are running so they can
 reproduce your results.
 }
 \examples{
-
+\donttest{
 ## Use threefry engine
 
 rxpois(lambda=3, n=10) # with rxpois you have to explicitly state n
@@ -61,5 +61,5 @@ rx <- RxODE({
 et <- et(1,id=1:2)
 
 s <- rxSolve(rx,et)
-
+}
 }

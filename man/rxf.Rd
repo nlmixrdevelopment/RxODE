@@ -47,6 +47,8 @@ reproduce your results.
 }
 \examples{
 
+\donttest{
+
 ## Use threefry engine
 
 rxf(0.5, 0.5, n=10) # with rxf you have to explicitly state n
@@ -64,5 +66,7 @@ rx <- RxODE({
 et <- et(1,id=1:2)
 
 s <- rxSolve(rx,et)
+
+}
 
 }
