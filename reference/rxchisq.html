@@ -344,6 +344,8 @@ reproduce your results.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'>
+<span class='co'># \donttest{</span>
+
 <span class='co'>## Use threefry engine</span>
 
 <span class='fu'>rxchisq</span><span class='op'>(</span><span class='fl'>0.5</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxchisq you have to explicitly state n</span>
@@ -364,6 +366,8 @@ reproduce your results.</p>
 
 <span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; <span class='warning'>Warning: thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</span></div><div class='input'>
+<span class='co'># }</span>
+
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
