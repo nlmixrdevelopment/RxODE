@@ -46,6 +46,8 @@ reproduce your results.
 }
 \examples{
 
+\donttest{
+
 ## Use threefry engine
 
 rxt(df=3, n=10) # with rxt you have to explicitly state n
@@ -64,4 +66,5 @@ et <- et(1,id=1:2)
 
 s <- rxSolve(rx,et)
 
+}
 }

@@ -23,7 +23,7 @@ rxnorm <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
 #' @return normal random number deviates
 #'
 #' @examples
-#'
+#' \donttest{
 #' ## Use threefry engine
 #'
 #' rxnorm(n=10) # with rxnorm you have to explicitly state n
@@ -59,7 +59,7 @@ rxnorm <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
-#'
+#' }
 #' @export
 rxnormV <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(mean, len = 1)
@@ -78,7 +78,7 @@ rxnormV <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
 #' @template birthdayProblem
 #' @return poission random number deviates
 #' @examples
-#'
+#' \donttest{
 #' ## Use threefry engine
 #'
 #' rxpois(lambda=3, n=10) # with rxpois you have to explicitly state n
@@ -96,7 +96,7 @@ rxnormV <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
-#'
+#' }
 #' @export
 rxpois <- function(lambda, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(lambda, len = 1)
@@ -116,6 +116,8 @@ rxpois <- function(lambda, n = 1L, ncores = 1L) {
 #' @return t-distribution random numbers
 #' @examples
 #'
+#' \donttest{
+#'
 #' ## Use threefry engine
 #'
 #' rxt(df=3, n=10) # with rxt you have to explicitly state n
@@ -134,6 +136,7 @@ rxpois <- function(lambda, n = 1L, ncores = 1L) {
 #'
 #' s <- rxSolve(rx,et)
 #'
+#' }
 #' @export
 rxt <- function(df, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(df, len = 1, lower = 0)
@@ -153,6 +156,8 @@ rxt <- function(df, n = 1L, ncores = 1L) {
 #' @return uniform random numbers
 #' @examples
 #'
+#' \donttest{
+#'
 #' ## Use threefry engine
 #'
 #' rxunif(min=0, max=4, n=10) # with rxunif you have to explicitly state n
@@ -170,6 +175,8 @@ rxt <- function(df, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
+#'
+#' }
 #'
 #' @export
 rxunif <- function(min = 0, max = 1, n = 1L, ncores = 1L) {
@@ -232,6 +239,8 @@ rxweibull <- function(shape, scale = 1, n = 1L, ncores = 1L) {
 #' @return geometric random deviates
 #' @examples
 #'
+#' \donttest{
+#'
 #' ## Use threefry engine
 #'
 #' rxgeom(0.5, n=10) # with rxgeom you have to explicitly state n
@@ -249,6 +258,7 @@ rxweibull <- function(shape, scale = 1, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
+#' }
 #'
 #' @export
 rxgeom <- function(prob, n = 1L, ncores = 1L) {
@@ -271,6 +281,8 @@ rxgeom <- function(prob, n = 1L, ncores = 1L) {
 #'
 #' @examples
 #'
+#' \donttest{
+#'
 #' ## Use threefry engine
 #'
 #' rxbeta(0.5, 0.5, n=10) # with rxbeta you have to explicitly state n
@@ -288,7 +300,7 @@ rxgeom <- function(prob, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
-#'
+#' }
 #' @export
 rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
   checkmate::assertNumeric(shape1, len = 1, lower = 0)
@@ -312,6 +324,8 @@ rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
 #'
 #' @examples
 #'
+#' \donttest{
+#'
 #' ## Use threefry engine
 #'
 #' rxgamma(0.5, n=10) # with rxgamma you have to explicitly state n
@@ -329,6 +343,8 @@ rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
+#'
+#' }
 #'
 #' @export
 rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
@@ -361,6 +377,8 @@ rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
 #'
 #' @examples
 #'
+#' \donttest{
+#'
 #' ## Use threefry engine
 #'
 #' rxf(0.5, 0.5, n=10) # with rxf you have to explicitly state n
@@ -378,6 +396,8 @@ rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
+#'
+#' }
 #'
 #' @export
 rxf <- function(df1, df2, n = 1L, ncores = 1L) {
@@ -403,6 +423,8 @@ rxf <- function(df1, df2, n = 1L, ncores = 1L) {
 #'
 #' @examples
 #'
+#' \donttest{
+#'
 #' ## Use threefry engine
 #'
 #' rxexp(0.5, n=10) # with rxexp you have to explicitly state n
@@ -420,6 +442,8 @@ rxf <- function(df1, df2, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
+#'
+#' }
 #'
 #' @export
 rxexp <- function(rate, n = 1L, ncores = 1L) {
@@ -443,6 +467,8 @@ rxexp <- function(rate, n = 1L, ncores = 1L) {
 #'
 #' @examples
 #'
+#' \donttest{
+#'
 #' ## Use threefry engine
 #'
 #' rxchisq(0.5, n=10) # with rxchisq you have to explicitly state n
@@ -460,6 +486,8 @@ rxexp <- function(rate, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
+#'
+#' }
 #'
 #' @export
 rxchisq <- function(df, n = 1L, ncores = 1L) {
@@ -526,6 +554,7 @@ rxcauchy <- function(location = 0, scale = 1, n = 1L, ncores = 1L) {
 #'
 #' @examples
 #'
+#' \donttest{
 #' ## Use threefry engine
 #'
 #' rxbinom(10, 0.9, n=10) # with rxbinom you have to explicitly state n
@@ -543,6 +572,8 @@ rxcauchy <- function(location = 0, scale = 1, n = 1L, ncores = 1L) {
 #' et <- et(1,id=1:2)
 #'
 #' s <- rxSolve(rx,et)
+#'
+#' }
 #'
 #' @export
 rxbinom <- function(size, prob, n = 1L, ncores = 1L) {

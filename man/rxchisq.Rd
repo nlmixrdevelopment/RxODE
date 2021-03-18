@@ -45,6 +45,8 @@ reproduce your results.
 }
 \examples{
 
+\donttest{
+
 ## Use threefry engine
 
 rxchisq(0.5, n=10) # with rxchisq you have to explicitly state n
@@ -62,5 +64,7 @@ rx <- RxODE({
 et <- et(1,id=1:2)
 
 s <- rxSolve(rx,et)
+
+}
 
 }

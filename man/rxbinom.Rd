@@ -47,6 +47,7 @@ reproduce your results.
 }
 \examples{
 
+\donttest{
 ## Use threefry engine
 
 rxbinom(10, 0.9, n=10) # with rxbinom you have to explicitly state n
@@ -64,5 +65,7 @@ rx <- RxODE({
 et <- et(1,id=1:2)
 
 s <- rxSolve(rx,et)
+
+}
 
 }
