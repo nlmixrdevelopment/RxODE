@@ -378,24 +378,24 @@
 <span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">tMat</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">tMat</span></code></pre></div>
-<pre><code>#&gt;                TKA         TCl           V2             Q           V3
-#&gt; TKA   0.1619615663 -0.01490888  0.064456054 -0.0009057532 -0.063870174
-#&gt; TCl  -0.0149088768  0.08991575 -0.029569709  0.0293752879  0.021400670
-#&gt; V2    0.0644560543 -0.02956971  0.145082068  0.0039141142 -0.001213389
-#&gt; Q    -0.0009057532  0.02937529  0.003914114  0.0256072029  0.011133188
-#&gt; V3   -0.0638701743  0.02140067 -0.001213389  0.0111331881  0.066339219
-#&gt; Kin   0.0384968409  0.01728514  0.033358620  0.0106196427 -0.005166467
-#&gt; Kout  0.0441927565 -0.04114640  0.004860672 -0.0079908264 -0.004736843
-#&gt; EC50  0.0044564123  0.01373499 -0.037382342 -0.0185500454 -0.060008012
+<pre><code>#&gt;               TKA          TCl          V2            Q           V3
+#&gt; TKA   0.105403241  0.005761121 -0.04231513 -0.010259569  0.023737658
+#&gt; TCl   0.005761121  0.075519485  0.08055357 -0.011075546 -0.010024651
+#&gt; V2   -0.042315127  0.080553567  0.20081173  0.028116210 -0.009383520
+#&gt; Q    -0.010259569 -0.011075546  0.02811621  0.038748792 -0.004824695
+#&gt; V3    0.023737658 -0.010024651 -0.00938352 -0.004824695  0.022549180
+#&gt; Kin   0.027998064  0.012770692  0.04260183  0.015599775  0.017717437
+#&gt; Kout  0.016748712 -0.023826221 -0.01910398 -0.007209608  0.015311315
+#&gt; EC50 -0.097218078  0.010845908  0.05357712  0.013482899 -0.039713140
 #&gt;               Kin         Kout         EC50
-#&gt; TKA   0.038496841  0.044192757  0.004456412
-#&gt; TCl   0.017285135 -0.041146404  0.013734985
-#&gt; V2    0.033358620  0.004860672 -0.037382342
-#&gt; Q     0.010619643 -0.007990826 -0.018550045
-#&gt; V3   -0.005166467 -0.004736843 -0.060008012
-#&gt; Kin   0.088215382  0.009840848  0.070357461
-#&gt; Kout  0.009840848  0.095827469 -0.034693506
-#&gt; EC50  0.070357461 -0.034693506  0.198293441</code></pre>
+#&gt; TKA   0.027998064  0.016748712 -0.097218078
+#&gt; TCl   0.012770692 -0.023826221  0.010845908
+#&gt; V2    0.042601832 -0.019103978  0.053577116
+#&gt; Q     0.015599775 -0.007209608  0.013482899
+#&gt; V3    0.017717437  0.015311315 -0.039713140
+#&gt; Kin   0.058602213 -0.003627624 -0.032690972
+#&gt; Kout -0.003627624  0.034719854 -0.003762872
+#&gt; EC50 -0.032690972 -0.003762872  0.241737238</code></pre>
 </div>
 <div id="nesting-variability" class="section level3">
 <h3 class="hasAnchor">
@@ -451,45 +451,7 @@
              thetaMat<span class="op">=</span><span class="va">tMat</span>, omega<span class="op">=</span><span class="va">omega</span>,
              sigma<span class="op">=</span><span class="va">sigma</span>, sigmaDf<span class="op">=</span><span class="fl">400</span>,
              nStud<span class="op">=</span><span class="fl">400</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; intdy -- t = 188 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 188.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 192 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 192.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 196 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 196.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 200 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 200.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 204 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 204.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 208 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 208.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 212 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 212.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 216 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 216.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 220 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 220.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 224 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 224.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 228 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 228.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 232 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 232.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 236 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 236.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 240 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 240.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; unhandled error message: EE:[lsoda] trouble from intdy, itask = 1, tout = 240.1
-#&gt;  @(lsoda.c:689
-#&gt; intdy -- t = 232 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 232.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 236 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 236.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 240 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; intdy -- t = 240.1 illegal. t not in interval tcur - _C(hu) to tcur
-#&gt; unhandled error message: EE:[lsoda] trouble from intdy, itask = 1, tout = 240.1
-#&gt;  @(lsoda.c:689
-#&gt; unhandled error message: EE:[lsoda] 70000 steps taken before reaching tout
+<pre><code>#&gt; unhandled error message: EE:[lsoda] 70000 steps taken before reaching tout
 #&gt;  @(lsoda.c:748</code></pre>
 <pre><code>#&gt; Warning: some ID(s) could not solve the ODEs correctly; These values are
 #&gt; replaced with 'NA'</code></pre>
@@ -500,16 +462,16 @@
 #&gt; # A tibble: 8,000 x 24
 #&gt;    sim.id id    `inv.Cl(inv==1)` `inv.Cl(inv==2)` `inv.Ka(inv==1)`
 #&gt;     &lt;int&gt; &lt;fct&gt;            &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
-#&gt;  1      1 1              -0.0715           -0.109           -0.118
-#&gt;  2      1 2              -0.0715           -0.109           -0.118
-#&gt;  3      1 3              -0.0715           -0.109           -0.118
-#&gt;  4      1 4              -0.0715           -0.109           -0.118
-#&gt;  5      1 5              -0.0715           -0.109           -0.118
-#&gt;  6      1 6              -0.0715           -0.109           -0.118
-#&gt;  7      1 7              -0.0715           -0.109           -0.118
-#&gt;  8      1 8              -0.0715           -0.109           -0.118
-#&gt;  9      1 9              -0.0715           -0.109           -0.118
-#&gt; 10      1 10             -0.0715           -0.109           -0.118
+#&gt;  1      1 1               0.0366          -0.0240           -0.153
+#&gt;  2      1 2               0.0366          -0.0240           -0.153
+#&gt;  3      1 3               0.0366          -0.0240           -0.153
+#&gt;  4      1 4               0.0366          -0.0240           -0.153
+#&gt;  5      1 5               0.0366          -0.0240           -0.153
+#&gt;  6      1 6               0.0366          -0.0240           -0.153
+#&gt;  7      1 7               0.0366          -0.0240           -0.153
+#&gt;  8      1 8               0.0366          -0.0240           -0.153
+#&gt;  9      1 9               0.0366          -0.0240           -0.153
+#&gt; 10      1 10              0.0366          -0.0240           -0.153
 #&gt; # ... with 7,990 more rows, and 19 more variables: inv.Ka(inv==2) &lt;dbl&gt;,
 #&gt; #   eye.Cl(eye==1) &lt;dbl&gt;, eye.Cl(eye==2) &lt;dbl&gt;, eye.Ka(eye==1) &lt;dbl&gt;,
 #&gt; #   eye.Ka(eye==2) &lt;dbl&gt;, iov.Cl(occ==1) &lt;dbl&gt;, iov.Cl(occ==2) &lt;dbl&gt;,
@@ -526,14 +488,14 @@
 #&gt; 
 #&gt; -- First part of data (object): ------------------------------------------------
 #&gt; # A tibble: 976,000 x 18
-#&gt;   sim.id    id  time  inv.Cl inv.Ka eye.Cl eye.Ka iov.Cl  iov.Ka      C2
-#&gt;    &lt;int&gt; &lt;int&gt;   [h]   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-#&gt; 1      1     1   0.0 -0.0715 -0.118 0.0241 -0.155 -0.174 0.00709    0   
-#&gt; 2      1     1   0.1 -0.0715 -0.118 0.270   0.247 -0.174 0.00709   -6.70
-#&gt; 3      1     1   4.0 -0.0715 -0.118 0.0241 -0.155 -0.174 0.00709 -277.  
-#&gt; 4      1     1   4.1 -0.0715 -0.118 0.270   0.247 -0.174 0.00709 -140.  
-#&gt; 5      1     1   8.0 -0.0715 -0.118 0.0241 -0.155 -0.174 0.00709 -320.  
-#&gt; 6      1     1   8.1 -0.0715 -0.118 0.270   0.247 -0.174 0.00709 -397.  
+#&gt;   sim.id    id  time inv.Cl inv.Ka    eye.Cl eye.Ka  iov.Cl iov.Ka    C2
+#&gt;    &lt;int&gt; &lt;int&gt;   [h]  &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1      1     1   0.0 0.0366 -0.153 -0.0597    0.273 -0.0875 0.0391  0   
+#&gt; 2      1     1   0.1 0.0366 -0.153 -0.000970  0.320 -0.0875 0.0391  1.43
+#&gt; 3      1     1   4.0 0.0366 -0.153 -0.0597    0.273 -0.0875 0.0391  8.22
+#&gt; 4      1     1   4.1 0.0366 -0.153 -0.000970  0.320 -0.0875 0.0391 -1.70
+#&gt; 5      1     1   8.0 0.0366 -0.153 -0.0597    0.273 -0.0875 0.0391 11.3 
+#&gt; 6      1     1   8.1 0.0366 -0.153 -0.000970  0.320 -0.0875 0.0391  6.78
 #&gt; # ... with 975,994 more rows, and 8 more variables: C3 &lt;dbl&gt;, CL &lt;dbl&gt;,
 #&gt; #   KA &lt;dbl&gt;, ef0 &lt;dbl&gt;, depot &lt;dbl&gt;, centr &lt;dbl&gt;, peri &lt;dbl&gt;, eff &lt;dbl&gt;
 #&gt; ________________________________________________________________________________</code></pre>
@@ -544,63 +506,63 @@
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">params</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt;   sim.id id inv.Cl(inv==1) inv.Cl(inv==2) inv.Ka(inv==1) inv.Ka(inv==2)
-#&gt; 1      1  1    -0.07148174     -0.1089224     -0.1182957     -0.1043614
-#&gt; 2      1  2    -0.07148174     -0.1089224     -0.1182957     -0.1043614
-#&gt; 3      1  3    -0.07148174     -0.1089224     -0.1182957     -0.1043614
-#&gt; 4      1  4    -0.07148174     -0.1089224     -0.1182957     -0.1043614
-#&gt; 5      1  5    -0.07148174     -0.1089224     -0.1182957     -0.1043614
-#&gt; 6      1  6    -0.07148174     -0.1089224     -0.1182957     -0.1043614
+#&gt; 1      1  1     0.03660646    -0.02401358     -0.1526911     0.09400604
+#&gt; 2      1  2     0.03660646    -0.02401358     -0.1526911     0.09400604
+#&gt; 3      1  3     0.03660646    -0.02401358     -0.1526911     0.09400604
+#&gt; 4      1  4     0.03660646    -0.02401358     -0.1526911     0.09400604
+#&gt; 5      1  5     0.03660646    -0.02401358     -0.1526911     0.09400604
+#&gt; 6      1  6     0.03660646    -0.02401358     -0.1526911     0.09400604
 #&gt;   eye.Cl(eye==1) eye.Cl(eye==2) eye.Ka(eye==1) eye.Ka(eye==2) iov.Cl(occ==1)
-#&gt; 1     0.02407674      0.2702537    -0.15513033     0.24724792    -0.17372175
-#&gt; 2    -0.25566779      0.1994069    -0.03211641     0.08039342     0.10401130
-#&gt; 3    -0.04960100      0.1799129     0.06832420    -0.02189879    -0.28923307
-#&gt; 4     0.09321645     -0.1944921     0.25193591    -0.37879392    -0.09143580
-#&gt; 5    -0.03123033      0.2571516     0.38686999    -0.24344789    -0.02496674
-#&gt; 6    -0.15841010     -0.1404546    -0.23183736    -0.16901199    -0.06821417
+#&gt; 1    -0.05965812  -0.0009699758     0.27345319     0.32027274    -0.08750877
+#&gt; 2     0.09534200  -0.2458251735    -0.18076070    -0.09329041    -0.06654690
+#&gt; 3     0.24534386   0.1803967835    -0.09943122    -0.26184352    -0.21253850
+#&gt; 4    -0.11500073  -0.0072574077    -0.20217631     0.17544750    -0.15987492
+#&gt; 5    -0.09063787   0.2418977611     0.28869067    -0.61705320    -0.07194664
+#&gt; 6     0.23746824   0.0373089268    -0.07632897     0.01957141     0.04170491
 #&gt;   iov.Cl(occ==2) iov.Ka(occ==1) iov.Ka(occ==2)       V2       V3      TCl
-#&gt; 1   -0.030803878    0.007088770    -0.15159745 40.31128 297.2659 18.75882
-#&gt; 2    0.005508662   -0.032682248     0.07938276 40.31128 297.2659 18.75882
-#&gt; 3    0.178456760    0.080619630    -0.13305059 40.31128 297.2659 18.75882
-#&gt; 4    0.072826839    0.097537556    -0.00779219 40.31128 297.2659 18.75882
-#&gt; 5    0.022804761    0.081012632    -0.01020174 40.31128 297.2659 18.75882
-#&gt; 6    0.004438311    0.005192944    -0.16328644 40.31128 297.2659 18.75882
+#&gt; 1     0.03698765     0.03910718     0.09446267 39.97725 297.0166 18.58495
+#&gt; 2    -0.13234304    -0.19939394     0.09540344 39.97725 297.0166 18.58495
+#&gt; 3     0.08900960    -0.09639417     0.17843243 39.97725 297.0166 18.58495
+#&gt; 4     0.11749642    -0.08448530     0.08942888 39.97725 297.0166 18.58495
+#&gt; 5    -0.12025893     0.14645849    -0.15943269 39.97725 297.0166 18.58495
+#&gt; 6     0.12955477    -0.03082653     0.01064139 39.97725 297.0166 18.58495
 #&gt;        eta.Cl        TKA       eta.Ka        Q      Kin      Kout     EC50
-#&gt; 1  0.10863777 -0.2289158  0.170608811 10.47185 1.170952 0.9407812 200.2748
-#&gt; 2  0.08104120 -0.2289158 -0.002018964 10.47185 1.170952 0.9407812 200.2748
-#&gt; 3  0.01851217 -0.2289158  0.234909767 10.47185 1.170952 0.9407812 200.2748
-#&gt; 4 -0.51232384 -0.2289158 -0.305747504 10.47185 1.170952 0.9407812 200.2748
-#&gt; 5  0.22204960 -0.2289158  0.622584163 10.47185 1.170952 0.9407812 200.2748
-#&gt; 6  0.39698167 -0.2289158  0.691467750 10.47185 1.170952 0.9407812 200.2748</code></pre>
+#&gt; 1  0.47840720 0.07746783 -0.004752939 10.35473 1.111445 0.7632811 200.0353
+#&gt; 2  0.16755349 0.07746783  0.084812926 10.35473 1.111445 0.7632811 200.0353
+#&gt; 3 -0.06796481 0.07746783 -0.126535027 10.35473 1.111445 0.7632811 200.0353
+#&gt; 4  0.49509023 0.07746783  0.200331694 10.35473 1.111445 0.7632811 200.0353
+#&gt; 5  0.37962657 0.07746783 -0.458730795 10.35473 1.111445 0.7632811 200.0353
+#&gt; 6 -0.49702299 0.07746783 -0.077948288 10.35473 1.111445 0.7632811 200.0353</code></pre>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">params</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">sim.id</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt;   sim.id id inv.Cl(inv==1) inv.Cl(inv==2) inv.Ka(inv==1) inv.Ka(inv==2)
-#&gt; 1      2  1      0.1486936     -0.2652632     -0.1381483      0.1720001
-#&gt; 2      2  2      0.1486936     -0.2652632     -0.1381483      0.1720001
-#&gt; 3      2  3      0.1486936     -0.2652632     -0.1381483      0.1720001
-#&gt; 4      2  4      0.1486936     -0.2652632     -0.1381483      0.1720001
-#&gt; 5      2  5      0.1486936     -0.2652632     -0.1381483      0.1720001
-#&gt; 6      2  6      0.1486936     -0.2652632     -0.1381483      0.1720001
+#&gt; 1      2  1     0.08939229      0.1689325     -0.2770321     -0.1506478
+#&gt; 2      2  2     0.08939229      0.1689325     -0.2770321     -0.1506478
+#&gt; 3      2  3     0.08939229      0.1689325     -0.2770321     -0.1506478
+#&gt; 4      2  4     0.08939229      0.1689325     -0.2770321     -0.1506478
+#&gt; 5      2  5     0.08939229      0.1689325     -0.2770321     -0.1506478
+#&gt; 6      2  6     0.08939229      0.1689325     -0.2770321     -0.1506478
 #&gt;   eye.Cl(eye==1) eye.Cl(eye==2) eye.Ka(eye==1) eye.Ka(eye==2) iov.Cl(occ==1)
-#&gt; 1    0.005581573    -0.48972849    -0.29320554     0.14328767     0.12023154
-#&gt; 2    0.408040682    -0.09128961    -0.07387969    -0.37211779     0.17034980
-#&gt; 3    0.119843174     0.56462331     0.21160628     0.35212434    -0.01962795
-#&gt; 4   -0.234818475    -0.13371493    -0.11130876    -0.30598943    -0.01011783
-#&gt; 5    0.080102805     0.25446860    -0.18920713    -0.01376975    -0.04680536
-#&gt; 6   -0.005854189    -0.03851408     0.23112194    -0.01127010    -0.05044001
+#&gt; 1     0.25489799    -0.23408391     0.20463499     0.25633791     0.07377626
+#&gt; 2    -0.07160578     0.06383458     0.23459302    -0.23440479     0.15619215
+#&gt; 3    -0.23956718    -0.16786066     0.63831908     0.07574619     0.28229560
+#&gt; 4    -0.15930252     0.36007246    -0.09997566    -0.07778941     0.20903269
+#&gt; 5     0.11965641    -0.17620492     0.30297431     0.31717911     0.13831339
+#&gt; 6    -0.24016721    -0.25710466     0.13888687     0.37287626     0.01925120
 #&gt;   iov.Cl(occ==2) iov.Ka(occ==1) iov.Ka(occ==2)       V2       V3      TCl
-#&gt; 1    -0.22006474     0.03972897     0.11960181 40.43809 297.1484 18.51399
-#&gt; 2     0.10520642     0.03037829    -0.14767706 40.43809 297.1484 18.51399
-#&gt; 3    -0.03426967    -0.03292874    -0.01574585 40.43809 297.1484 18.51399
-#&gt; 4    -0.23353949    -0.13297659    -0.08981092 40.43809 297.1484 18.51399
-#&gt; 5     0.03911648    -0.02405221     0.08902133 40.43809 297.1484 18.51399
-#&gt; 6    -0.04461662     0.02440763     0.07762514 40.43809 297.1484 18.51399
-#&gt;       eta.Cl         TKA      eta.Ka        Q       Kin      Kout     EC50
-#&gt; 1 1.01406201 -0.09785371 -0.02008273 10.48274 0.8318862 0.6471995 199.8443
-#&gt; 2 0.02090220 -0.09785371 -0.36874736 10.48274 0.8318862 0.6471995 199.8443
-#&gt; 3 0.08670647 -0.09785371  0.08699247 10.48274 0.8318862 0.6471995 199.8443
-#&gt; 4 0.52851137 -0.09785371 -0.47918443 10.48274 0.8318862 0.6471995 199.8443
-#&gt; 5 0.03669785 -0.09785371  0.38764533 10.48274 0.8318862 0.6471995 199.8443
-#&gt; 6 0.25121521 -0.09785371  0.01008968 10.48274 0.8318862 0.6471995 199.8443</code></pre>
+#&gt; 1     0.04237996    -0.01286164    -0.10639733 41.02547 296.7934 18.82927
+#&gt; 2    -0.03781571    -0.11752643     0.09367384 41.02547 296.7934 18.82927
+#&gt; 3    -0.16636454    -0.02145480     0.18169088 41.02547 296.7934 18.82927
+#&gt; 4    -0.09627700     0.23825617    -0.07389269 41.02547 296.7934 18.82927
+#&gt; 5    -0.17276439    -0.21944331    -0.13116313 41.02547 296.7934 18.82927
+#&gt; 6    -0.10356093    -0.25899486     0.01412679 41.02547 296.7934 18.82927
+#&gt;        eta.Cl        TKA       eta.Ka        Q       Kin   Kout     EC50
+#&gt; 1  0.08822719 -0.2075631 -0.062690678 10.68136 0.9394597 0.9062 201.3883
+#&gt; 2 -0.41401138 -0.2075631  0.609150525 10.68136 0.9394597 0.9062 201.3883
+#&gt; 3 -0.25784326 -0.2075631 -0.188865631 10.68136 0.9394597 0.9062 201.3883
+#&gt; 4 -0.15735931 -0.2075631 -0.620295966 10.68136 0.9394597 0.9062 201.3883
+#&gt; 5 -0.98399860 -0.2075631  0.716459779 10.68136 0.9394597 0.9062 201.3883
+#&gt; 6  0.39881624 -0.2075631 -0.007358436 10.68136 0.9394597 0.9062 201.3883</code></pre>
 <p>For between eye variability and between occasion variability each individual simulates a number of variables that become the between eye and between occasion variability; In the case of the eye:</p>
 <pre><code>eye.Cl = (eye == 1) * `eye.Cl(eye==1)` + (eye == 2) * `eye.Cl(eye==2)`</code></pre>
 <p>So when you look the simulation each of these variables (ie <code>eye.Cl(eye==1)</code>, <code>eye.Cl(eye==2)</code>, etc) they change for each individual and when combined make the between eye variability or the between occasion variability that can be seen in some pharamcometric models.</p>
