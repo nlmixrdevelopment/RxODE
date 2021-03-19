@@ -36,6 +36,15 @@ rxodeTest({
 
   })
 
+  test_that("bad mu referencing examples (throw error)", {
+
+    expect_error(rxMuRef("a=theta1+theta2+theta3*wt+eta1", theta=c("theta1", "theta2", "theta3"),
+                         eta="eta1"))
+
+    expect_error(rxMuRef("a=theta1+theta2*wt+theta3*wt+eta1", theta=c("theta1", "theta2", "theta3"),
+                         eta="eta1"))
+  })
+
 
 }, test="lvl2")
 

@@ -96,7 +96,7 @@
 ##' @author Matthew Fidler
 ##' @noRd
 .rxMuRefLineIsClean <- function(x, env) {
-  # First figure out if the
+  # First figure out if the mu reference line is clean
   .clean <- FALSE
   if (length(x[[2]]) == 1L && is.name(x[[2]])){
     env$info$lhs <- c(as.character(x[[2]]), env$info$lhs)
@@ -185,30 +185,136 @@
   x
 }
 
+##' Extract single variable names from a expression
+##'
+##' @param x Expression
+##' @param names Names to prepend to the final names output
+##' @return character vector of names that are uncomplicated, like
+##'   "a", "b"; If the names are part of a larger expression these
+##'   names are skipped.
+##' @author Matthew Fidler
+##' @noRd
+.muRefExtractSingleVariableNames <- function(x, names) {
+  c(names, do.call(`c`, lapply(x, function(y) {
+    if(is.name(y)) {
+      return(as.character(y))
+    }
+    return(NULL)
+  })))
+}
+##' Extract mu-style covariates that is theta + eta + cov*theta.cov
+##'
+##' @param x expression to evaluate
+##'
+##' @param doubleNames A list of the covariates with the estimates
+##'   attached.  This is in a single expression so wt*theta.cov1 +
+##'   wt*theta.cov2 will add an error at the end of the expression
+##'
+##' @param env Environment with $info that has information about the
+##'   parsed model
+##'
+##' @return A list of covariates with estimates attached
+##'
+##' @author Matthew Fidler
+##' @noRd
+.muRefExtractMultiplyMuCovariates <- function(x, doubleNames, env) {
+  c(doubleNames, do.call(`c`, lapply(x, function(y) {
+    if(is.call(y) && identical(y[[1]], quote(`*`))) {
+      .y2 <- y[-1]
+      if (length(.y2) == 2) {
+        if (is.name(.y2[[1]]) && is.name(.y2[[2]])) {
+          .y2 <- vapply(.y2, as.character, character(1))
+          if (any(.y2[1] == env$info$cov) &&
+                any(.y2[2] == env$info$theta)) {
+            if (any(.y2[1] == names(doubleNames))) {
+              env$err <- unique(c(env$err, paste0("syntax error: covariate '", .y2[1],
+                                                  "' is duplicated in mu-referenced expression for '",
+                                                  .y2[2], "' and '", doubleNames[[.y2[1]]], "'")))
+            }
+            return(setNames(list(.y2[2]), .y2[1]))
+          } else if (any(.y2[2] == env$info$cov) &&
+                       any(.y2[1] == env$info$theta)) {
+            if (any(.y2[2] == names(doubleNames))) {
+              env$err <- unique(c(env$err, paste0("syntax error: covariate '", .y2[2],
+                                                  "' is duplicated in mu-referenced expression for '",
+                                                  .y2[1], "' and '", doubleNames[[.y2[2]]], "'")))
+            }
+            return(setNames(list(.y2[1]), .y2[2]))
+          }
+        }
+      }
+      return(NULL)
+    }
+    return(NULL)
+  })))
+}
+
+.muRefNextAdditiveExpression <- function(x) {
+  .expr <- NULL
+  for (i in seq_along(length(x))) {
+    if(is.call(x[[i]])) {
+      .expr <- x[[i]]
+      if (identical(.expr[[1]], quote(`+`))){
+        .expr <- .expr[-1]
+      } else {
+        .expr <- NULL
+      }
+    }
+  }
+  .expr
+}
+
 ## To reduce code from nlmixr, the
 ## Covariate references should have the following structure:
-## ------------------------------
-## > f$cov.ref
-## $age
-## cov.age
-##   "tcl"
-##
-## $wt
-## cov.wt
-##  "tcl"
 
 
-## To reduce code from nlmixr the mu reference:
-## -------------------------------
-## > f$nmodel$mu.ref
-## $eta.ka
-## [1] "tka"
-##
-## $eta.cl
-## [1] "tcl"
-##
-## $eta.v
-## [1] "tv"
+##' Handle the + expressions to determine mu-reference expressions
+##'
+##' @param x additive Call Expression
+##' @param env Environment information
+##' @return nothing
+##' @author Matthew Fidler
+.muRefHandlePlus <- function(x, env) {
+  ## To reduce code from nlmixr the mu reference:
+  ## -------------------------------
+  ## > f$nmodel$mu.ref
+  ## $eta.ka
+  ## [1] "tka"
+  ##
+  ## $eta.cl
+  ## [1] "tcl"
+  ##
+  ## $eta.v
+  ## [1] "tv"
+
+  ## > f$cov.ref
+  ## $age
+  ## cov.age
+  ##   "tcl"
+  ##
+  ## $wt
+  ## cov.wt
+  ##  "tcl"
+  .x2 <- x[-1]
+  .names <- NULL
+  .doubleNames <- list
+  while (!is.null(.x2)) {
+    .names <- .muRefExtractSingleVariableNames(.x2, .names)
+    .doubleNames <- .muRefExtractMultiplyMuCovariates(.x2, .doubleNames, env)
+    .x2 <- .muRefNextAdditiveExpression(.x2)
+  }
+  .wt <- which(.names %in% env$info$theta)
+  .we <- which(.names %in% env$info$eta)
+  if (length(.wt) >= 2) {
+    env$err <- unique(c(env$err,
+                        paste0("syntax error: 2+ single population parameters in a single mu-referenced expression: '",
+                               paste(env$info$theta[.wt], collapse="', '"), "'")))
+  } else if (length(.wt) == 1) {
+    # Here the mu reference is possible
+  }
+  invisible()
+}
+
 
 ## f$probit.theta.low  f$probit.theta.hi
 ## f$probit.theta
@@ -226,7 +332,6 @@
 ## > f$oneTheta
 ## "tka" "tcl" "tv"
 .rxMuRef0 <- function(x, env) {
-  force(env)
   if (is.call(x)) {
     if (env$top && identical(x[[1]], quote(`{`))) {
       env$top <- FALSE
@@ -250,9 +355,9 @@
           env$body <- c(env$body, list(x))
         }
       }
-    } else if (.rxIsOp(x)) {
-      print(x)
-    } else if (!.rxIsLogicalOp(x)){
+    } else if (identical(x[[1]], quote(`+`))) {
+      .muRefHandlePlus(x, env)
+    } else {
       assign("curEval", as.character(x[[1]]), env)
       if (env$curEval == "probitInv" ||
             env$curEval == "expit" ||
@@ -275,6 +380,25 @@
 ## 3. $lhs: lhs
 ## 4. theta: theta from ini
 ## 5. eta: eta from ini
+
+##' Get mu-referencing model from model variables
+##'
+##' The rxMuRef is the core of the nlmixr ui functions
+##'
+##' This function takes the initialization values from `lotri()` the
+##' parsed RxODE model to generate mu-referenced models adding
+##' mu-references for etas that do not have them to allow saem to
+##' support non mu-referenced models by a parsing trick.
+##'
+##' @param mod Model
+##' @param theta Thetas from model initialization (like Lori)
+##' @param eta Etas from model initialization (like lotri)
+##' @return
+##' @author Matthew Fidler
+##' @examples
+##'
+##'
+##' @export
 rxMuRef <- function(mod, theta=NULL, eta=NULL) {
  .mv  <- rxModelVars(mod)
  .expr <- eval(parse(text=paste0("quote({",rxNorm(.mv),"})")))
@@ -292,11 +416,28 @@ rxMuRef <- function(mod, theta=NULL, eta=NULL) {
  .env$body <- list()
  .env$info <- .info
  .env$top <- TRUE
+
+ # probit/probitInv
  .env$probit.theta.low <- NULL
  .env$probit.theta.hi <- NULL
  .env$probit.theta <- NULL
+
+ .env$probitInv.theta.low <- NULL
+ .env$probitInv.theta.hi <- NULL
+ .env$probitInv.theta <- NULL
+
+ # logit/expit
  .env$logit.theta <- NULL
+ .env$logit.theta.low <- NULL
+ .env$logit.theta.hi <- NULL
+
+ .env$expit.theta <- NULL
+ .env$expit.theta.low <- NULL
+ .env$expit.theta.hi <- NULL
+
  .env$log.theta <- NULL
+ .env$exp.theta <- NULL
+
  .env$cov.ref <- NULL
  .env$err <- NULL
  .rxMuRef0(.expr, env=.env)
