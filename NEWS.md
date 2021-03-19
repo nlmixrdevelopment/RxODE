@@ -8,10 +8,14 @@
 
 * Fix Bug #393, where in certain circumstances `rxSolve(...,theta=)`
   did not solve for all subjects.
-  
+
 * Will not ignore NEWS and README when building the package so that
   they will show up on CRAN.  You can also access the news by
   `news(package="RxODE")`
+
+* Changed `ODR` model names from time id to `_rx` followed by the
+  `md5` hash id and a per-session counter id; For packages the id is
+  `_rxp` followed by the `md5` hash and a per-session counter id
 
 # RxODE 1.0.5
 
