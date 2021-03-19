@@ -8,6 +8,9 @@
 
 * Fix Bug #393, where in certain circumstances `rxSolve(...,theta=)`
   did not solve for all subjects.
+  
+* Will not ignore NEWS and README when building the package so that
+  they will show up on CRAN
 
 # RxODE 1.0.5
 
