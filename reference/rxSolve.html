@@ -399,7 +399,15 @@ some-times optional <code>params</code> and <code>inits</code>.</p>
 <span class='op'>)</span>
 
 <span class='co'># S3 method for default</span>
-<span class='fu'>rxSolve</span><span class='op'>(</span><span class='va'>object</span>, params <span class='op'>=</span> <span class='cn'>NULL</span>, events <span class='op'>=</span> <span class='cn'>NULL</span>, inits <span class='op'>=</span> <span class='cn'>NULL</span>, <span class='va'>...</span><span class='op'>)</span>
+<span class='fu'>rxSolve</span><span class='op'>(</span>
+  <span class='va'>object</span>,
+  params <span class='op'>=</span> <span class='cn'>NULL</span>,
+  events <span class='op'>=</span> <span class='cn'>NULL</span>,
+  inits <span class='op'>=</span> <span class='cn'>NULL</span>,
+  <span class='va'>...</span>,
+  theta <span class='op'>=</span> <span class='cn'>NULL</span>,
+  eta <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span>
 
 <span class='co'># S3 method for rxSolve</span>
 <span class='fu'><a href='https://rdrr.io/r/stats/update.html'>update</a></span><span class='op'>(</span><span class='va'>object</span>, <span class='va'>...</span><span class='op'>)</span>
