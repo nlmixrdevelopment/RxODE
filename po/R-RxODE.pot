@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: RxODE 1.0.1\n"
-"POT-Creation-Date: 2020-12-15 20:06\n"
+"Project-Id-Version: RxODE 1.0.6\n"
+"POT-Creation-Date: 2021-03-19 16:49\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 
-msgid "RxODE requires 'rtools'\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding"
+msgid "RxODE requires 'rtools' for custom models\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding"
 msgstr ""
 
 msgid "'modName' has to be a single length character"
@@ -139,6 +139,9 @@ msgstr ""
 msgid "'nsim' is ignored when simulating event tables"
 msgstr ""
 
+msgid "requires package 'units'"
+msgstr ""
+
 msgid "the only valid number defining a unit is '1', signifying a unitless unit"
 msgstr ""
 
@@ -178,13 +181,25 @@ msgstr ""
 msgid "cannot figure out numeric time"
 msgstr ""
 
+msgid "need 'amt' aesthetic"
+msgstr ""
+
+msgid "need 'x' aesthetic"
+msgstr ""
+
+msgid "stat_cens cannot have lower aesthetic with cens aesthetic"
+msgstr ""
+
+msgid "stat_cens requires the following aesthetics: upper, lower or cens (and optionally limit)"
+msgstr ""
+
 msgid "'package' needs to be specified"
 msgstr ""
 
 msgid "'log=\"%s\"' not supported"
 msgstr ""
 
-msgid "package 'xpillar' not available"
+msgid "needs units"
 msgstr ""
 
 msgid "needs \"ggplot2\" 3.3.0"
@@ -268,7 +283,52 @@ msgstr ""
 msgid "================================================================================"
 msgstr ""
 
-msgid "%s only tests"
+msgid "RxODE compiled with Rcpp '"
+msgstr ""
+
+msgid "' but Rcpp '"
+msgstr ""
+
+msgid "Rcpp"
+msgstr ""
+
+msgid "' is loaded\nRecompile RxODE with the new version of Rcpp"
+msgstr ""
+
+msgid "RxODE compiled with dparser '"
+msgstr ""
+
+msgid "' but dparser '"
+msgstr ""
+
+msgid "dparser"
+msgstr ""
+
+msgid "' is loaded\nRecompile RxODE with the this version of dparser"
+msgstr ""
+
+msgid "RxODE compiled with checkmate '"
+msgstr ""
+
+msgid "' but checkmate '"
+msgstr ""
+
+msgid "checkmate"
+msgstr ""
+
+msgid "' is loaded\nRecompile RxODE with the this version of checkmate"
+msgstr ""
+
+msgid "RxODE compiled with PreciseSums '"
+msgstr ""
+
+msgid "' but PreciseSums '"
+msgstr ""
+
+msgid "PreciseSums"
+msgstr ""
+
+msgid "' is loaded\nRecompile RxODE with the this version of PreciseSums"
 msgstr ""
 
 msgid "Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to compile models"
@@ -308,9 +368,6 @@ msgid "; To get best performance enable OpenMP"
 msgstr ""
 
 msgid "detected new version of RxODE, cleaning cache"
-msgstr ""
-
-msgid "%s: %s"
 msgstr ""
 
 msgid "'df' must be greater than 0"
@@ -353,6 +410,21 @@ msgid "duplicate arguments do not make sense"
 msgstr ""
 
 msgid "covariates can no longer be specified by 'covs' include them in the event dataset"
+msgstr ""
+
+msgid "'theta' cannot be a data.frame"
+msgstr ""
+
+msgid "'theta' can only have 1 row"
+msgstr ""
+
+msgid "'eta' cannot be a data.frame"
+msgstr ""
+
+msgid "'eta' can only have 1 row"
+msgstr ""
+
+msgid "cannot specify 'params' and 'theta'/'eta' at the same time"
 msgstr ""
 
 msgid "events can be pipeline or solving arguments not both"

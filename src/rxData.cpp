@@ -1248,170 +1248,6 @@ NumericVector rxSetupScale(const RObject &obj,
   return ret;
 }
 
-NumericVector rxSetupParamsThetaEtaThetaN(const RObject &theta = R_NilValue, std::string thetaTxt = "theta"){
-  NumericVector thetaN;
-  if (rxIsNumInt(theta)){
-    thetaN = as<NumericVector>(theta);
-  } else if (rxIs(theta, "matrix")){
-    NumericMatrix thetaM = as<NumericMatrix>(theta);
-    if (thetaM.nrow() == 1){
-      thetaN = NumericVector(thetaM.ncol());
-      for (unsigned int i = thetaM.ncol() ; i--;){
-        thetaN[i] = thetaM(1,i);
-      }
-    } else if (thetaM.ncol() == 1){
-      thetaN = NumericVector(thetaM.nrow());
-      for (unsigned int i = thetaM.ncol() ; i-- ;){
-        thetaN[i] = thetaM(i, i);
-      }
-    } else {
-      rxSolveFree();
-      stop(_("'%s' is not compatible with 'params'"), thetaTxt.c_str());
-    }
-  } else if (!theta.isNULL()){
-    rxSolveFree();
-    stop(_("'%s' is not compatible with 'params'"), thetaTxt.c_str());
-  }
-  return thetaN;
-}
-
-NumericMatrix rxSetupParamsThetaEtaNullParams(const RObject &theta = R_NilValue, const RObject &eta = R_NilValue){
-  // Create the matrix
-  NumericVector thetaN = rxSetupParamsThetaEtaThetaN(theta,"theta");
-  // Now eta
-  NumericVector etaN = rxSetupParamsThetaEtaThetaN(eta, "eta");
-  NumericMatrix tmp1(1, thetaN.size()+etaN.size());
-  CharacterVector tmpN = CharacterVector(tmp1.size());
-  unsigned int i;
-  for (i = thetaN.size(); i--;){
-    tmp1(0, i) = thetaN[i];
-    tmpN[i] = "THETA[" + std::to_string(i + 1) + "]";
-  }
-  i = thetaN.size();
-  for (; i < thetaN.size()+ etaN.size(); i++){
-    tmp1(0, i) = etaN[i - thetaN.size()];
-    tmpN[i] = "ETA[" + std::to_string(i - thetaN.size() + 1) + "]";
-  }
-  tmp1.attr("dimnames") = List::create(R_NilValue, tmpN);
-  return tmp1;
-}
-
-RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
-			      const RObject &theta = R_NilValue,
-			      const RObject &eta = R_NilValue){
-  // Now get the parameters as a data.frame
-  if (rxIsList(params)) {
-    Function asDf("as.data.frame", R_BaseNamespace);
-    return rxSetupParamsThetaEta(asDf(params), theta, eta);
-  }
-  NumericMatrix parMat;
-  int i;
-  if (params.isNULL()){
-    if (!theta.isNULL() || !eta.isNULL()){
-      parMat = rxSetupParamsThetaEtaNullParams(theta, eta);
-    }
-  } else if (rxIs(params, "data.frame") || rxIs(params, "matrix")){
-    if (rxIs(params,"data.frame")){
-      DataFrame tmp = as<DataFrame>(params);
-      int nr = tmp.nrows();
-      NumericMatrix tmpM(nr,tmp.size());
-      for (i = tmp.size(); i-- ;){
-        tmpM(_,i) = NumericVector(tmp[i]);
-      }
-      tmpM.attr("dimnames") = List::create(R_NilValue,tmp.names());
-      parMat=tmpM;
-    } else {
-      parMat = as<NumericMatrix>(params);
-    }
-  } else if (rxIsNumInt(params)){
-    // Create the matrix
-    NumericVector thetaN;
-    if (rxIsNumInt(theta)){
-      thetaN = as<NumericVector>(theta);
-    } else if (rxIs(theta, "matrix")){
-      NumericMatrix thetaM = as<NumericMatrix>(theta);
-      if (thetaM.nrow() == 1){
-        thetaN = NumericVector(thetaM.ncol());
-        for (i = thetaM.ncol() ; i-- ;){
-          thetaN[i] = thetaM(1,i);
-        }
-      } else if (thetaM.ncol() == 1){
-        thetaN = NumericVector(thetaM.nrow());
-        for (i = thetaM.ncol(); i--;){
-          thetaN[i] = thetaM(i, i);
-        }
-      } else {
-	rxSolveFree();
-        stop(_("'theta' is not compatible with 'params'"));
-      }
-    } else if (!theta.isNULL()){
-      rxSolveFree();
-      stop(_("'theta' is not compatible with 'params'"));
-    }
-    // Now eta
-    NumericVector etaN;
-    if (rxIsNumInt(eta)){
-      etaN = as<NumericVector>(eta);
-    } else if (rxIs(eta, "matrix")){
-      NumericMatrix etaM = as<NumericMatrix>(eta);
-      if (etaM.nrow() == 1){
-        etaN = NumericVector(etaM.ncol());
-        for (i = etaM.ncol() ; i-- ;){
-          etaN[i] = etaM(0, i);
-        }
-      } else if (etaM.ncol() == 1){
-        etaN = NumericVector(etaM.nrow());
-        for (i = etaM.ncol() ; i-- ;){
-          etaN[i] = etaM(i, 0);
-        }
-      } else {
-	rxSolveFree();
-        stop(_("'eta' is not compatible with 'params'"));
-      }
-    } else if (!eta.isNULL()){
-      rxSolveFree();
-      stop(_("'eta' is not compatible with 'params'"));
-    }
-    NumericVector tmp0 = as<NumericVector>(params);
-    NumericMatrix tmp1(1, tmp0.size()+thetaN.size()+etaN.size());
-    CharacterVector tmp0N ;
-    NumericVector pars = as<NumericVector>(params);
-    if (tmp0.hasAttribute("names")){
-      tmp0N = tmp0.names();
-    } else if (tmp0.size() == pars.size()){
-      tmp0N = pars;
-    } else if (tmp0.size() > 0){
-      // In this case there are no names
-      rxSolveFree();
-      stop(_("parameter names must be specified"));
-    }
-    CharacterVector tmpN = CharacterVector(tmp1.size());
-    for (i = 0; i < tmp0.size(); i++){
-      tmp1(0, i) = tmp0[i];
-      tmpN[i]   = tmp0N[i];
-    }
-    for (; i < tmp0.size()+thetaN.size(); i++){
-      tmp1(0, i) = thetaN[i - tmp0.size()];
-      tmpN[i] = "THETA[" + std::to_string(i - tmp0.size() + 1) + "]";
-    }
-    for (; i < tmp0.size()+thetaN.size()+ etaN.size(); i++){
-      tmp1(0, i) = etaN[i - tmp0.size() - thetaN.size()];
-      tmpN[i] = "ETA[" + std::to_string(i - tmp0.size() - thetaN.size() + 1) + "]";
-    }
-    tmp1.attr("dimnames") = List::create(R_NilValue, tmpN);
-    parMat = tmp1;
-  }
-  if (parMat.nrow() == 1) {
-    NumericVector ret(parMat.ncol());
-    List dn = parMat.attr("dimnames");
-    ret.names() = dn[1];
-    std::copy(parMat.begin(), parMat.end(), ret.begin());
-    return(as<RObject>(ret));
-  }
-  return as<RObject>(parMat);
-}
-
-
 typedef struct {
   int *gon;
   double *gIndSim;
@@ -2226,7 +2062,7 @@ void updateSolveEnvPost(Environment e){
     IntegerVector ppos = e[".par.pos"];
     bool IsIni = e[".par.pos.ini"];
     CharacterVector idLevels = as<CharacterVector>(e[".idLevels"]);
-    if (rxIsNumInt(parso) || rxIsNull(parso)){
+    if (rxIsNumInt(parso) || rxIsNull(parso)) {
       double *tmp=(double*)calloc(ppos.size(),sizeof(double));
       if (tmp == NULL){
 	rxSolveFree();
@@ -2523,6 +2359,7 @@ typedef struct{
   List covUnits;
   RObject par1;
   bool usePar1 = false;
+  bool finalPar1 = false;
   bool par1Keep = false;
   bool swappedEvents = false;
   RObject par1ini;
@@ -3079,13 +2916,7 @@ static inline void rxSolve_parSetup(const RObject &obj,
 				    const RObject &inits,
 				    rxSolve_t* rxSolveDat){
   rx_solve* rx = getRxSolve_();
-  RObject theta = rxControl[Rxc_theta];
-  RObject eta = rxControl[Rxc_eta];
   //  determine which items will be sampled from
-  if (!theta.isNULL() || !eta.isNULL()){
-    rxSolveDat->usePar1=true;
-    rxSolveDat->par1 = rxSetupParamsThetaEta(rxSolveDat->par1, theta, eta);
-  }
   if (rxIsNumInt(rxSolveDat->par1)){
     rxSolveDat->parNumeric = as<NumericVector>(rxSolveDat->par1);
     if (rxSolveDat->parNumeric.hasAttribute("names")){

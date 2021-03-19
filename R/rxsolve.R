@@ -847,8 +847,6 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       nDisplayProgress = nDisplayProgress,
       amountUnits = amountUnits,
       timeUnits = timeUnits,
-      theta = theta,
-      eta = eta,
       addDosing = addDosing,
       stateTrim = stateTrim,
       updateObject = updateObject,
@@ -908,7 +906,8 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
 }
 #' @rdname rxSolve
 #' @export
-rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, ...) {
+rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, ...,
+                            theta=NULL, eta=NULL) {
   on.exit({
     .clearPipe()
   })
@@ -1112,6 +1111,54 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
   .ctl$keepI <- .keepI
   .ctl$keepF <- .keepF
   rxSolveFree()
+
+  if (!is.null(theta) | !is.null(eta)) {
+    .theta <- theta
+    .eta <- eta
+    if (!is.null(.theta)) {
+      if (inherits(.theta, "data.frame")) {
+        stop("'theta' cannot be a data.frame", call.=FALSE)
+      } else if (inherits(.theta, "matrix")) {
+        .dn <- dim(.theta)
+        if (.dn[1] != 1) {
+          stop("'theta' can only have 1 row", call.=FALSE)
+        }
+        .theta <- as.vector(theta)
+      }
+      if (is.null(attr(theta, "names"))) {
+        .theta <- setNames(theta, paste0("THETA[", seq_along(theta), "]"))
+      } else {
+        .theta <- theta
+      }
+    }
+    if (!is.null(.eta)) {
+      if (inherits(.eta, "data.frame")) {
+        stop("'eta' cannot be a data.frame", call.=FALSE)
+      } else if (inherits(.eta, "matrix")) {
+        .dn <- dim(.eta)
+        if (.dn[1] != 1) {
+          stop("'eta' can only have 1 row", call.=FALSE)
+        }
+        .eta <- as.vector(eta)
+      }
+      if (is.null(attr(eta, "names"))) {
+        .eta <- setNames(eta, paste0("ETA[", seq_along(eta), "]"))
+      } else {
+        .eta <- eta
+      }
+    }
+    .pet <- rxIs(params, "rxEt")
+    .eet <- rxIs(events, "rxEt")
+    if (is.null(params)) {
+      params <- c(.theta, .eta)
+    } else if (is.null(events)) {
+      events <- c(.theta, .eta)
+    } else {
+      stop("cannot specify 'params' and 'theta'/'eta' at the same time",
+           call.=FALSE)
+    }
+  }
+
   .ret <- .collectWarnings(rxSolveSEXP(object, .ctl, .nms, .xtra,
     params, events, inits,
     setupOnlyS = .setupOnly
