@@ -10,7 +10,8 @@
   did not solve for all subjects.
   
 * Will not ignore NEWS and README when building the package so that
-  they will show up on CRAN
+  they will show up on CRAN.  You can also access the news by
+  `news(package="RxODE")`
 
 # RxODE 1.0.5
 
