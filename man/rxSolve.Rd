@@ -117,7 +117,15 @@ rxSolve(
   maxwhile = 1e+05
 )
 
-\method{rxSolve}{default}(object, params = NULL, events = NULL, inits = NULL, ...)
+\method{rxSolve}{default}(
+  object,
+  params = NULL,
+  events = NULL,
+  inits = NULL,
+  ...,
+  theta = NULL,
+  eta = NULL
+)
 
 \method{update}{rxSolve}(object, ...)
 

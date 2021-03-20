@@ -1,6 +1,7 @@
 rxodeTest({
   if (requireNamespace("units", quietly = TRUE)) {
     context("tad family of functions with odes")
+    library(units)
 
     test_that("tad family works with ode", {
 

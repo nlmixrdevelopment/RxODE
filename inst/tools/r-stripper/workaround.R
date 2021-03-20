@@ -109,9 +109,9 @@ deparse2 <- function (expr, collapse = " ", width.cutoff = 500L, ...) {
 
 final <- c("#include <time.h>",
            "#include <stdlib.h>",
+           "unsigned long int __timeId=0;",
            "void writeHeader(const char *md5, const char *extra) {",
-           "unsigned long int timeId=0;",
-           paste0("sAppend(&sbOut, \"#define ", def, " _rx%s%s%ld\\n\", extra, md5, timeId++);"),
+           paste0("sAppend(&sbOut, \"#define ", def, " _rx%s%s%ld\\n\", extra, md5, __timeId++);"),
            "}",
            "void writeBody() {",
            paste0("sAppendN(&sbOut, ", vapply(paste0(l, "\n"), deparse2, character(1)), ", ", nchar(l) + 1, ");"),

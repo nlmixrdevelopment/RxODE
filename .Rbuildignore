@@ -11,7 +11,6 @@
 .Rdata
 ^\.travis.yml$
 ^\.lintr$
-^README(\.md|\.Rmd)$
 ^.git.*$
 ^\.gitignore$
 ^\.covrignore$
@@ -28,14 +27,11 @@ RxODE.*\.(zip|pdf)$
 ^/?src/dparser/.*$
 ^/?src/liblsoda/.*$
 LICENSE
-News.md
 /?config.status
 /?config.log
 ^/?docs/*$
 ^/?man-roxygen/.*$
 ^/?man-roxygen$
-^/?man/figures/.*$
-^/?man/figures$
 ^.*[.]log$
 tests/testthat/_snaps$
 vignettes/*.Rmdh

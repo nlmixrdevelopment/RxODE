@@ -46,6 +46,7 @@ rxodeTest({
       f(A_absorption) = Fh * FaFg;
     })
 
+
     s1 <- rxSolve(mod1, d, params=c(CLH=2,CLD=10,V_centr=77,V_peri=10), returnType="data.frame")
     s2 <- rxSolve(mod2, d, params=setNames(c(2,10,77,10), paste0("THETA[", 1:4, "]")),returnType="data.frame")
     s2 <- s2[, names(s1)]
@@ -62,6 +63,9 @@ rxodeTest({
     s4 <- s4[, names(s1)]
     expect_equal(s1, s3)
 
+    s5 <- rxSolve(mod2, d, theta=c(2,10,77,10))
+
+    s6 <- rxSolve(mod2, d, params=setNames(c(2,10,77,10), paste0("THETA[", 1:4, "]")))
 
   }
 

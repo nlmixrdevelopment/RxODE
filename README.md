@@ -169,7 +169,7 @@ To load `RxODE` package and compile the model:
 
 ```r
 library(RxODE)
-#> RxODE 1.0.5 using 4 threads (see ?getRxThreads)
+#> RxODE 1.0.6 using 4 threads (see ?getRxThreads)
 
 mod1 <-RxODE({
     C2 = centr/V2;
@@ -180,7 +180,6 @@ mod1 <-RxODE({
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
 #> 
-#> qs v0.23.6.
 ```
 
 ## Specify ODE parameters and initial conditions
