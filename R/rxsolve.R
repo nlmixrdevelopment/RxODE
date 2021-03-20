@@ -1128,13 +1128,8 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
       if (is.null(attr(theta, "names"))) {
         .theta <- setNames(theta, paste0("THETA[", seq_along(theta), "]"))
       } else {
-        .nt <- names(theta)
-        .w <- which(.nt == "")
-        .theta <- theta
-        if (length(.w) > 0) {
-          .nt[.w] <- paste0("THETA[", seq_along(.w), "]")
-          names(.theta) <- .nt
-        }
+        warning("name specification for 'theta' is ignored", call.=FALSE)
+        .theta <- setNames(theta, paste0("THETA[", seq_along(theta), "]"))
       }
     }
     if (!is.null(.eta)) {
@@ -1150,14 +1145,8 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
       if (is.null(attr(eta, "names"))) {
         .eta <- setNames(eta, paste0("ETA[", seq_along(eta), "]"))
       } else {
-        .eta <- eta
-        .nt <- names(eta)
-        .w <- which(.nt == "")
-        .eta <- eta
-        if (length(.w) > 0) {
-          .nt[.w] <- paste0("ETA[", seq_along(.w), "]")
-          names(.eta) <- .nt
-        }
+        warning("name specification for 'eta' is ignored", call.=FALSE)
+        .eta <- setNames(eta, paste0("ETA[", seq_along(eta), "]"))
       }
     }
     .pet <- rxIs(params, "rxEt")
