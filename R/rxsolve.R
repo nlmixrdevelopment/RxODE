@@ -1128,7 +1128,13 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
       if (is.null(attr(theta, "names"))) {
         .theta <- setNames(theta, paste0("THETA[", seq_along(theta), "]"))
       } else {
+        .nt <- names(theta)
+        .w <- which(.nt == "")
         .theta <- theta
+        if (length(.w) > 0) {
+          .nt[.w] <- paste0("THETA[", seq_along(.w), "]")
+          names(.theta) <- .nt
+        }
       }
     }
     if (!is.null(.eta)) {
@@ -1145,6 +1151,13 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
         .eta <- setNames(eta, paste0("ETA[", seq_along(eta), "]"))
       } else {
         .eta <- eta
+        .nt <- names(eta)
+        .w <- which(.nt == "")
+        .eta <- eta
+        if (length(.w) > 0) {
+          .nt[.w] <- paste0("ETA[", seq_along(.w), "]")
+          names(.eta) <- .nt
+        }
       }
     }
     .pet <- rxIs(params, "rxEt")
