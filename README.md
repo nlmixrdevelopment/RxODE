@@ -385,15 +385,15 @@ This is a brief comparison of pharmacometric ODE solving R packages to
 `RxODE`.
 
 There are several [R packages for differential
-equations](https://cran.r-project.org/view=DifferentialEquations).
+equations](https://CRAN.R-project.org/view=DifferentialEquations).
 The most popular is
-[deSolve](https://cran.r-project.org/package=deSolve).
+[deSolve](https://CRAN.R-project.org/package=deSolve).
 
 However for pharmacometrics-specific ODE solving, there are only 2
-packages other than [RxODE](https://cran.r-project.org/package=RxODE)
+packages other than [RxODE](https://CRAN.R-project.org/package=RxODE)
 released on CRAN. Each uses compiled code to have faster ODE solving.
 
--   [mrgsolve](https://cran.r-project.org/package=mrgsolve), which uses
+-   [mrgsolve](https://CRAN.R-project.org/package=mrgsolve), which uses
     C++ lsoda solver to solve ODE systems. The user is required to write
     hybrid R/C++ code to create a mrgsolve model which is translated to
     C++ for solving.
@@ -405,10 +405,10 @@ released on CRAN. Each uses compiled code to have faster ODE solving.
     manipulation of ODE systems, like automatic Jacobian calculation or
     forward sensitivity calculation (`RxODE` currently supports this and
     this is the basis of
-    [nlmixr](https://cran.r-project.org/package=nlmixr)'s FOCEi
+    [nlmixr](https://CRAN.R-project.org/package=nlmixr)'s FOCEi
     algorithm)
 
--   [dMod](https://cran.r-project.org/package=dMod), which uses a unique
+-   [dMod](https://CRAN.R-project.org/package=dMod), which uses a unique
     syntax to create "reactions". These reactions create the underlying
     ODEs and then created c code for a compiled deSolve model.
 
@@ -447,13 +447,13 @@ math's auto-differentiation). This currently uses the same equations as
 
 ### The following packages for solved PK systems are on CRAN
 
--   [mrgsolve](https://cran.r-project.org/package=mrgsolve) currently
+-   [mrgsolve](https://CRAN.R-project.org/package=mrgsolve) currently
     has 1-2 compartment (poly-exponential models) models built-in. The
     solved systems and ODEs cannot currently be mixed.
 -   [pmxTools](https://github.com/kestrel99/pmxTools) currently have 1-3
     compartment (super-positioning) models built-in. This is a R-only
     implementation.
--   [PKPDmodels](https://cran.r-project.org/package=PKPDmodels)
+-   [PKPDmodels](https://CRAN.R-project.org/package=PKPDmodels)
     has a one-compartment model with gradients.
 
 ### Non-CRAN libraries:
