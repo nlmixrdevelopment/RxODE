@@ -248,7 +248,7 @@
 <h1 class="hasAnchor">
 <a href="#using-pre-compiled-models-in-your-packages" class="anchor"></a>Using Pre-compiled models in your packages</h1>
 <p>If you have a package and would like to include pre-compiled RxODE models in your package it is easy to create the package. You simple make the package with the <code><a href="../reference/rxPkg.html">rxPkg()</a></code> command.</p>
-<pre><code><a href="https://nlmixrdevelopment.github.io/RxODE">library(RxODE);
+<pre><code><a href="https://nlmixrdevelopment.github.io/RxODE/">library(RxODE);
 ## Now Create a model
 idr &lt;- RxODE({
     C2 = centr/V2;
@@ -284,7 +284,7 @@ devtools::build() # build the package so you can submit it to places like CRAN</
 <h1 class="hasAnchor">
 <a href="#using-models-in-a-already-present-package" class="anchor"></a>Using Models in a already present package</h1>
 <p>To illustrate, lets start with a blank package</p>
-<pre><code><a href="https://nlmixrdevelopment.github.io/RxODE">library(RxODE)
+<pre><code><a href="https://nlmixrdevelopment.github.io/RxODE/">library(RxODE)
 library(usethis)
 pkgPath  &lt;- file.path(rxTempDir(),"MyRxModel")
 create_package(pkgPath);
