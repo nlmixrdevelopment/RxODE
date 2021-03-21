@@ -523,16 +523,16 @@
 <h2 class="hasAnchor">
 <a href="#ode-solving" class="anchor"></a>ODE solving</h2>
 <p>This is a brief comparison of pharmacometric ODE solving R packages to <code>RxODE</code>.</p>
-<p>There are several <a href="https://cran.r-project.org/web/views/DifferentialEquations.html" class="external-link">R packages for differential equations</a>. The most popular is <a href="https://cran.r-project.org/package=deSolve" class="external-link">deSolve</a>.</p>
+<p>There are several <a href="https://CRAN.R-project.org/view=DifferentialEquations" class="external-link">R packages for differential equations</a>. The most popular is <a href="https://CRAN.R-project.org/package=deSolve" class="external-link">deSolve</a>.</p>
 <p>However for pharmacometrics-specific ODE solving, there are only 2 packages other than <a href="https://CRAN.R-project.org/package=RxODE" class="external-link">RxODE</a> released on CRAN. Each uses compiled code to have faster ODE solving.</p>
 <ul>
 <li>
 <p><a href="https://CRAN.R-project.org/package=mrgsolve" class="external-link">mrgsolve</a>, which uses C++ lsoda solver to solve ODE systems. The user is required to write hybrid R/C++ code to create a mrgsolve model which is translated to C++ for solving.</p>
 <p>In contrast, <code>RxODE</code> has a R-like mini-language that is parsed into C code that solves the ODE system.</p>
-<p>Unlike <code>RxODE</code>, <code>mrgsolve</code> does not currently support symbolic manipulation of ODE systems, like automatic Jacobian calculation or forward sensitivity calculation (<code>RxODE</code> currently supports this and this is the basis of <a href="https://cran.r-project.org/package=nlmixr" class="external-link">nlmixr</a>’s FOCEi algorithm)</p>
+<p>Unlike <code>RxODE</code>, <code>mrgsolve</code> does not currently support symbolic manipulation of ODE systems, like automatic Jacobian calculation or forward sensitivity calculation (<code>RxODE</code> currently supports this and this is the basis of <a href="https://CRAN.R-project.org/package=nlmixr" class="external-link">nlmixr</a>’s FOCEi algorithm)</p>
 </li>
 <li>
-<p><a href="https://cran.r-project.org/package=dMod" class="external-link">dMod</a>, which uses a unique syntax to create “reactions”. These reactions create the underlying ODEs and then created c code for a compiled deSolve model.</p>
+<p><a href="https://CRAN.R-project.org/package=dMod" class="external-link">dMod</a>, which uses a unique syntax to create “reactions”. These reactions create the underlying ODEs and then created c code for a compiled deSolve model.</p>
 <p>In contrast <code>RxODE</code> defines ODE systems at a lower level. <code>RxODE</code>’s parsing of the mini-language comes from C, whereas <code>dMod</code>’s parsing comes from R.</p>
 <p>Like <code>RxODE</code>, <code>dMod</code> supports symbolic manipulation of ODE systems and calculates forward sensitivities and adjoint sensitivities of systems.</p>
 <p>Unlike <code>RxODE</code>, <code>dMod</code> is not thread-safe since <code>deSolve</code> is not yet thread-safe.</p>
@@ -562,7 +562,7 @@
 <li>
 <a href="https://github.com/kestrel99/pmxTools" class="external-link">pmxTools</a> currently have 1-3 compartment (super-positioning) models built-in. This is a R-only implementation.</li>
 <li>
-<a href="https://cran.r-project.org/web/packages/PKPDmodels/index.html" class="external-link">PKPDmodels</a> has a one-compartment model with gradients.</li>
+<a href="https://CRAN.R-project.org/package=PKPDmodels" class="external-link">PKPDmodels</a> has a one-compartment model with gradients.</li>
 </ul>
 </div>
 <div id="non-cran-libraries" class="section level3">
