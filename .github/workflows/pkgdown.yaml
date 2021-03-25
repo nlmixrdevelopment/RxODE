@@ -35,7 +35,7 @@ jobs:
           install.packages("jsonlite", type="source")
           install.packages("usethis", type="source")
           install.packages("symengine", type="source")
-          install.packages("dparser", type="source")
+          remotes::install_github("nlmixrdevelopment/dparser-R")
           remotes::install_cran("covr")
         shell: Rscript {0}
 
@@ -59,6 +59,7 @@ jobs:
           # To get links for homepage
           remotes::install_cran("devtools")
           remotes::install_deps(dependencies = TRUE)
+          remotes::install_github("nlmixrdevelopment/dparser-R")
           remotes::install_dev("pkgdown")
         shell: Rscript {0}
 

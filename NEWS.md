@@ -1,3 +1,11 @@
+# RxODE 1.0.7 (development)
+
+* Change syntax vignette to use markdown option
+  `screenshot.force=FALSE`.  This should get rid of the `webshot`
+  error
+
+* Change to depend on dparser 1.3.0, which has some memory fixes
+
 # RxODE 1.0.6
 
 * RxODE imports but does not link to `checkmate` any longer.  This change
