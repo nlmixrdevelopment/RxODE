@@ -113,7 +113,9 @@ jobs:
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "16.04"))')
 
       - name: Install remotes
-        run: install.packages('remotes')
+        run: |
+          install.packages('remotes')
+          remotes::install_github("nlmixrdevelopment/dparser-R")
         shell: Rscript {0}
 
       - name: Install dependencies
@@ -156,3 +158,4 @@ jobs:
         with:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-results
           path: check
+
