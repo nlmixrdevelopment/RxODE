@@ -102,7 +102,7 @@ Description: Facilities for running simulations from ordinary
     Installation" manual. Also the code is mostly released under GPL.  The
     'VODE' and 'LSODA' are in the public domain.  The information is available
     in the inst/COPYRIGHTS. 
-BugReports: https://github.com/nlmixrdevelopment/RxODE/issues
+BugReports: https://github.com/nlmixrdevelopment/RxODE/issues/
 NeedsCompilation: yes
 VignetteBuilder: knitr
 License: GPL (>= 3) 
