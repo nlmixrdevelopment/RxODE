@@ -72,6 +72,9 @@
 
 
 
+<!-- dependencies from examples -->
+
+
   
 
   
@@ -1012,9 +1015,9 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
 <span class='co'># \donttest{</span>
  <span class='fu'>microbenchmark</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html'>microbenchmark</a></span><span class='op'>(</span><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>, <span class='fu'>expand.grid.jc</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; Unit: microseconds
-#&gt;                              expr  min    lq   mean median    uq   max neval
-#&gt;    rxExpandGrid(letters, letters) 20.7 21.95 23.407   22.4 23.05  52.1   100
-#&gt;  expand.grid.jc(letters, letters) 26.0 28.70 35.476   29.5 31.10 578.1   100</div><div class='input'><span class='co'># }</span>
+#&gt;                              expr  min    lq   mean median   uq  max neval
+#&gt;    rxExpandGrid(letters, letters) 15.3 16.10 19.390   18.0 22.7 52.2   100
+#&gt;  expand.grid.jc(letters, letters) 20.1 21.95 26.382   23.9 30.1 59.5   100</div><div class='input'><span class='co'># }</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -1031,7 +1034,7 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
 </div>
 
 <div class="pkgdown">
-  <p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 1.6.1.9000.</p></p>
+  <p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 1.6.1.9001.</p></p>
 </div>
 
       </footer>
