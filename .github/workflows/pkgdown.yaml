@@ -59,6 +59,7 @@ jobs:
           # To get links for homepage
           remotes::install_cran("devtools")
           remotes::install_deps(dependencies = TRUE)
+          remotes::install_github("nlmixrdevelopment/dparser-R")
           remotes::install_dev("pkgdown")
         shell: Rscript {0}
 
