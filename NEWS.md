@@ -1,4 +1,6 @@
-# RxODE 1.0.7 (development)
+# RxODE development version
+
+# RxODE 1.0.7 
 
 * Change syntax vignette to use markdown option
   `screenshot.force=FALSE`.  This should get rid of the `webshot`
