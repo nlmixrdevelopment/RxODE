@@ -42,7 +42,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.7.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.8</span>
       </span>
     </div>
 
@@ -250,7 +250,7 @@
 <p>RxODE automatically assigns compartment numbers when parsing. For example, with the Mavoglurant PBPK model the following model may be used:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.7.1 using 1 threads (see ?getRxThreads)
+<pre><code>#&gt; RxODE 1.0.8 using 1 threads (see ?getRxThreads)
 #&gt;   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pbpk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
@@ -344,8 +344,8 @@
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">pbpk</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.7.1 model named rx_a0f3f69a767e03a05f8907e36eee780f model (ready). 
-#&gt; DLL: /tmp/RtmpYmtE8G/RxODE/rx_a0f3f69a767e03a05f8907e36eee780f__.rxd/rx_a0f3f69a767e03a05f8907e36eee780f_.so
+<pre><code>#&gt; RxODE 1.0.8 model named rx_f8bcad9c587cce41744b74720b36946b model (ready). 
+#&gt; DLL: /tmp/RtmpqUdYzm/RxODE/rx_f8bcad9c587cce41744b74720b36946b__.rxd/rx_f8bcad9c587cce41744b74720b36946b_.so
 #&gt; NULL
 #&gt; 
 #&gt; Calculated Variables:
@@ -536,7 +536,7 @@
 <p>You can see this change in the simple printout</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pbpk2</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.7.1 model named rx_711f5bc581d7b0d91f4125ea62887c0f model (ready). 
+<pre><code>#&gt; RxODE 1.0.8 model named rx_ae6c2507471c7dc1af66ea198445ac8c model (ready). 
 #&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body
 #&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup
 #&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
@@ -555,7 +555,7 @@
     <span class="fu">cmt</span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ode.1c.ka</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.7.1 model named rx_64763d4d8bb27e9eed8f0e5f2d6aece6 model (ready). 
+<pre><code>#&gt; RxODE 1.0.8 model named rx_9f107b9d12801f970005e5dd51a95e6b model (ready). 
 #&gt; $state: depot, center
 #&gt; $stateExtra: eff
 #&gt; $params: V, KA, CL
