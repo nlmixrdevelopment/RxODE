@@ -1,5 +1,10 @@
 # RxODE development version
 
+# RxODE 1.0.8
+
+* Fix issue #399
+
+
 # RxODE 1.0.7 
 
 * Change syntax vignette to use markdown option
