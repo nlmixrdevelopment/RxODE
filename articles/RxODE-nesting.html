@@ -42,7 +42,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.7</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.7.1</span>
       </span>
     </div>
 
@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Nesting levels in RxODE</h1>
             
-            <h4 data-toc-skip class="date">2021-04-08</h4>
+            <h4 data-toc-skip class="date">2021-04-09</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-nesting.Rmd" class="external-link"><code>vignettes/RxODE-nesting.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-nesting.Rmd</code></div>
@@ -319,7 +319,7 @@
 </ul>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.7 using 1 threads (see ?getRxThreads)
+<pre><code>#&gt; RxODE 1.0.7.1 using 1 threads (see ?getRxThreads)
 #&gt;   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></code></pre></div>
@@ -378,24 +378,24 @@
 <span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">tMat</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">tMat</span></code></pre></div>
-<pre><code>#&gt;              TKA         TCl          V2           Q          V3          Kin
-#&gt; TKA   0.15327355 -0.08540140  0.04255489 -0.05765035  0.02087792 -0.047895639
-#&gt; TCl  -0.08540140  0.21575678  0.09543475  0.03439376  0.07503144  0.037265954
-#&gt; V2    0.04255489  0.09543475  0.19492231  0.01200462  0.08223550  0.028406124
-#&gt; Q    -0.05765035  0.03439376  0.01200462  0.21063902 -0.08344428  0.045835240
-#&gt; V3    0.02087792  0.07503144  0.08223550 -0.08344428  0.18759501 -0.012923058
-#&gt; Kin  -0.04789564  0.03726595  0.02840612  0.04583524 -0.01292306  0.109012518
-#&gt; Kout  0.01456645  0.11290579  0.06602588  0.05443182  0.01244494 -0.004992032
-#&gt; EC50 -0.04167675 -0.04293290 -0.06104552  0.02920905 -0.05356060 -0.002989161
-#&gt;              Kout         EC50
-#&gt; TKA   0.014566454 -0.041676748
-#&gt; TCl   0.112905791 -0.042932897
-#&gt; V2    0.066025884 -0.061045523
-#&gt; Q     0.054431822  0.029209047
-#&gt; V3    0.012444936 -0.053560602
-#&gt; Kin  -0.004992032 -0.002989161
-#&gt; Kout  0.134123965 -0.043642056
-#&gt; EC50 -0.043642056  0.041532820</code></pre>
+<pre><code>#&gt;              TKA         TCl           V2            Q          V3         Kin
+#&gt; TKA   0.09431513 -0.03248383 -0.047121945  0.010937710  0.03599399  0.03557997
+#&gt; TCl  -0.03248383  0.15641754 -0.089064280 -0.064181117  0.00579766  0.05798267
+#&gt; V2   -0.04712195 -0.08906428  0.200266565 -0.001447464 -0.03392697 -0.07802380
+#&gt; Q     0.01093771 -0.06418112 -0.001447464  0.082228190 -0.02903288 -0.06898454
+#&gt; V3    0.03599399  0.00579766 -0.033926969 -0.029032884  0.06373942  0.05356463
+#&gt; Kin   0.03557997  0.05798267 -0.078023803 -0.068984544  0.05356463  0.19623415
+#&gt; Kout -0.02464289  0.03394669 -0.060842042 -0.042710666  0.02406622  0.04751843
+#&gt; EC50 -0.04454354  0.03624671 -0.074061430 -0.002671498 -0.02796090 -0.02450171
+#&gt;             Kout         EC50
+#&gt; TKA  -0.02464289 -0.044543540
+#&gt; TCl   0.03394669  0.036246709
+#&gt; V2   -0.06084204 -0.074061430
+#&gt; Q    -0.04271067 -0.002671498
+#&gt; V3    0.02406622 -0.027960904
+#&gt; Kin   0.04751843 -0.024501708
+#&gt; Kout  0.24107060  0.128100764
+#&gt; EC50  0.12810076  0.171942594</code></pre>
 </div>
 <div id="nesting-variability" class="section level3">
 <h3 class="hasAnchor">
@@ -462,16 +462,16 @@
 #&gt; # A tibble: 8,000 x 24
 #&gt;    sim.id id    `inv.Cl(inv==1)` `inv.Cl(inv==2)` `inv.Ka(inv==1)`
 #&gt;     &lt;int&gt; &lt;fct&gt;            &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
-#&gt;  1      1 1               -0.201            0.100            0.272
-#&gt;  2      1 2               -0.201            0.100            0.272
-#&gt;  3      1 3               -0.201            0.100            0.272
-#&gt;  4      1 4               -0.201            0.100            0.272
-#&gt;  5      1 5               -0.201            0.100            0.272
-#&gt;  6      1 6               -0.201            0.100            0.272
-#&gt;  7      1 7               -0.201            0.100            0.272
-#&gt;  8      1 8               -0.201            0.100            0.272
-#&gt;  9      1 9               -0.201            0.100            0.272
-#&gt; 10      1 10              -0.201            0.100            0.272
+#&gt;  1      1 1             -0.00253          -0.0463           -0.183
+#&gt;  2      1 2             -0.00253          -0.0463           -0.183
+#&gt;  3      1 3             -0.00253          -0.0463           -0.183
+#&gt;  4      1 4             -0.00253          -0.0463           -0.183
+#&gt;  5      1 5             -0.00253          -0.0463           -0.183
+#&gt;  6      1 6             -0.00253          -0.0463           -0.183
+#&gt;  7      1 7             -0.00253          -0.0463           -0.183
+#&gt;  8      1 8             -0.00253          -0.0463           -0.183
+#&gt;  9      1 9             -0.00253          -0.0463           -0.183
+#&gt; 10      1 10            -0.00253          -0.0463           -0.183
 #&gt; # ... with 7,990 more rows, and 19 more variables: inv.Ka(inv==2) &lt;dbl&gt;,
 #&gt; #   eye.Cl(eye==1) &lt;dbl&gt;, eye.Cl(eye==2) &lt;dbl&gt;, eye.Ka(eye==1) &lt;dbl&gt;,
 #&gt; #   eye.Ka(eye==2) &lt;dbl&gt;, iov.Cl(occ==1) &lt;dbl&gt;, iov.Cl(occ==2) &lt;dbl&gt;,
@@ -488,16 +488,16 @@
 #&gt; 
 #&gt; -- First part of data (object): ------------------------------------------------
 #&gt; # A tibble: 976,000 x 18
-#&gt;   sim.id    id  time inv.Cl inv.Ka eye.Cl  eye.Ka iov.Cl iov.Ka    C2      C3
-#&gt;    &lt;int&gt; &lt;int&gt;   [h]  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
-#&gt; 1      1     1   0.0 -0.201  0.272 -0.363  0.0597  0.122 0.0342   0    0     
-#&gt; 2      1     1   0.1 -0.201  0.272  0.225 -0.270   0.122 0.0342  15.7  0.0183
-#&gt; 3      1     1   4.0 -0.201  0.272 -0.363  0.0597  0.122 0.0342  17.2  6.75  
-#&gt; 4      1     1   4.1 -0.201  0.272  0.225 -0.270   0.122 0.0342  65.8  6.91  
-#&gt; 5      1     1   8.0 -0.201  0.272 -0.363  0.0597  0.122 0.0342  23.5 10.5   
-#&gt; 6      1     1   8.1 -0.201  0.272  0.225 -0.270   0.122 0.0342  21.3 10.6   
-#&gt; # ... with 975,994 more rows, and 7 more variables: CL &lt;dbl&gt;, KA &lt;dbl&gt;,
-#&gt; #   ef0 &lt;dbl&gt;, depot &lt;dbl&gt;, centr &lt;dbl&gt;, peri &lt;dbl&gt;, eff &lt;dbl&gt;
+#&gt;   sim.id    id  time   inv.Cl inv.Ka eye.Cl  eye.Ka  iov.Cl iov.Ka     C2
+#&gt;    &lt;int&gt; &lt;int&gt;   [h]    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+#&gt; 1      1     1   0.0 -0.00253 -0.183 -0.187 -0.0317 -0.0338  0.138  0    
+#&gt; 2      1     1   0.1 -0.00253 -0.183 -0.230 -0.0560 -0.0338  0.138  1.39 
+#&gt; 3      1     1   4.0 -0.00253 -0.183 -0.187 -0.0317 -0.0338  0.138  0.531
+#&gt; 4      1     1   4.1 -0.00253 -0.183 -0.230 -0.0560 -0.0338  0.138 11.0  
+#&gt; 5      1     1   8.0 -0.00253 -0.183 -0.187 -0.0317 -0.0338  0.138 15.3  
+#&gt; 6      1     1   8.1 -0.00253 -0.183 -0.230 -0.0560 -0.0338  0.138  7.54 
+#&gt; # ... with 975,994 more rows, and 8 more variables: C3 &lt;dbl&gt;, CL &lt;dbl&gt;,
+#&gt; #   KA &lt;dbl&gt;, ef0 &lt;dbl&gt;, depot &lt;dbl&gt;, centr &lt;dbl&gt;, peri &lt;dbl&gt;, eff &lt;dbl&gt;
 #&gt; ________________________________________________________________________________</code></pre>
 <p>There are multiple investigators in a study; Each investigator has a number of individuals enrolled at their site. <code>RxODE</code> automatically determines the number of investigators and then will simulate an effect for each investigator. With the output, <code>inv.Cl(inv==1)</code> will be the <code>inv.Cl</code> for investigator 1, <code>inv.Cl(inv==2)</code> will be the <code>inv.Cl</code> for investigator 2, etc.</p>
 <p><code>inv.Cl(inv==1)</code>, <code>inv.Cl(inv==2)</code>, etc will be simulated for each study and then combined to form the between investigator variability. In equation form these represent the following:</p>
@@ -506,63 +506,63 @@
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">params</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt;   sim.id id inv.Cl(inv==1) inv.Cl(inv==2) inv.Ka(inv==1) inv.Ka(inv==2)
-#&gt; 1      1  1     -0.2007626      0.1000123       0.271514    -0.03219234
-#&gt; 2      1  2     -0.2007626      0.1000123       0.271514    -0.03219234
-#&gt; 3      1  3     -0.2007626      0.1000123       0.271514    -0.03219234
-#&gt; 4      1  4     -0.2007626      0.1000123       0.271514    -0.03219234
-#&gt; 5      1  5     -0.2007626      0.1000123       0.271514    -0.03219234
-#&gt; 6      1  6     -0.2007626      0.1000123       0.271514    -0.03219234
+#&gt; 1      1  1   -0.002525414    -0.04625791      -0.182573     -0.3000322
+#&gt; 2      1  2   -0.002525414    -0.04625791      -0.182573     -0.3000322
+#&gt; 3      1  3   -0.002525414    -0.04625791      -0.182573     -0.3000322
+#&gt; 4      1  4   -0.002525414    -0.04625791      -0.182573     -0.3000322
+#&gt; 5      1  5   -0.002525414    -0.04625791      -0.182573     -0.3000322
+#&gt; 6      1  6   -0.002525414    -0.04625791      -0.182573     -0.3000322
 #&gt;   eye.Cl(eye==1) eye.Cl(eye==2) eye.Ka(eye==1) eye.Ka(eye==2) iov.Cl(occ==1)
-#&gt; 1    -0.36345565      0.2249062     0.05972146    -0.26960390      0.1218609
-#&gt; 2     0.32695412      0.1313350    -0.17758537    -0.37279350     -0.2937583
-#&gt; 3     0.14218027     -0.3343119     0.21392394     0.04724913      0.1501114
-#&gt; 4     0.06250827     -0.2336090    -0.22916651    -0.17641145      0.1229553
-#&gt; 5    -0.39736551      0.1479049    -0.08494081     0.01829792     -0.0823749
-#&gt; 6     0.22213532     -0.1461435    -0.47195097     0.48217968      0.1120664
+#&gt; 1    -0.18739257    -0.23006848    -0.03169446    -0.05599878   -0.033790247
+#&gt; 2    -0.05407001    -0.32465513    -0.07553267     0.24521216   -0.004713159
+#&gt; 3     0.06422379    -0.02471152     0.16528374     0.03231035   -0.064441090
+#&gt; 4     0.31877427     0.21603099     0.03041843     0.26153159    0.033248506
+#&gt; 5    -0.20143601     0.29948310    -0.15162194     0.16362682   -0.003609148
+#&gt; 6     0.05644775     0.22187954     0.03147295    -0.12961185   -0.018943904
 #&gt;   iov.Cl(occ==2) iov.Ka(occ==1) iov.Ka(occ==2)       V2       V3      TCl
-#&gt; 1   -0.079241989    0.034224720   -0.006440325 39.95057 296.7489 18.98646
-#&gt; 2   -0.184702822   -0.236602817   -0.064879087 39.95057 296.7489 18.98646
-#&gt; 3   -0.020977564   -0.112310431    0.052861932 39.95057 296.7489 18.98646
-#&gt; 4    0.012512440   -0.019655928   -0.099206453 39.95057 296.7489 18.98646
-#&gt; 5   -0.184925380   -0.007181861   -0.101032542 39.95057 296.7489 18.98646
-#&gt; 6    0.004060418   -0.165620775   -0.229119455 39.95057 296.7489 18.98646
-#&gt;         eta.Cl       TKA      eta.Ka        Q      Kin     Kout     EC50
-#&gt; 1 -0.375422121 0.3847321 -0.35718258 10.57644 0.910329 1.682063 199.8271
-#&gt; 2  0.357666284 0.3847321  0.80922186 10.57644 0.910329 1.682063 199.8271
-#&gt; 3  0.092725626 0.3847321  0.34205244 10.57644 0.910329 1.682063 199.8271
-#&gt; 4 -0.006530091 0.3847321 -0.01038026 10.57644 0.910329 1.682063 199.8271
-#&gt; 5 -0.340676647 0.3847321  0.03540403 10.57644 0.910329 1.682063 199.8271
-#&gt; 6 -0.635169927 0.3847321 -0.01340927 10.57644 0.910329 1.682063 199.8271</code></pre>
+#&gt; 1     0.09035166    0.138347478    0.076960699 40.24919 296.7929 18.75152
+#&gt; 2    -0.11165604    0.085337657   -0.052700771 40.24919 296.7929 18.75152
+#&gt; 3    -0.05466950   -0.070151538    0.055431910 40.24919 296.7929 18.75152
+#&gt; 4    -0.06449644    0.158584663    0.308165083 40.24919 296.7929 18.75152
+#&gt; 5    -0.15585717   -0.026109460    0.001455781 40.24919 296.7929 18.75152
+#&gt; 6    -0.07272742    0.005263342    0.100601269 40.24919 296.7929 18.75152
+#&gt;        eta.Cl        TKA       eta.Ka        Q      Kin     Kout     EC50
+#&gt; 1 -0.09015435 0.07225124 -0.184764915 10.52002 1.259225 1.097844 200.1666
+#&gt; 2  0.07468132 0.07225124 -0.002119545 10.52002 1.259225 1.097844 200.1666
+#&gt; 3  0.52248390 0.07225124 -0.085357561 10.52002 1.259225 1.097844 200.1666
+#&gt; 4  0.48729398 0.07225124  0.153909957 10.52002 1.259225 1.097844 200.1666
+#&gt; 5  0.10125202 0.07225124  0.324551179 10.52002 1.259225 1.097844 200.1666
+#&gt; 6  0.16947772 0.07225124  0.023218237 10.52002 1.259225 1.097844 200.1666</code></pre>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">params</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">sim.id</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt;   sim.id id inv.Cl(inv==1) inv.Cl(inv==2) inv.Ka(inv==1) inv.Ka(inv==2)
-#&gt; 1      2  1     0.02949504       0.226521     0.01882456     0.01451953
-#&gt; 2      2  2     0.02949504       0.226521     0.01882456     0.01451953
-#&gt; 3      2  3     0.02949504       0.226521     0.01882456     0.01451953
-#&gt; 4      2  4     0.02949504       0.226521     0.01882456     0.01451953
-#&gt; 5      2  5     0.02949504       0.226521     0.01882456     0.01451953
-#&gt; 6      2  6     0.02949504       0.226521     0.01882456     0.01451953
+#&gt; 1      2  1     -0.1767215     -0.1629393     -0.1756803     -0.1735525
+#&gt; 2      2  2     -0.1767215     -0.1629393     -0.1756803     -0.1735525
+#&gt; 3      2  3     -0.1767215     -0.1629393     -0.1756803     -0.1735525
+#&gt; 4      2  4     -0.1767215     -0.1629393     -0.1756803     -0.1735525
+#&gt; 5      2  5     -0.1767215     -0.1629393     -0.1756803     -0.1735525
+#&gt; 6      2  6     -0.1767215     -0.1629393     -0.1756803     -0.1735525
 #&gt;   eye.Cl(eye==1) eye.Cl(eye==2) eye.Ka(eye==1) eye.Ka(eye==2) iov.Cl(occ==1)
-#&gt; 1    -0.22594553    -0.48459722    -0.05678592      0.2563168     0.04159761
-#&gt; 2     0.01236446     0.41328168    -0.31628884     -0.6607984     0.13324233
-#&gt; 3    -0.51096622     0.20416057     0.23514502      0.2451895    -0.04969852
-#&gt; 4     0.27064964     0.21221458    -0.28297867     -0.2130113     0.02520027
-#&gt; 5     0.34682138    -0.18906031    -0.11962658     -0.1428807     0.06705088
-#&gt; 6    -0.15725368    -0.03001452    -0.06047720     -0.2156544    -0.08366293
-#&gt;   iov.Cl(occ==2) iov.Ka(occ==1) iov.Ka(occ==2)      V2       V3      TCl
-#&gt; 1     0.01279913    -0.07364173    -0.11104143 40.0701 297.1076 18.40602
-#&gt; 2     0.04184033    -0.08508975     0.07347382 40.0701 297.1076 18.40602
-#&gt; 3     0.09685875    -0.01744969     0.05886359 40.0701 297.1076 18.40602
-#&gt; 4     0.02634311     0.09447002     0.17477320 40.0701 297.1076 18.40602
-#&gt; 5    -0.14611341     0.23094353    -0.08935335 40.0701 297.1076 18.40602
-#&gt; 6     0.10631328     0.19448058    -0.07139540 40.0701 297.1076 18.40602
-#&gt;        eta.Cl       TKA       eta.Ka        Q      Kin      Kout     EC50
-#&gt; 1  0.32328263 0.4338694  0.214287072 9.777129 1.156937 0.7805672 199.9226
-#&gt; 2 -0.56095651 0.4338694  0.005419616 9.777129 1.156937 0.7805672 199.9226
-#&gt; 3 -0.12955401 0.4338694  0.131622894 9.777129 1.156937 0.7805672 199.9226
-#&gt; 4  0.60345646 0.4338694  0.214867545 9.777129 1.156937 0.7805672 199.9226
-#&gt; 5  0.05853163 0.4338694 -0.455648081 9.777129 1.156937 0.7805672 199.9226
-#&gt; 6 -0.32536636 0.4338694 -0.376496386 9.777129 1.156937 0.7805672 199.9226</code></pre>
+#&gt; 1     0.07143267    -0.16177815    -0.27102159     0.28331318     0.08611484
+#&gt; 2    -0.15081592    -0.42980008    -0.02584883    -0.51599263     0.16122228
+#&gt; 3    -0.50324470     0.04566569     0.35567145     0.52519977     0.05074633
+#&gt; 4    -0.34620400     0.05477452    -0.12776931     0.04274597    -0.02604051
+#&gt; 5     0.25103518     0.41669648     0.10688353    -0.15763111    -0.11669301
+#&gt; 6     0.11739007    -0.06663562    -0.18723639    -0.05727880    -0.07812115
+#&gt;   iov.Cl(occ==2) iov.Ka(occ==1) iov.Ka(occ==2)       V2       V3      TCl
+#&gt; 1     0.04529026     0.18546754     0.10266534 40.20688 296.8854 18.49094
+#&gt; 2    -0.05808438    -0.07454946     0.02130175 40.20688 296.8854 18.49094
+#&gt; 3    -0.14226112     0.05969091    -0.26014674 40.20688 296.8854 18.49094
+#&gt; 4     0.05159114    -0.01920879    -0.03863121 40.20688 296.8854 18.49094
+#&gt; 5     0.15425987     0.21492876    -0.05740970 40.20688 296.8854 18.49094
+#&gt; 6    -0.04251232     0.01251374     0.04655519 40.20688 296.8854 18.49094
+#&gt;       eta.Cl       TKA      eta.Ka       Q      Kin     Kout     EC50
+#&gt; 1 -0.3140029 0.2089202 -0.76174792 10.5165 1.380968 1.065312 200.2118
+#&gt; 2  0.2475845 0.2089202 -0.38041855 10.5165 1.380968 1.065312 200.2118
+#&gt; 3 -0.3748345 0.2089202 -0.10617322 10.5165 1.380968 1.065312 200.2118
+#&gt; 4 -0.3025147 0.2089202  0.09232125 10.5165 1.380968 1.065312 200.2118
+#&gt; 5 -0.1068702 0.2089202  0.01659004 10.5165 1.380968 1.065312 200.2118
+#&gt; 6  0.2037551 0.2089202 -0.34551582 10.5165 1.380968 1.065312 200.2118</code></pre>
 <p>For between eye variability and between occasion variability each individual simulates a number of variables that become the between eye and between occasion variability; In the case of the eye:</p>
 <pre><code>eye.Cl = (eye == 1) * `eye.Cl(eye==1)` + (eye == 2) * `eye.Cl(eye==2)`</code></pre>
 <p>So when you look the simulation each of these variables (ie <code>eye.Cl(eye==1)</code>, <code>eye.Cl(eye==2)</code>, etc) they change for each individual and when combined make the between eye variability or the between occasion variability that can be seen in some pharamcometric models.</p>
