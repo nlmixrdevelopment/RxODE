@@ -191,7 +191,14 @@ if (length(args) > 0 && args[1] == "fail") {
 }
 
 argument <- .getUniversalStripLinkerOption(fail)
-
-if (argument != "") {
-  .writeMakevars("src/Makevars.in", argument, TRUE)
+.desc <- readLines("DESCRIPTION")
+.ver <- gsub("Version: *", "", .desc[regexpr("Version:", .desc) != -1])
+.ver <- numeric_version(.ver)[[1]]
+class(.ver) <- "list"
+.ver <- .ver[[1]]
+if (length(.ver) <= 3) {
+  if (argument != "") {
+    .writeMakevars("src/Makevars.in", argument, TRUE)
+  }
 }
+
