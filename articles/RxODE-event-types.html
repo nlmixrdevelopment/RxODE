@@ -42,7 +42,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.8.1</span>
       </span>
     </div>
 
@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Event Types</h1>
             
-            <h4 data-toc-skip class="date">2021-04-09</h4>
+            <h4 data-toc-skip class="date">2021-04-14</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-event-types.Rmd" class="external-link"><code>vignettes/RxODE-event-types.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-event-types.Rmd</code></div>
@@ -367,7 +367,7 @@
 <p>To illustrate the event types we will use the model from the original RxODE tutorial.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.8 using 1 threads (see ?getRxThreads)
+<pre><code>#&gt; RxODE 1.0.8.1 using 1 threads (see ?getRxThreads)
 #&gt;   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## Model from RxODE tutorial</span>
@@ -459,18 +459,18 @@
 #&gt;    multiple doses in `addl` columns, expand with x$expand(); or etExpand(x)
 #&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 101 x 6
-#&gt;         time   amt    ii  addl evid            dur
-#&gt;          [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;evid&gt;          [h]
-#&gt;  1 0.0000000    NA    NA    NA 0:Observation    NA
-#&gt;  2 0.0000000 10000    12     2 1:Dose (Add)      8
-#&gt;  3 0.2424242    NA    NA    NA 0:Observation    NA
-#&gt;  4 0.4848485    NA    NA    NA 0:Observation    NA
-#&gt;  5 0.7272727    NA    NA    NA 0:Observation    NA
-#&gt;  6 0.9696970    NA    NA    NA 0:Observation    NA
-#&gt;  7 1.2121212    NA    NA    NA 0:Observation    NA
-#&gt;  8 1.4545455    NA    NA    NA 0:Observation    NA
-#&gt;  9 1.6969697    NA    NA    NA 0:Observation    NA
-#&gt; 10 1.9393939    NA    NA    NA 0:Observation    NA
+#&gt;         time   amt    ii  addl evid          dur       
+#&gt;          [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;evid&gt;        [h]       
+#&gt;  1 0.0000000    NA    NA    NA 0:Observation NA        
+#&gt;  2 0.0000000 10000    12     2 1:Dose (Add)   8        
+#&gt;  3 0.2424242    NA    NA    NA 0:Observation NA        
+#&gt;  4 0.4848485    NA    NA    NA 0:Observation NA        
+#&gt;  5 0.7272727    NA    NA    NA 0:Observation NA        
+#&gt;  6 0.9696970    NA    NA    NA 0:Observation NA        
+#&gt;  7 1.2121212    NA    NA    NA 0:Observation NA        
+#&gt;  8 1.4545455    NA    NA    NA 0:Observation NA        
+#&gt;  9 1.6969697    NA    NA    NA 0:Observation NA        
+#&gt; 10 1.9393939    NA    NA    NA 0:Observation NA        
 #&gt; # ... with 91 more rows</code></pre>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">depot</span>, <span class="va">C2</span><span class="op">)</span> <span class="op">+</span>
