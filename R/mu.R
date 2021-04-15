@@ -397,54 +397,87 @@
 ##' @author Matthew Fidler
 ##' @examples
 ##'
+##' # First lets get a lotri initialization block:
+##'
+##' ini <- lotri({
+##'    ## You may label each parameter with a comment
+##'    tka <- 0.45 # Log Ka
+##'    tcl <- log(c(0, 2.7, 100)) # Log Cl
+##'    ## This works with interactive models
+##'    ## You may also label the preceding line with label("label text")
+##'    tv <- 3.45; label("log V")
+##'    ## the label("Label name") works with all models
+##'    eta.ka ~ 0.6
+##'    eta.cl + eta.v ~ c(0.3,
+##'                       0.001, 0.1)
+##'    add.sd <- 0.7
+##' })
+##'
+##'
+##' ini2 <- lotri({
+##'        ## You may label each parameter with a comment
+##'        tka <- 0.45 # Log Ka
+##'        tcl <- log(c(0, 2.7, 100)) # Log Cl
+##'        ## This works with interactive models
+##'        ## You may also label the preceding line with label("label text")
+##'        tv <- 3.45; label("log V")
+##'        add.sd <- 0.7
+##'     })
 ##'
 ##' @export
-rxMuRef <- function(mod, theta=NULL, eta=NULL) {
- .mv  <- rxModelVars(mod)
- .expr <- eval(parse(text=paste0("quote({",rxNorm(.mv),"})")))
- .state <- .mv$state
- .params <- .mv$params
- .lhs <- .mv$lhs
- # Covariates are model based parameters not described by theta/eta
- .info <- list(state=.state,
-               lhs=NULL,
-               theta=theta,
-               eta=eta,
-               cov=setdiff(.params, c(theta, eta)))
- .env <- new.env(parent=emptyenv())
- .env$param <- list()
- .env$body <- list()
- .env$info <- .info
- .env$top <- TRUE
+rxMuRef <- function(mod, ini=NULL) {
+  if (!inherits(ini, "lotriFixed")) {
+    stop("requires a lotri object with at least one fixed effect", call.=FALSE)
+  }
+  .eta <- dimnames(ini)[[1]]
+  .iniDf <- as.data.frame(ini)
+  .theta <- .iniDf$name[!is.na(.iniDf$ntheta)]
+  .mv  <- rxModelVars(mod)
+  .expr <- eval(parse(text=paste0("quote({",rxNorm(.mv),"})")))
+  .state <- .mv$state
 
- # probit/probitInv
- .env$probit.theta.low <- NULL
- .env$probit.theta.hi <- NULL
- .env$probit.theta <- NULL
+  .params <- .mv$params
+  .lhs <- .mv$lhs
+  # Covariates are model based parameters not described by theta/eta
+  .info <- list(state=.state,
+                lhs=NULL,
+                theta=.theta,
+                eta=.eta,
+                cov=setdiff(.params, c(.theta, .eta)))
+  .env <- new.env(parent=emptyenv())
+  .env$param <- list()
+  .env$body <- list()
+  .env$info <- .info
+  .env$top <- TRUE
 
- .env$probitInv.theta.low <- NULL
- .env$probitInv.theta.hi <- NULL
- .env$probitInv.theta <- NULL
+  # probit/probitInv
+  .env$probit.theta.low <- NULL
+  .env$probit.theta.hi <- NULL
+  .env$probit.theta <- NULL
 
- # logit/expit
- .env$logit.theta <- NULL
- .env$logit.theta.low <- NULL
- .env$logit.theta.hi <- NULL
+  .env$probitInv.theta.low <- NULL
+  .env$probitInv.theta.hi <- NULL
+  .env$probitInv.theta <- NULL
 
- .env$expit.theta <- NULL
- .env$expit.theta.low <- NULL
- .env$expit.theta.hi <- NULL
+  # logit/expit
+  .env$logit.theta <- NULL
+  .env$logit.theta.low <- NULL
+  .env$logit.theta.hi <- NULL
 
- .env$log.theta <- NULL
- .env$exp.theta <- NULL
+  .env$expit.theta <- NULL
+  .env$expit.theta.low <- NULL
+  .env$expit.theta.hi <- NULL
 
- .env$cov.ref <- NULL
- .env$err <- NULL
- .rxMuRef0(.expr, env=.env)
- if (length(.env$err) > 0) {
-   stop(paste0("syntax/parsing errors:\n",
-               paste(.env$err, collapse="\n")),
-        call.=FALSE)
- }
- return(invisible())
+  .env$log.theta <- NULL
+  .env$exp.theta <- NULL
+
+  .env$cov.ref <- NULL
+  .env$err <- NULL
+  .rxMuRef0(.expr, env=.env)
+  if (length(.env$err) > 0) {
+    stop(paste0("syntax/parsing errors:\n",
+                paste(.env$err, collapse="\n")),
+         call.=FALSE)
+  }
+  return(invisible())
 }
