@@ -426,7 +426,7 @@
 ##'
 ##' @export
 rxMuRef <- function(mod, ini=NULL) {
-  if (!inherits(ini, "lotriFixed")) {
+  if (!inherits(ini, "lotriFix")) {
     stop("requires a lotri object with at least one fixed effect", call.=FALSE)
   }
   .eta <- dimnames(ini)[[1]]

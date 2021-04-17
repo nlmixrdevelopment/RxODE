@@ -2,31 +2,34 @@ rxodeTest({
 
   test_that("bounded functions needs numeric bounds", {
 
+    lmat <- lotri({
+      tka <- 0.2
+      tcl <- 0.2
+      tv <- 0.1
+      eta.ka ~ 0.1
+      eta.cl ~ 0.1
+      eta.v ~ 0.1
+      add.sd <- 0.1
+    })
+
     testBounded <- function(type="expit") {
 
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, a, b)"), theta=c("tka", "tcl", "tv", "add.sd"),
-                           eta=c("eta.ka", "eta.cl", "eta.v")))
+      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, a, b)"), lmat))
 
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, b)"), theta=c("tka", "tcl", "tv", "add.sd"),
-                           eta=c("eta.ka", "eta.cl", "eta.v")))
+      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, b)"), lmat))
 
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, b)"), theta=c("tka", "tcl", "tv", "add.sd"),
-                           eta=c("eta.ka", "eta.cl", "eta.v")))
 
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, 2)"), theta=c("tka", "tcl", "tv", "add.sd"),
-                           eta=c("eta.ka", "eta.cl", "eta.v")), NA)
+      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, b)"), lmat))
 
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 2, 1)"), theta=c("tka", "tcl", "tv", "add.sd"),
-                           eta=c("eta.ka", "eta.cl", "eta.v")))
+      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, 2)"), lmat), NA)
 
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 0.5)"), theta=c("tka", "tcl", "tv", "add.sd"),
-                           eta=c("eta.ka", "eta.cl", "eta.v")), NA)
+      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 2, 1)"), lmat))
 
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, a)"), theta=c("tka", "tcl", "tv", "add.sd"),
-                           eta=c("eta.ka", "eta.cl", "eta.v")))
+      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 0.5)"), lmat), NA)
 
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 4)"), theta=c("tka", "tcl", "tv", "add.sd"),
-                           eta=c("eta.ka", "eta.cl", "eta.v")))
+      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, a)"), lmat))
+
+      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 4)"), lmat))
     }
 
     testBounded("logit")
@@ -36,15 +39,33 @@ rxodeTest({
 
   })
 
-  test_that("bad mu referencing examples (throw error)", {
-
-    expect_error(rxMuRef("a=theta1+theta2+theta3*wt+eta1", theta=c("theta1", "theta2", "theta3"),
-                         eta="eta1"))
-
-    expect_error(rxMuRef("a=theta1+theta2*wt+theta3*wt+eta1", theta=c("theta1", "theta2", "theta3"),
-                         eta="eta1"))
+  lmat <- lotri({
+    theta1 <- 1
+    theta2 <- 1
+    theta3 <- 1
+    eta1 ~ 0.1
   })
 
+  test_that("bad mu referencing examples (throw error)", {
+
+    expect_error(rxMuRef("a=theta1+theta2+theta3*wt+eta1", lmat))
+
+    expect_error(rxMuRef("a=theta1+theta2*wt+theta3*wt+eta1", lmat))
+  })
+
+  lmat <- lotri({
+    ## You may label each parameter with a comment
+    tka <- 0.45 # Log Ka
+    tcl <- log(c(0, 2.7, 100)) # Log Cl
+    ## This works with interactive models
+    ## You may also label the preceding line with label("label text")
+    tv <- 3.45; label("log V")
+    ## the label("Label name") works with all models
+    eta.ka ~ 0.6
+    eta.cl ~ 0.3
+    eta.v ~ 0.1
+    add.sd <- 0.7
+  })
 
 }, test="lvl2")
 
