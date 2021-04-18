@@ -200,6 +200,25 @@ rxodeTest({
     expect_equal(length(env$muRefDataFrame[, 1]), 0L)
 
 
+    env <- rxMuRef(RxODE({
+      ka <- tka * exp(eta.ka + 0)
+      cl <- tcl * exp(eta.cl + 0)
+      v <- tv * exp(eta.v + 0)
+      v2 <- tv + eta.v
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v
+      ## cp ~ add(add.sd)
+    }), lmat)
+
+    expect_equal(env$nonMuEtas,
+                 structure(list(eta = c("eta.ka", "eta.cl", "eta.v"),
+                                curEval = c("exp", "exp", "")),
+                           row.names = c(NA_integer_, -3L), class = "data.frame"))
+    expect_equal(length(env$muRefDataFrame[, 1]), 0L)
+
+
+
 }, test="lvl2")
 
 
