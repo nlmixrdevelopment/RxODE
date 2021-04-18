@@ -169,53 +169,75 @@ rxodeTest({
     })
 
 
-    lmat <- lotri({
-      ## You may label each parameter with a comment
-      tka <- 0.45 # Log Ka
-      tcl <- log(c(0, 2.7, 100)) # Log Cl
-      ## This works with interactive models
-      ## You may also label the preceding line with label("label text")
-      tv <- 3.45; label("log V")
-      ## the label("Label name") works with all models
-      eta.ka ~ 0.6
-      eta.cl ~ 0.3
-      eta.v ~ 0.1
-      add.sd <- 0.7
+    test_that("old style tka*eta(eta.ka)", {
+      lmat <- lotri({
+        ## You may label each parameter with a comment
+        tka <- 0.45 # Log Ka
+        tcl <- log(c(0, 2.7, 100)) # Log Cl
+        ## This works with interactive models
+        ## You may also label the preceding line with label("label text")
+        tv <- 3.45; label("log V")
+        ## the label("Label name") works with all models
+        eta.ka ~ 0.6
+        eta.cl ~ 0.3
+        eta.v ~ 0.1
+        add.sd <- 0.7
+      })
+
+      env <- rxMuRef(RxODE({
+        ka <- tka * exp(eta.ka + 0)
+        cl <- tcl * exp(eta.cl + 0)
+        v <- tv * exp(eta.v + 0)
+        d/dt(depot) = -ka * depot
+        d/dt(center) = ka * depot - cl/v * center
+        cp = center/v
+        ## cp ~ add(add.sd)
+      }), lmat)
+
+      expect_equal(env$nonMuEtas,
+                   structure(list(eta = c("eta.ka", "eta.cl", "eta.v"),
+                                  curEval = c("exp", "exp", "exp")),
+                             row.names = c(NA_integer_, -3L), class = "data.frame"))
+      expect_equal(length(env$muRefDataFrame[, 1]), 0L)
+
+      env <- rxMuRef(RxODE({
+        ka <- tka * exp(eta.ka + 0)
+        cl <- tcl * exp(eta.cl + 0)
+        v <- tv * exp(eta.v + 0)
+        v2 <- tv + eta.v
+        d/dt(depot) = -ka * depot
+        d/dt(center) = ka * depot - cl/v * center
+        cp = center/v
+        ## cp ~ add(add.sd)
+      }), lmat)
+
+      expect_equal(env$nonMuEtas,
+                   structure(list(eta = c("eta.ka", "eta.cl", "eta.v"),
+                                  curEval = c("exp", "exp", "")),
+                             row.names = c(NA_integer_, -3L), class = "data.frame"))
+      expect_equal(length(env$muRefDataFrame[, 1]), 0L)
+
+      env <- rxMuRef(RxODE({
+        ka <- tka * exp(eta.ka)
+        cl <- tcl * exp(eta.cl)
+        v <- tv * exp(eta.v)
+        d/dt(depot) = -ka * depot
+        d/dt(center) = ka * depot - cl/v * center
+        cp = center/v
+        ## cp ~ add(add.sd)
+      }), lmat)
+
+      expect_equal(env$nonMuEtas,
+                   structure(list(eta = c("eta.ka", "eta.cl", "eta.v"),
+                                  curEval = c("exp", "exp", "exp")),
+                             row.names = c(NA_integer_, -3L), class = "data.frame"))
+      expect_equal(length(env$muRefDataFrame[, 1]), 0L)
+
+
+
     })
 
-    env <- rxMuRef(RxODE({
-      ka <- tka * exp(eta.ka + 0)
-      cl <- tcl * exp(eta.cl + 0)
-      v <- tv * exp(eta.v + 0)
-      d/dt(depot) = -ka * depot
-      d/dt(center) = ka * depot - cl/v * center
-      cp = center/v
-      ## cp ~ add(add.sd)
-    }), lmat)
 
-    expect_equal(env$nonMuEtas,
-                 structure(list(eta = c("eta.ka", "eta.cl", "eta.v"),
-                                curEval = c("exp", "exp", "exp")),
-                           row.names = c(NA_integer_, -3L), class = "data.frame"))
-    expect_equal(length(env$muRefDataFrame[, 1]), 0L)
-
-
-    env <- rxMuRef(RxODE({
-      ka <- tka * exp(eta.ka + 0)
-      cl <- tcl * exp(eta.cl + 0)
-      v <- tv * exp(eta.v + 0)
-      v2 <- tv + eta.v
-      d/dt(depot) = -ka * depot
-      d/dt(center) = ka * depot - cl/v * center
-      cp = center/v
-      ## cp ~ add(add.sd)
-    }), lmat)
-
-    expect_equal(env$nonMuEtas,
-                 structure(list(eta = c("eta.ka", "eta.cl", "eta.v"),
-                                curEval = c("exp", "exp", "")),
-                           row.names = c(NA_integer_, -3L), class = "data.frame"))
-    expect_equal(length(env$muRefDataFrame[, 1]), 0L)
 
 
 

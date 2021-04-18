@@ -98,7 +98,7 @@
 .rxMuRefLineIsClean <- function(x, env) {
   # First figure out if the mu reference line is clean
   .clean <- FALSE
-  if (length(x[[2]]) == 1L && is.name(x[[2]])){
+  if (length(x[[2]]) == 1L && is.name(x[[2]])) {
     env$info$lhs <- c(as.character(x[[2]]), env$info$lhs)
     .clean <- TRUE
   }
@@ -324,12 +324,13 @@
           env$nonMuEtas$curEval[.wEtaInDf] <- ""
         }
       } else {
+        .wEtaInDf <- which(env$muRefDataFrame$eta == .curEta)
+        .ce <- env$.curEval
         if (length(.wEtaInDf) > 0) {
           # duplicated ETAs, if everything is not the same then it isn't really mu-referenced
           if (!all(env$muRefDataFrame$theta[.wEtaInDf] == .names[.wt]) |
                 !all(env$muRefDataFrame$eta[.wEtaInDf] == .curEta)) {
-            .ce <- env$.curEval
-            if (!all(env$muRefDataFrame$eta[.wEtaInDf] == .ce)) {
+            if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == .ce)) {
               .ce <- ""
             }
             env$nonMuEtas <- rbind(env$nonMuEtas, data.frame(eta=.curEta, curEval=.ce))
