@@ -382,9 +382,9 @@
       .wEtaInDf <- which(env$nonMuEtas$eta == .curEta)
       .ce <- env$.curEval
       if (length(.wEtaInDf) > 0) {
-        if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == env$.curEval)) {
+        if (!all(env$nonMuEtas$curEval[.wEtaInDf] == env$.curEval)) {
           # Downgrade to additive expression
-          env$muRefDataFrame$curEval[.wEtaInDf] <- ""
+          env$nonMuEtas$curEval[.wEtaInDf] <- ""
         }
       } else {
         env$nonMuEtas <- rbind(env$nonMuEtas, data.frame(eta=.curEta, curEval=.ce))
