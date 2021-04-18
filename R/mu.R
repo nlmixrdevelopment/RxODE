@@ -275,6 +275,7 @@
 ##' @param env Environment information
 ##' @return nothing
 ##' @author Matthew Fidler
+##' @noRd
 .muRefHandlePlus <- function(x, env) {
   ## To reduce code from nlmixr the mu reference:
   ## -------------------------------
