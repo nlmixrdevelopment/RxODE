@@ -298,7 +298,7 @@
   ##  "tcl"
   .x2 <- x[-1]
   .names <- NULL
-  .doubleNames <- list
+  .doubleNames <- list(0)
   while (!is.null(.x2)) {
     .names <- .muRefExtractSingleVariableNames(.x2, .names)
     .doubleNames <- .muRefExtractMultiplyMuCovariates(.x2, .doubleNames, env)
@@ -324,7 +324,6 @@
           env$nonMuEtas$curEval[.wEtaInDf] <- ""
         }
       } else {
-        .wEtaInDf <- which(env$muRefDataFrame$eta == .curEta)
         if (length(.wEtaInDf) > 0) {
           # duplicated ETAs, if everything is not the same then it isn't really mu-referenced
           if (!all(env$muRefDataFrame$theta[.wEtaInDf] == .names[.wt]) |
@@ -347,6 +346,18 @@
       }
     } else {
       stop("currently do not support IOV etc")
+    }
+  } else if (length(.we) == 1){
+    .curEta <- .names[.we]
+    .wEtaInDf <- which(env$nonMuEtas$eta == .curEta)
+    .ce <- env$.curEval
+    if (length(.wEtaInDf) > 0) {
+      if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == env$.curEval)) {
+        # Downgrade to additive expression
+        env$muRefDataFrame$curEval[.wEtaInDf] <- ""
+      }
+    } else {
+      env$nonMuEtas <- rbind(env$nonMuEtas, data.frame(eta=.curEta, curEval=.ce))
     }
   }
   invisible()
