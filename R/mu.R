@@ -264,6 +264,46 @@
   .expr
 }
 
+.muRefHandleSingleThetaMuRef <- function(.we, .wt, .names, env) {
+  # Here the mu reference is possible
+  ## print(.names)
+  ## print(.doubleNames)
+  if (length(.we) == 1) {
+    # Simple theta/eta mu-referencing
+    .curEta <- .names[.we]
+    .wEtaInDf <- which(env$nonMuEtas$eta == .curEta)
+    if (length(.wEtaInDf) > 0) {
+      if (!all(env$nonMuEtas$curEval[.wEtaInDf] == env$.curEval)) {
+        # Downgrade to additive expression
+        env$nonMuEtas$curEval[.wEtaInDf] <- ""
+      }
+    } else {
+      .wEtaInDf <- which(env$muRefDataFrame$eta == .curEta)
+      .ce <- env$.curEval
+      if (length(.wEtaInDf) > 0) {
+        # duplicated ETAs, if everything is not the same then it isn't really mu-referenced
+        if (!all(env$muRefDataFrame$theta[.wEtaInDf] == .names[.wt]) |
+              !all(env$muRefDataFrame$eta[.wEtaInDf] == .curEta)) {
+          if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == .ce)) {
+            .ce <- ""
+          }
+          env$nonMuEtas <- rbind(env$nonMuEtas, data.frame(eta=.curEta, curEval=.ce))
+          env$muRefDataFrame <- env$muRefDataFrame[-.wEtaInDf,, drop = FALSE]
+        } else {
+          if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == env$.curEval)) {
+            # Downgrade to additive expression
+            env$muRefDataFrame$curEval[.wEtaInDf] <- ""
+          }
+        }
+      } else {
+        env$muRefDataFrame <- rbind(env$muRefDataFrame, data.frame(theta=.names[.wt], eta=.names[.we], curEval=env$.curEval))
+      }
+    }
+  } else {
+    stop("currently do not support IOV etc")
+  }
+}
+
 
 ## To reduce code from nlmixr, the
 ## Covariate references should have the following structure:
@@ -312,43 +352,7 @@
                         paste0("syntax error: 2+ single population parameters in a single mu-referenced expression: '",
                                paste(env$info$theta[.wt], collapse="', '"), "'")))
   } else if (length(.wt) == 1) {
-    # Here the mu reference is possible
-    ## print(.names)
-    ## print(.doubleNames)
-    if (length(.we) == 1) {
-      # Simple theta/eta mu-referencing
-      .curEta <- .names[.we]
-      .wEtaInDf <- which(env$nonMuEtas$eta == .curEta)
-      if (length(.wEtaInDf) > 0) {
-        if (!all(env$nonMuEtas$curEval[.wEtaInDf] == env$.curEval)) {
-          # Downgrade to additive expression
-          env$nonMuEtas$curEval[.wEtaInDf] <- ""
-        }
-      } else {
-        .wEtaInDf <- which(env$muRefDataFrame$eta == .curEta)
-        .ce <- env$.curEval
-        if (length(.wEtaInDf) > 0) {
-          # duplicated ETAs, if everything is not the same then it isn't really mu-referenced
-          if (!all(env$muRefDataFrame$theta[.wEtaInDf] == .names[.wt]) |
-                !all(env$muRefDataFrame$eta[.wEtaInDf] == .curEta)) {
-            if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == .ce)) {
-              .ce <- ""
-            }
-            env$nonMuEtas <- rbind(env$nonMuEtas, data.frame(eta=.curEta, curEval=.ce))
-            env$muRefDataFrame <- env$muRefDataFrame[-.wEtaInDf,, drop = FALSE]
-          } else {
-            if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == env$.curEval)) {
-              # Downgrade to additive expression
-              env$muRefDataFrame$curEval[.wEtaInDf] <- ""
-            }
-          }
-        } else {
-          env$muRefDataFrame <- rbind(env$muRefDataFrame, data.frame(theta=.names[.wt], eta=.names[.we], curEval=env$.curEval))
-        }
-      }
-    } else {
-      stop("currently do not support IOV etc")
-    }
+    .muRefHandleSingleThetaMuRef(.we, .wt, .names, env)
   } else if (length(.we) == 1){
     .curEta <- .names[.we]
     .wEtaInDf <- which(env$nonMuEtas$eta == .curEta)
