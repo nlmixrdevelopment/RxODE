@@ -365,6 +365,35 @@
 }
 
 
+.handleSingleEtaIfExists <- function(expr, env) {
+  .curEta <- deparse1(expr)
+  if (any(.curEta == env$info$eta)) {
+    ## eta singlet
+    .wEtaInDf <- which(env$muRefDataFrame$eta == .curEta)
+    .ce <- env$.curEval
+    if (length(.wEtaInDf) > 0) {
+      # duplicated ETAs, if everything is not the same then it isn't really mu-referenced
+      if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == .ce)) {
+        .ce <- ""
+      }
+      env$nonMuEtas <- rbind(env$nonMuEtas, data.frame(eta=.curEta, curEval=.ce))
+      env$muRefDataFrame <- env$muRefDataFrame[-.wEtaInDf,, drop = FALSE]
+    } else {
+      .wEtaInDf <- which(env$nonMuEtas$eta == .curEta)
+      .ce <- env$.curEval
+      if (length(.wEtaInDf) > 0) {
+        if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == env$.curEval)) {
+          # Downgrade to additive expression
+          env$muRefDataFrame$curEval[.wEtaInDf] <- ""
+        }
+      } else {
+        env$nonMuEtas <- rbind(env$nonMuEtas, data.frame(eta=.curEta, curEval=.ce))
+      }
+    }
+  }
+}
+
+
 ## f$probit.theta.low  f$probit.theta.hi
 ## f$probit.theta
 ## f$logit.theta
@@ -390,6 +419,7 @@
         x <- y[[.i]]
         if (identical(x[[1]], quote(`=`)) ||
               identical(x[[1]], quote(`~`))) {
+          .handleSingleEtaIfExists(x[[3]], env)
           if (.rxMuRefHasThetaEtaOrCov(x[[3]], env)){
             # This line has etas or covariates and might need to be
             # separated into mu-referenced line
@@ -409,6 +439,7 @@
       .muRefHandlePlus(x, env)
     } else {
       assign(".curEval", as.character(x[[1]]), env)
+      .handleSingleEtaIfExists(x[[2]], env)
       if (env$.curEval == "probitInv" ||
             env$.curEval == "expit" ||
             env$.curEval == "logit" ||

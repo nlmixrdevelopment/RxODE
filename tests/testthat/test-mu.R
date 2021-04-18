@@ -170,6 +170,7 @@ rxodeTest({
 
 
     test_that("old style tka*eta(eta.ka)", {
+
       lmat <- lotri({
         ## You may label each parameter with a comment
         tka <- 0.45 # Log Ka
