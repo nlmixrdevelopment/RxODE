@@ -88,8 +88,8 @@
 ##' or `rate(depot)` `depot(0)` etc.
 ##'
 ##' This also assigns the line status in the enviroment `env` to
-##' `curLineClean` and also resets the current evaluation function to
-##' `curEval`
+##' `.curLineClean` and also resets the current evaluation function to
+##' `.curEval`
 ##'
 ##' @inheritParams .rxMuRefIsClean
 ##' @return boolean indicating if the line is clean
@@ -103,9 +103,9 @@
     .clean <- TRUE
   }
   if (.clean) .clean <- .rxMuRefIsClean(x[[3]], env)
-  assign("curLineClean", .clean, env)
-  assign("curEval", "", env)
-  return(env$curLineClean)
+  assign(".curLineClean", .clean, env)
+  assign(".curEval", "", env)
+  return(env$.curLineClean)
 }
 
 ##' Does this line have an eta?
@@ -264,6 +264,7 @@
   .expr
 }
 
+
 ## To reduce code from nlmixr, the
 ## Covariate references should have the following structure:
 
@@ -311,6 +312,42 @@
                                paste(env$info$theta[.wt], collapse="', '"), "'")))
   } else if (length(.wt) == 1) {
     # Here the mu reference is possible
+    ## print(.names)
+    ## print(.doubleNames)
+    if (length(.we) == 1) {
+      # Simple theta/eta mu-referencing
+      .curEta <- .names[.we]
+      .wEtaInDf <- which(env$nonMuEtas$eta == .curEta)
+      if (length(.wEtaInDf) > 0) {
+        if (!all(env$nonMuEtas$curEval[.wEtaInDf] == env$.curEval)) {
+          # Downgrade to additive expression
+          env$nonMuEtas$curEval[.wEtaInDf] <- ""
+        }
+      } else {
+        .wEtaInDf <- which(env$muRefDataFrame$eta == .curEta)
+        if (length(.wEtaInDf) > 0) {
+          # duplicated ETAs, if everything is not the same then it isn't really mu-referenced
+          if (!all(env$muRefDataFrame$theta[.wEtaInDf] == .names[.wt]) |
+                !all(env$muRefDataFrame$eta[.wEtaInDf] == .curEta)) {
+            .ce <- env$.curEval
+            if (!all(env$muRefDataFrame$eta[.wEtaInDf] == .ce)) {
+              .ce <- ""
+            }
+            env$nonMuEtas <- rbind(env$nonMuEtas, data.frame(eta=.curEta, curEval=.ce))
+            env$muRefDataFrame <- env$muRefDataFrame[-.wEtaInDf,, drop = FALSE]
+          } else {
+            if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == env$.curEval)) {
+              # Downgrade to additive expression
+              env$muRefDataFrame$curEval[.wEtaInDf] <- ""
+            }
+          }
+        } else {
+          env$muRefDataFrame <- rbind(env$muRefDataFrame, data.frame(theta=.names[.wt], eta=.names[.we], curEval=env$.curEval))
+        }
+      }
+    } else {
+      stop("currently do not support IOV etc")
+    }
   }
   invisible()
 }
@@ -337,6 +374,7 @@
       env$top <- FALSE
       y <- x[-1]
       for (.i in seq_along(y)) {
+        assign(".curEval", "", env)
         x <- y[[.i]]
         if (identical(x[[1]], quote(`=`)) ||
               identical(x[[1]], quote(`~`))) {
@@ -358,11 +396,11 @@
     } else if (identical(x[[1]], quote(`+`))) {
       .muRefHandlePlus(x, env)
     } else {
-      assign("curEval", as.character(x[[1]]), env)
-      if (env$curEval == "probitInv" ||
-            env$curEval == "expit" ||
-            env$curEval == "logit" ||
-            env$curEval == "probit") {
+      assign(".curEval", as.character(x[[1]]), env)
+      if (env$.curEval == "probitInv" ||
+            env$.curEval == "expit" ||
+            env$.curEval == "logit" ||
+            env$.curEval == "probit") {
         x <- .rxMuRefHandleLimits(x, env)
       }
       lapply(x[-1], .rxMuRef0, env=env)
@@ -380,6 +418,57 @@
 ## 3. $lhs: lhs
 ## 4. theta: theta from ini
 ## 5. eta: eta from ini
+
+.rxMuRefSetupInitialEnvironment <- function(mod, ini) {
+  .eta <- dimnames(ini)[[1]]
+  .iniDf <- as.data.frame(ini)
+  .theta <- .iniDf$name[!is.na(.iniDf$ntheta)]
+  .mv  <- rxModelVars(mod)
+  .expr <- eval(parse(text=paste0("quote({",rxNorm(.mv),"})")))
+  .state <- .mv$state
+
+  .params <- .mv$params
+  .lhs <- .mv$lhs
+  # Covariates are model based parameters not described by theta/eta
+  .info <- list(state=.state,
+                lhs=NULL,
+                theta=.theta,
+                eta=.eta,
+                cov=setdiff(.params, c(.theta, .eta)))
+  .env <- new.env(parent=emptyenv())
+  .env$param <- list()
+  .env$body <- list()
+  .env$info <- .info
+  .env$top <- TRUE
+
+  # probit/probitInv
+  .env$probit.theta.low <- NULL
+  .env$probit.theta.hi <- NULL
+  .env$probit.theta <- NULL
+
+  .env$probitInv.theta.low <- NULL
+  .env$probitInv.theta.hi <- NULL
+  .env$probitInv.theta <- NULL
+
+  # logit/expit
+  .env$logit.theta <- NULL
+  .env$logit.theta.low <- NULL
+  .env$logit.theta.hi <- NULL
+
+  .env$expit.theta <- NULL
+  .env$expit.theta.low <- NULL
+  .env$expit.theta.hi <- NULL
+
+  .env$log.theta <- NULL
+  .env$exp.theta <- NULL
+
+  .env$cov.ref <- NULL
+  .env$err <- NULL
+  .env$.expr <- .expr
+  .env$muRefDataFrame <- data.frame(eta=character(0), theta=character(0), curEval=character(0))
+  .env$nonMuEtas <- data.frame(eta=character(0), curEval=character(0))
+  return(.env)
+}
 
 ##' Get mu-referencing model from model variables
 ##'
@@ -429,55 +518,12 @@ rxMuRef <- function(mod, ini=NULL) {
   if (!inherits(ini, "lotriFix")) {
     stop("requires a lotri object with at least one fixed effect", call.=FALSE)
   }
-  .eta <- dimnames(ini)[[1]]
-  .iniDf <- as.data.frame(ini)
-  .theta <- .iniDf$name[!is.na(.iniDf$ntheta)]
-  .mv  <- rxModelVars(mod)
-  .expr <- eval(parse(text=paste0("quote({",rxNorm(.mv),"})")))
-  .state <- .mv$state
-
-  .params <- .mv$params
-  .lhs <- .mv$lhs
-  # Covariates are model based parameters not described by theta/eta
-  .info <- list(state=.state,
-                lhs=NULL,
-                theta=.theta,
-                eta=.eta,
-                cov=setdiff(.params, c(.theta, .eta)))
-  .env <- new.env(parent=emptyenv())
-  .env$param <- list()
-  .env$body <- list()
-  .env$info <- .info
-  .env$top <- TRUE
-
-  # probit/probitInv
-  .env$probit.theta.low <- NULL
-  .env$probit.theta.hi <- NULL
-  .env$probit.theta <- NULL
-
-  .env$probitInv.theta.low <- NULL
-  .env$probitInv.theta.hi <- NULL
-  .env$probitInv.theta <- NULL
-
-  # logit/expit
-  .env$logit.theta <- NULL
-  .env$logit.theta.low <- NULL
-  .env$logit.theta.hi <- NULL
-
-  .env$expit.theta <- NULL
-  .env$expit.theta.low <- NULL
-  .env$expit.theta.hi <- NULL
-
-  .env$log.theta <- NULL
-  .env$exp.theta <- NULL
-
-  .env$cov.ref <- NULL
-  .env$err <- NULL
-  .rxMuRef0(.expr, env=.env)
+  .env <- .rxMuRefSetupInitialEnvironment(mod, ini)
+  .rxMuRef0(.env$.expr, env=.env)
   if (length(.env$err) > 0) {
     stop(paste0("syntax/parsing errors:\n",
                 paste(.env$err, collapse="\n")),
          call.=FALSE)
   }
-  return(invisible())
+  return(invisible(.env))
 }
