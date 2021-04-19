@@ -264,7 +264,7 @@
   .expr
 }
 
-.muRefHandleSingleThetaMuRef <- function(.we, .wt, .names, env) {
+.muRefHandleSingleThetaMuRef <- function(.we, .wt, .names, .doubleNames, env) {
   # Here the mu reference is possible
   ## print(.names)
   ## print(.doubleNames)
@@ -299,8 +299,17 @@
         env$muRefDataFrame <- rbind(env$muRefDataFrame, data.frame(theta=.names[.wt], eta=.names[.we], curEval=env$.curEval))
       }
     }
-  } else {
+  } else if (length(.we) != 0) {
     stop("currently do not support IOV etc")
+  }
+  if (length(.wt) == 1) {
+    if (length(.doubleNames) > 0) {
+      .doubleNames <- .doubleNames[names(.doubleNames) != ""]
+      if (length(.doubleNames) > 0) {
+        .df <- data.frame(popParameter=.names[.wt], covariate=names(.doubleNames), covariateParameter=setNames(unlist(.doubleNames), NULL))
+        env$muRefCovariateDataFrame <- rbind(env$muRefCovariateDataFrame, .df)
+      }
+    }
   }
 }
 
@@ -352,7 +361,7 @@
                         paste0("syntax error: 2+ single population parameters in a single mu-referenced expression: '",
                                paste(env$info$theta[.wt], collapse="', '"), "'")))
   } else if (length(.wt) == 1) {
-    .muRefHandleSingleThetaMuRef(.we, .wt, .names, env)
+    .muRefHandleSingleThetaMuRef(.we, .wt, .names, .doubleNames, env)
   } else if (length(.we) == 1){
     .curEta <- .names[.we]
     .wEtaInDf <- which(env$nonMuEtas$eta == .curEta)
@@ -514,7 +523,8 @@
   .env$err <- NULL
   .env$.expr <- .expr
   .env$muRefDataFrame <- data.frame(eta=character(0), theta=character(0), curEval=character(0))
-  .env$nonMuEtas <- data.frame(eta=character(0), curEval=character(0))
+  .env$muRefCovariateDataFrame <- data.frame(eta=character(0), theta=character(0), curEval=character(0))
+  .env$nonMuEtas <- data.frame(popParameter=character(0), covariate=character(0), covariateParameter=character(0))
   return(.env)
 }
 
