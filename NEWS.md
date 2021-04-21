@@ -1,9 +1,16 @@
 # RxODE development version
 
+* `iCov` behavior has shifted to merge on the input event data-set.
+  See Issue #409; This is more in line with expectations of `iCov`
+  behavior, and reduces the amount of code needed to maintain `iCov`.
+  This can be a breaking change depending on the code you use.  Note
+  that clinical trial simulations, resampling is likely better than
+  trying to fill out `iCov` for every individual which was the prior
+  use.
+
 # RxODE 1.0.8
 
 * Fix issue #399
-
 
 # RxODE 1.0.7 
 

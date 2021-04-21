@@ -1144,11 +1144,13 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
     if (inherits(.ctl$iCov, "data.frame")) {
       .icovId <- which(tolower(names(.ctl$iCov)) == "id")
       .useEvents <- FALSE
-      if (rxIs(events, "rxEt")) {
+      if (rxIs(events, "event.data.frame")) {
         .events <- events
         .useEvents <- TRUE
-      } else if (rxIs(params, "rxEt")) {
+      } else if (rxIs(params, "event.data.frame")) {
         .events <- params
+      } else {
+        stop("Cannot detect an event data frame to merge 'iCov'")
       }
       .eventId <- which(tolower(names(.events)) == "id")
       if (length(.eventId) != 1) {
@@ -1161,10 +1163,18 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
           stop("'iCov' and 'id' mismatch")
         }
         .ctl$iCov$id <- .id
+      } else if (length(.icovId) > 1) {
+        stop("iCov has duplicate IDs, cannot continue")
       }
       names(.ctl$iCov)[.icovId] <- .by
       .lEvents <- length(.events[, 1])
       .events <- merge(.events, .ctl$iCov, by=.by)
+      if (.lEvents != length(.events[, 1])) {
+        warning("combining iCov and events dropped some event information")
+      }
+      if (length(unique(.events[[.by]])) != length(.ctl$iCov[, 1])) {
+        warning("combining iCov and events dropped some iCov information")
+      }
       if (.useEvents) {
         events <- .events
       } else {
