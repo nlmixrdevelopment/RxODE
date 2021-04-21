@@ -288,7 +288,7 @@ First we setup the model:
 
 ```{r}
 rx1 <- RxODE({
-  cl <- tcl*(1+crcl.cl*(CLCR-65)) * exp(eta.v)
+  cl <- tcl*(1+crcl.cl*(CLCR-65)) * exp(eta.cl)
   v <- tv * WT * exp(eta.v)
   ka <- tka * exp(eta.ka)
   ipred <- linCmt()
