@@ -5,9 +5,7 @@
 extern "C" {
 #endif
 
-  double get_ikeep(int col, int id);
   double get_fkeep(int col, int id, rx_solving_options_ind *ind);
-  SEXP get_ikeepn();
   SEXP get_fkeepn();
   void cliAlert(const char *format, ...);
   void setZeroMatrix(int which);
