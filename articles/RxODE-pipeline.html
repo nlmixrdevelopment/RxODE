@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE in a pipeline</h1>
             
-            <h4 data-toc-skip class="date">2021-04-21</h4>
+            <h4 data-toc-skip class="date">2021-04-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-pipeline.Rmd" class="external-link"><code>vignettes/RxODE-pipeline.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-pipeline.Rmd</code></div>
@@ -245,7 +245,7 @@
     
 <div id="setting-up-the-rxode-model-for-the-pipeline" class="section level1">
 <h1 class="hasAnchor">
-<a href="#setting-up-the-rxode-model-for-the-pipeline" class="anchor"></a>Setting up the RxODE model for the pipeline</h1>
+<a href="#setting-up-the-rxode-model-for-the-pipeline" class="anchor" aria-hidden="true"></a>Setting up the RxODE model for the pipeline</h1>
 <p>In this example we will show how to use RxODE in a simple pipeline.</p>
 <p>We can start with a model that can be used for the different simulation workflows that RxODE can handle:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -301,7 +301,7 @@
 </div>
 <div id="simulating-one-event-table" class="section level1">
 <h1 class="hasAnchor">
-<a href="#simulating-one-event-table" class="anchor"></a>Simulating one event table</h1>
+<a href="#simulating-one-event-table" class="anchor" aria-hidden="true"></a>Simulating one event table</h1>
 <p>Simulating a single event table is quite simple:</p>
 <ul>
 <li>You pipe the RxODE simulation object into an event table object by <code><a href="../reference/et.html">et()</a></code>.<br>
@@ -332,10 +332,10 @@
 </div>
 <div id="simulating-multiple-subjects-from-a-single-event-table" class="section level1">
 <h1 class="hasAnchor">
-<a href="#simulating-multiple-subjects-from-a-single-event-table" class="anchor"></a>Simulating multiple subjects from a single event table</h1>
+<a href="#simulating-multiple-subjects-from-a-single-event-table" class="anchor" aria-hidden="true"></a>Simulating multiple subjects from a single event table</h1>
 <div id="simulating-with-between-subject-variability" class="section level2">
 <h2 class="hasAnchor">
-<a href="#simulating-with-between-subject-variability" class="anchor"></a>Simulating with between subject variability</h2>
+<a href="#simulating-with-between-subject-variability" class="anchor" aria-hidden="true"></a>Simulating with between subject variability</h2>
 <p>The next sort of simulation that may be useful is simulating multiple patients with the same treatments. In this case, we will use the <code>omega</code> matrix specified by the paper:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## Add CVs from paper for individual simulation</span>
@@ -385,7 +385,7 @@
 </div>
 <div id="simulation-with-unexplained-variability" class="section level2">
 <h2 class="hasAnchor">
-<a href="#simulation-with-unexplained-variability" class="anchor"></a>Simulation with unexplained variability</h2>
+<a href="#simulation-with-unexplained-variability" class="anchor" aria-hidden="true"></a>Simulation with unexplained variability</h2>
 <p>You can even add unexplained variability quite easily:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Ribba2012</span> <span class="op">%&gt;%</span> <span class="co"># Use RxODE</span>
@@ -400,7 +400,7 @@
 </div>
 <div id="simulation-with-uncertainty-in-all-the-parameters-by-matrices" class="section level2">
 <h2 class="hasAnchor">
-<a href="#simulation-with-uncertainty-in-all-the-parameters-by-matrices" class="anchor"></a>Simulation with uncertainty in all the parameters (by matrices)</h2>
+<a href="#simulation-with-uncertainty-in-all-the-parameters-by-matrices" class="anchor" aria-hidden="true"></a>Simulation with uncertainty in all the parameters (by matrices)</h2>
 <p>If we assume these parameters came from <code>95</code> subjects with <code>8</code> observations apiece, the degrees of freedom for the omega matrix would be <code>95</code>, and the degrees of freedom of the <code>sigma</code> matrix would be <code>95*8=760</code> because <code>95</code> items informed the <code>omega</code> matrix, and <code>760</code> items informed the <code>sigma</code> matrix.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Ribba2012</span> <span class="op">%&gt;%</span> <span class="co"># Use RxODE</span>
@@ -469,7 +469,7 @@ plot(pt, q, qp, pstar) # Plot it, plotting the variables of interest
 </div>
 <div id="summarizing-the-simulation-output" class="section level1">
 <h1 class="hasAnchor">
-<a href="#summarizing-the-simulation-output" class="anchor"></a>Summarizing the simulation output</h1>
+<a href="#summarizing-the-simulation-output" class="anchor" aria-hidden="true"></a>Summarizing the simulation output</h1>
 <p>While it is easy to use <code>dplyr</code> and <code>data.table</code> to perform your own summary of simulations, <code>RxODE</code> also provides this ability by the <code>confint</code> function.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## This takes a little more time; Most of the time is the summary</span>
@@ -490,7 +490,7 @@ plot(pt, q, qp, pstar) # Plot it, plotting the variables of interest
 <p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <div id="simulating-from-a-data-frame-of-parameters" class="section level2">
 <h2 class="hasAnchor">
-<a href="#simulating-from-a-data-frame-of-parameters" class="anchor"></a>Simulating from a data-frame of parameters</h2>
+<a href="#simulating-from-a-data-frame-of-parameters" class="anchor" aria-hidden="true"></a>Simulating from a data-frame of parameters</h2>
 <p>While the simulation from matrices can be very useful and a fast way to simulate information, sometimes you may want to simulate more complex scenarios. For instance, there may be some reason to believe that <code>tkde</code> needs to be above <code>tlambdap</code>, therefore these need to be simulated more carefully. You can generate the data frame in whatever way you want. The internal method of simulating the new parameters is exported too.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span>

@@ -290,7 +290,7 @@
 
     <div id="rxode-108" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.8">
-<a href="#rxode-108" class="anchor"></a>RxODE 1.0.8<small> 2021-04-10 </small>
+<a href="#rxode-108" class="anchor" aria-hidden="true"></a>RxODE 1.0.8<small> 2021-04-10 </small>
 </h1>
 <ul>
 <li>Fix issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/399'>#399</a></li>
@@ -298,7 +298,7 @@
 </div>
     <div id="rxode-107" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.7">
-<a href="#rxode-107" class="anchor"></a>RxODE 1.0.7<small> 2021-04-08 </small>
+<a href="#rxode-107" class="anchor" aria-hidden="true"></a>RxODE 1.0.7<small> 2021-04-08 </small>
 </h1>
 <ul>
 <li><p>Change syntax vignette to use markdown option <code>screenshot.force=FALSE</code>. This should get rid of the <code>webshot</code> error</p></li>
@@ -307,7 +307,7 @@
 </div>
     <div id="rxode-106" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.6">
-<a href="#rxode-106" class="anchor"></a>RxODE 1.0.6<small> 2021-03-21 </small>
+<a href="#rxode-106" class="anchor" aria-hidden="true"></a>RxODE 1.0.6<small> 2021-03-21 </small>
 </h1>
 <ul>
 <li><p>RxODE imports but does not link to <code>checkmate</code> any longer. This change should make recompilation of RxODE to work with different releases of <code>checkmate</code> unnecessary.</p></li>
@@ -320,7 +320,7 @@
 </div>
     <div id="rxode-105" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.5">
-<a href="#rxode-105" class="anchor"></a>RxODE 1.0.5<small> 2021-03-09 </small>
+<a href="#rxode-105" class="anchor" aria-hidden="true"></a>RxODE 1.0.5<small> 2021-03-09 </small>
 </h1>
 <ul>
 <li><p>Maintainance release – use <code>std::floor</code> and cast variables to <code>double</code> for internal C functions. This should allow a successful compile on Solaris CRAN.</p></li>
@@ -338,11 +338,11 @@
 </div>
     <div id="rxode-104" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.4">
-<a href="#rxode-104" class="anchor"></a>RxODE 1.0.4<small> 2021-02-24 </small>
+<a href="#rxode-104" class="anchor" aria-hidden="true"></a>RxODE 1.0.4<small> 2021-02-24 </small>
 </h1>
 <div id="breaking-changes" class="section level2">
 <h2 class="hasAnchor">
-<a href="#breaking-changes" class="anchor"></a>Breaking changes</h2>
+<a href="#breaking-changes" class="anchor" aria-hidden="true"></a>Breaking changes</h2>
 <ul>
 <li><p>RxODE can only use supported functions (could be breaking); You may add your own functions with <code>rxFun</code> and their derivatives with <code>rxD</code></p></li>
 <li><p>RxODE now uses its own internal truncated multivariate normal simulations based on the threefry sitmo library. Therefore random numbers generated within <code>RxODE</code> like providing <code><a href="../reference/rxSolve.html">rxSolve(...,omega=)</a></code> will have different results with this new random number generator. This was done to allow internal re-sampling of sigmas/etas with thread-safe random number generators (calling R through <code>mvnfast</code> or R’s simulation engines are not thread safe).</p></li>
@@ -356,7 +356,7 @@
 </div>
 <div id="new-features" class="section level2">
 <h2 class="hasAnchor">
-<a href="#new-features" class="anchor"></a>New features</h2>
+<a href="#new-features" class="anchor" aria-hidden="true"></a>New features</h2>
 <ul>
 <li><p>Add the ability to order input parameters with the <code>param()</code> pseudo-function</p></li>
 <li><p>Add the ability to resample covariates with <code>resample=TRUE</code> or <code>resample=c("SEX", "CRCL")</code>. You can resample all the covariates by <code>ID</code> with <code>resampleID=TRUE</code> or resample the covariates without respect to <code>ID</code> with <code>resampleID=FALSE</code></p></li>
@@ -564,7 +564,7 @@
 </div>
 <div id="engine-changes" class="section level2">
 <h2 class="hasAnchor">
-<a href="#engine-changes" class="anchor"></a>Engine changes</h2>
+<a href="#engine-changes" class="anchor" aria-hidden="true"></a>Engine changes</h2>
 <ul>
 <li>
 <p>Moved many C functions to C++. CRAN OpenMP support requires C++ only when C and C++ are mixed. See:</p>
@@ -577,7 +577,7 @@
 </div>
 <div id="bug-fixes" class="section level2">
 <h2 class="hasAnchor">
-<a href="#bug-fixes" class="anchor"></a>Bug fixes:</h2>
+<a href="#bug-fixes" class="anchor" aria-hidden="true"></a>Bug fixes:</h2>
 <ul>
 <li><p>Occasionally RxODE misidentified dual <code>lhs</code>/<code>param</code> values. An additional check is performed so that this does not happen.</p></li>
 <li><p>For solved matrices with similar names (like “tadd” and “tad”) RxODE will now prefer exact matches instead of the first match found when accessing the items with <code>$tad</code>.</p></li>
@@ -589,7 +589,7 @@
 </div>
     <div id="rxode-v092-0" class="section level1">
 <h1 class="page-header" data-toc-text="0.9.2-0">
-<a href="#rxode-v092-0" class="anchor"></a>RxODE v0.9.2-0<small> 2020-03-13 </small>
+<a href="#rxode-v092-0" class="anchor" aria-hidden="true"></a>RxODE v0.9.2-0<small> 2020-03-13 </small>
 </h1>
 <ul>
 <li>New plotting engine</li>
@@ -606,7 +606,7 @@
 </div>
     <div id="rxode-v091-9" class="section level1">
 <h1 class="page-header" data-toc-text="0.9.1-9">
-<a href="#rxode-v091-9" class="anchor"></a>RxODE v0.9.1-9<small> 2020-01-10 </small>
+<a href="#rxode-v091-9" class="anchor" aria-hidden="true"></a>RxODE v0.9.1-9<small> 2020-01-10 </small>
 </h1>
 <ul>
 <li>Minor namespace/documentation changes for R 4.0 compatibility</li>
@@ -614,7 +614,7 @@
 </div>
     <div id="rxode-v091-8" class="section level1">
 <h1 class="page-header" data-toc-text="0.9.1-8">
-<a href="#rxode-v091-8" class="anchor"></a>RxODE v0.9.1-8<small> 2019-11-12 </small>
+<a href="#rxode-v091-8" class="anchor" aria-hidden="true"></a>RxODE v0.9.1-8<small> 2019-11-12 </small>
 </h1>
 <ul>
 <li>Added the ability to have an input parameter to be assigned to a new value (Issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/135'>#135</a>)</li>

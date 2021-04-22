@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Weight Based Dosing in RxODE</h1>
             
-            <h4 data-toc-skip class="date">2021-04-21</h4>
+            <h4 data-toc-skip class="date">2021-04-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-wt.Rmd" class="external-link"><code>vignettes/RxODE-wt.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-wt.Rmd</code></div>
@@ -247,7 +247,7 @@
 <p>There are 3 stages for weight-based dosing simulations: - Create RxODE model - Simulate Covariates - Create event table with weight-based dosing (merged back to covariates)</p>
 <div id="creating-a-2-compartment-model-in-rxode" class="section level1">
 <h1 class="hasAnchor">
-<a href="#creating-a-2-compartment-model-in-rxode" class="anchor"></a>Creating a 2-compartment model in RxODE</h1>
+<a href="#creating-a-2-compartment-model-in-rxode" class="anchor" aria-hidden="true"></a>Creating a 2-compartment model in RxODE</h1>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; RxODE 1.0.8.1 using 1 threads (see ?getRxThreads)
@@ -268,7 +268,7 @@
 </div>
 <div id="simulating-covariates" class="section level1">
 <h1 class="hasAnchor">
-<a href="#simulating-covariates" class="anchor"></a>Simulating Covariates</h1>
+<a href="#simulating-covariates" class="anchor" aria-hidden="true"></a>Simulating Covariates</h1>
 <p>This simulation correlates age, sex, and weight. Since we will be using weight based dosing, this needs to be simulated first</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
@@ -312,7 +312,7 @@
 </div>
 <div id="creating-weight-based-event-table" class="section level1">
 <h1 class="hasAnchor">
-<a href="#creating-weight-based-event-table" class="anchor"></a>Creating weight based event table</h1>
+<a href="#creating-weight-based-event-table" class="anchor" aria-hidden="true"></a>Creating weight based event table</h1>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">s</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0.25</span>,<span class="fl">0.5</span>,<span class="fl">0.75</span>,<span class="fl">1</span>,<span class="fl">1.5</span>,<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">24</span>,by<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>
 <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">s</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">{</span><span class="va">.x</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">x</span>; <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="va">.x</span>, <span class="va">x</span> <span class="op">+</span> <span class="va">.x</span><span class="op">)</span><span class="op">}</span><span class="op">)</span>
@@ -347,7 +347,7 @@
 </div>
 <div id="solving-daptomycin-simulation" class="section level1">
 <h1 class="hasAnchor">
-<a href="#solving-daptomycin-simulation" class="anchor"></a>Solving Daptomycin simulation</h1>
+<a href="#solving-daptomycin-simulation" class="anchor" aria-hidden="true"></a>Solving Daptomycin simulation</h1>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">e</span>,
              <span class="co">## Lotri uses lower-triangular matrix rep. for named matrix</span>
@@ -398,7 +398,7 @@
 </div>
 <div id="daptomycin-reference" class="section level1">
 <h1 class="hasAnchor">
-<a href="#daptomycin-reference" class="anchor"></a>Daptomycin Reference</h1>
+<a href="#daptomycin-reference" class="anchor" aria-hidden="true"></a>Daptomycin Reference</h1>
 <p>This weight-based simulation is adapted from the Daptomycin article below:</p>
 <p>Dvorchik B, Arbeit RD, Chung J, Liu S, Knebel W, Kastrissios H. Population pharmacokinetics of daptomycin. Antimicrob Agents Che mother 2004; 48: 2799-2807. <a href="doi:(10.1128/AAC.48.8.2799-2807.2004" class="uri">doi:(10.1128/AAC.48.8.2799-2807.2004</a>)[<a href="https://dx.doi.org/10.1128%2FAAC.48.8.2799-2807.2004" class="external-link uri">https://dx.doi.org/10.1128%2FAAC.48.8.2799-2807.2004</a>]</p>
 <p>This simulation example was made available from the work of Sherwin Sy with modifications by Matthew Fidler</p>

@@ -235,7 +235,7 @@
       <h1 data-toc-skip>Plotting RxODE models</h1>
                         <h4 data-toc-skip class="author">Matthew Fidler</h4>
             
-            <h4 data-toc-skip class="date">2021-04-21</h4>
+            <h4 data-toc-skip class="date">2021-04-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-plot.Rmd" class="external-link"><code>vignettes/RxODE-plot.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-plot.Rmd</code></div>
@@ -246,10 +246,10 @@
     
 <div id="plotting-in-rxode" class="section level2">
 <h2 class="hasAnchor">
-<a href="#plotting-in-rxode" class="anchor"></a>Plotting in RxODE</h2>
+<a href="#plotting-in-rxode" class="anchor" aria-hidden="true"></a>Plotting in RxODE</h2>
 <div id="setting-up-model-for-plotting-explanation" class="section level3">
 <h3 class="hasAnchor">
-<a href="#setting-up-model-for-plotting-explanation" class="anchor"></a>Setting up model for plotting explanation</h3>
+<a href="#setting-up-model-for-plotting-explanation" class="anchor" aria-hidden="true"></a>Setting up model for plotting explanation</h3>
 <p>The first step to explain the RxODE model plots is to setup:</p>
 <ol style="list-style-type: decimal">
 <li>An RxODE model</li>
@@ -295,7 +295,7 @@
 </div>
 <div id="default-rxode-plot" class="section level3">
 <h3 class="hasAnchor">
-<a href="#default-rxode-plot" class="anchor"></a>Default RxODE plot</h3>
+<a href="#default-rxode-plot" class="anchor" aria-hidden="true"></a>Default RxODE plot</h3>
 <p>The default plot in <code>RxODE</code> is to plot time versus <code>state</code> or calculated <code>lhs</code> values:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></code></pre></div>
@@ -313,7 +313,7 @@
 </div>
 <div id="subsetting-plots" class="section level2">
 <h2 class="hasAnchor">
-<a href="#subsetting-plots" class="anchor"></a>Subsetting plots</h2>
+<a href="#subsetting-plots" class="anchor" aria-hidden="true"></a>Subsetting plots</h2>
 <p>While this is very interesting, it is often more useful to subset plots based on values you are more interested in; For example, it is more interesting in this plot to <code>eff</code> and <code>C2</code>. To do this, you simply specify the interesting items after the plot function. For instance:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
@@ -321,7 +321,7 @@
 </div>
 <div id="semi-log-plots" class="section level2">
 <h2 class="hasAnchor">
-<a href="#semi-log-plots" class="anchor"></a>Semi-log plots</h2>
+<a href="#semi-log-plots" class="anchor" aria-hidden="true"></a>Semi-log plots</h2>
 <p>Semi-log plots of PK concentrations are very common; To do this you simply need to use <code>log="y"</code></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">C2</span>, log<span class="op">=</span><span class="st">"y"</span>, ylab<span class="op">=</span><span class="st">"Concentration"</span><span class="op">)</span></code></pre></div>
@@ -331,7 +331,7 @@
 </div>
 <div id="plots-with-multi-subject-plots" class="section level2">
 <h2 class="hasAnchor">
-<a href="#plots-with-multi-subject-plots" class="anchor"></a>Plots with multi-subject plots</h2>
+<a href="#plots-with-multi-subject-plots" class="anchor" aria-hidden="true"></a>Plots with multi-subject plots</h2>
 <p>If you have multi-subject plots you can easily plot applying the same principles as above. To illustrate this plot, lets expand an event table to include a plot of 4 subjects with lognormal random variability between subjects;</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Setup the new problem</span>
@@ -383,7 +383,7 @@
 <p>Notice that this plot each individual is labeled by an attached id to let you know where the individual comes from. This is done by <code>ggrepel</code> if it is available, otherwise a legend is retained.</p>
 <div id="multi-subject-plots-with-large-number-of-subjects" class="section level3">
 <h3 class="hasAnchor">
-<a href="#multi-subject-plots-with-large-number-of-subjects" class="anchor"></a>Multi-subject plots with large number of subjects</h3>
+<a href="#multi-subject-plots-with-large-number-of-subjects" class="anchor" aria-hidden="true"></a>Multi-subject plots with large number of subjects</h3>
 <p>This can get a bit much when there are many subjects that are solved (in this example lets simulate 100)</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits <span class="op">=</span> <span class="st">"hr"</span><span class="op">)</span> <span class="op">%&gt;%</span>

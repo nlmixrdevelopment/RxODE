@@ -245,12 +245,12 @@
 
 <div id="rxode" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
-<a href="#rxode" class="anchor"></a>RxODE</h1></div>
+<a href="#rxode" class="anchor" aria-hidden="true"></a>RxODE</h1></div>
 <!-- badges: start -->
 
 <div id="overview" class="section level2">
 <h2 class="hasAnchor">
-<a href="#overview" class="anchor"></a>Overview</h2>
+<a href="#overview" class="anchor" aria-hidden="true"></a>Overview</h2>
 <p><strong>RxODE</strong> is an R package for solving and simulating from ode-based models. These models are convert the RxODE mini-language to C and create a compiled dll for fast solving. ODE solving using RxODE has a few key parts:</p>
 <ul>
 <li>
@@ -277,7 +277,7 @@
 </div>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
+<a href="#installation" class="anchor" aria-hidden="true"></a>Installation</h2>
 <p>You can install the released version of RxODE from <a href="https://CRAN.R-project.org" class="external-link">CRAN</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"RxODE"</span><span class="op">)</span></code></pre></div>
@@ -292,7 +292,7 @@
 <p>If you do not have the toolchain, you can set it up as described by the platform information below:</p>
 <div id="windows" class="section level3">
 <h3 class="hasAnchor">
-<a href="#windows" class="anchor"></a>Windows</h3>
+<a href="#windows" class="anchor" aria-hidden="true"></a>Windows</h3>
 <p>In windows you may simply use installr to install rtools:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"installr"</span><span class="op">)</span>
@@ -302,7 +302,7 @@
 </div>
 <div id="mac-osx" class="section level3">
 <h3 class="hasAnchor">
-<a href="#mac-osx" class="anchor"></a>Mac OSX</h3>
+<a href="#mac-osx" class="anchor" aria-hidden="true"></a>Mac OSX</h3>
 <p>To get the most speed you need OpenMP enabled and compile RxODE with that compiler. There are various options and the most up to date discussion about this is likely the <a href="https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac" class="external-link">data.table installation faq for MacOS</a>. The last thing to keep in mind is that <code>RxODE</code> uses the code very similar to the original <code>lsoda</code> which requires the <code>gfortran</code> compiler to be setup as well as the <code>OpenMP</code> compilers.</p>
 <p>If you are going to be using <code>RxODE</code> and <code>nlmixr</code> together and have an older mac computer, I would suggest trying the following:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -317,13 +317,13 @@
 </div>
 <div id="linux" class="section level3">
 <h3 class="hasAnchor">
-<a href="#linux" class="anchor"></a>Linux</h3>
+<a href="#linux" class="anchor" aria-hidden="true"></a>Linux</h3>
 <p>To install on linux make sure you install <code>gcc</code> (with openmp support) and <code>gfortran</code> using your distribution’s package manager.</p>
 </div>
 </div>
 <div id="development-version" class="section level2">
 <h2 class="hasAnchor">
-<a href="#development-version" class="anchor"></a>Development Version</h2>
+<a href="#development-version" class="anchor" aria-hidden="true"></a>Development Version</h2>
 <p>Since the development version of RxODE uses StanHeaders, you will need to make sure your compiler is setup to support C++14, as described in the <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#configuration-of-the-c-toolchain" class="external-link">rstan setup page</a>. For R 4.0, I do not believe this requires modifying the windows toolchain any longer (so it is much easier to setup).</p>
 <p>Once the C++ toolchain is setup appropriately, you can install the development version from <a href="https://github.com/nlmixrdevelopment/RxODE" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -333,7 +333,7 @@
 </div>
 <div id="illustrated-example" class="section level1">
 <h1 class="hasAnchor">
-<a href="#illustrated-example" class="anchor"></a>Illustrated Example</h1>
+<a href="#illustrated-example" class="anchor" aria-hidden="true"></a>Illustrated Example</h1>
 <p>The model equations can be specified through a text string, a model file or an R expression. Both differential and algebraic equations are permitted. Differential equations are specified by <code>d/dt(var_name) =</code>. Each equation can be separated by a semicolon.</p>
 <p>To load <code>RxODE</code> package and compile the model:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -351,7 +351,7 @@
 <span class="co">#&gt; </span></code></pre></div>
 <div id="specify-ode-parameters-and-initial-conditions" class="section level2">
 <h2 class="hasAnchor">
-<a href="#specify-ode-parameters-and-initial-conditions" class="anchor"></a>Specify ODE parameters and initial conditions</h2>
+<a href="#specify-ode-parameters-and-initial-conditions" class="anchor" aria-hidden="true"></a>Specify ODE parameters and initial conditions</h2>
 <p>Model parameters can be defined as named vectors. Names of parameters in the vector must be a superset of parameters in the ODE model, and the order of parameters within the vector is not important.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">theta</span> <span class="op">&lt;-</span> 
@@ -366,7 +366,7 @@
 </div>
 <div id="specify-dosing-and-sampling-in-rxode" class="section level2">
 <h2 class="hasAnchor">
-<a href="#specify-dosing-and-sampling-in-rxode" class="anchor"></a>Specify Dosing and sampling in RxODE</h2>
+<a href="#specify-dosing-and-sampling-in-rxode" class="anchor" aria-hidden="true"></a>Specify Dosing and sampling in RxODE</h2>
 <p><code>RxODE</code> provides a simple and very flexible way to specify dosing and sampling through functions that generate an event table. First, an empty event table is generated through the “eventTable()” function:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">'mg'</span>, time.units<span class="op">=</span><span class="st">'hours'</span><span class="op">)</span></code></pre></div>
@@ -409,7 +409,7 @@
 </div>
 <div id="solving-odes" class="section level2">
 <h2 class="hasAnchor">
-<a href="#solving-odes" class="anchor"></a>Solving ODEs</h2>
+<a href="#solving-odes" class="anchor" aria-hidden="true"></a>Solving ODEs</h2>
 <p>The ODE can now be solved by calling the model object’s <code>run</code> or <code>solve</code> function. Simulation results for all variables in the model are stored in the output matrix x.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span><span class="op">$</span><span class="fu">solve</span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;
@@ -518,10 +518,10 @@
 </div>
 <div id="related-r-packages" class="section level1">
 <h1 class="hasAnchor">
-<a href="#related-r-packages" class="anchor"></a>Related R Packages</h1>
+<a href="#related-r-packages" class="anchor" aria-hidden="true"></a>Related R Packages</h1>
 <div id="ode-solving" class="section level2">
 <h2 class="hasAnchor">
-<a href="#ode-solving" class="anchor"></a>ODE solving</h2>
+<a href="#ode-solving" class="anchor" aria-hidden="true"></a>ODE solving</h2>
 <p>This is a brief comparison of pharmacometric ODE solving R packages to <code>RxODE</code>.</p>
 <p>There are several <a href="https://CRAN.R-project.org/view=DifferentialEquations" class="external-link">R packages for differential equations</a>. The most popular is <a href="https://CRAN.R-project.org/package=deSolve" class="external-link">deSolve</a>.</p>
 <p>However for pharmacometrics-specific ODE solving, there are only 2 packages other than <a href="https://CRAN.R-project.org/package=RxODE" class="external-link">RxODE</a> released on CRAN. Each uses compiled code to have faster ODE solving.</p>
@@ -550,12 +550,12 @@
 </div>
 <div id="pk-solved-systems" class="section level2">
 <h2 class="hasAnchor">
-<a href="#pk-solved-systems" class="anchor"></a>PK Solved systems</h2>
+<a href="#pk-solved-systems" class="anchor" aria-hidden="true"></a>PK Solved systems</h2>
 <p><code>RxODE</code> supports 1-3 compartment models with gradients (using stan math’s auto-differentiation). This currently uses the same equations as <code>PKADVAN</code> to allow time-varying covariates.</p>
 <p><code>RxODE</code> can mix ODEs and solved systems.</p>
 <div id="the-following-packages-for-solved-pk-systems-are-on-cran" class="section level3">
 <h3 class="hasAnchor">
-<a href="#the-following-packages-for-solved-pk-systems-are-on-cran" class="anchor"></a>The following packages for solved PK systems are on CRAN</h3>
+<a href="#the-following-packages-for-solved-pk-systems-are-on-cran" class="anchor" aria-hidden="true"></a>The following packages for solved PK systems are on CRAN</h3>
 <ul>
 <li>
 <a href="https://CRAN.R-project.org/package=mrgsolve" class="external-link">mrgsolve</a> currently has 1-2 compartment (poly-exponential models) models built-in. The solved systems and ODEs cannot currently be mixed.</li>
@@ -567,7 +567,7 @@
 </div>
 <div id="non-cran-libraries" class="section level3">
 <h3 class="hasAnchor">
-<a href="#non-cran-libraries" class="anchor"></a>Non-CRAN libraries:</h3>
+<a href="#non-cran-libraries" class="anchor" aria-hidden="true"></a>Non-CRAN libraries:</h3>
 <ul>
 <li>
 <a href="https://github.com/abuhelwa/PKADVAN_Rpackage" class="external-link">PKADVAN</a> Provides 1-3 compartment models using non-superpositioning. This allows time-varying covariates.</li>

@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Introduction to RxODE</h1>
             
-            <h4 data-toc-skip class="date">2021-04-21</h4>
+            <h4 data-toc-skip class="date">2021-04-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-intro.Rmd" class="external-link"><code>vignettes/RxODE-intro.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-intro.Rmd</code></div>
@@ -245,12 +245,12 @@
     
 <div id="introduction" class="section level1">
 <h1 class="hasAnchor">
-<a href="#introduction" class="anchor"></a>Introduction</h1>
+<a href="#introduction" class="anchor" aria-hidden="true"></a>Introduction</h1>
 <p><code>RxODE</code> is an R package that facilitates simulation with ODE models in R. It is designed with pharmacometrics models in mind, but can be applied more generally to any ODE model.</p>
 </div>
 <div id="description-of-rxode-illustrated-through-an-example" class="section level1">
 <h1 class="hasAnchor">
-<a href="#description-of-rxode-illustrated-through-an-example" class="anchor"></a>Description of RxODE illustrated through an example</h1>
+<a href="#description-of-rxode-illustrated-through-an-example" class="anchor" aria-hidden="true"></a>Description of RxODE illustrated through an example</h1>
 <p>The model equations can be specified through a text string, a model file or an R expression. Both differential and algebraic equations are permitted. Differential equations are specified by <code>d/dt(var_name) =</code>. Each equation can be separated by a semicolon.</p>
 <p>To load <code>RxODE</code> package and compile the model:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -268,7 +268,7 @@
 <span class="op">}</span><span class="op">)</span></code></pre></div>
 <div id="specify-ode-parameters-and-initial-conditions" class="section level2">
 <h2 class="hasAnchor">
-<a href="#specify-ode-parameters-and-initial-conditions" class="anchor"></a>Specify ODE parameters and initial conditions</h2>
+<a href="#specify-ode-parameters-and-initial-conditions" class="anchor" aria-hidden="true"></a>Specify ODE parameters and initial conditions</h2>
 <p>Model parameters can be defined as named vectors. Names of parameters in the vector must be a superset of parameters in the ODE model, and the order of parameters within the vector is not important.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">theta</span> <span class="op">&lt;-</span> 
@@ -283,7 +283,7 @@
 </div>
 <div id="specify-dosing-and-sampling-in-rxode" class="section level2">
 <h2 class="hasAnchor">
-<a href="#specify-dosing-and-sampling-in-rxode" class="anchor"></a>Specify Dosing and sampling in RxODE</h2>
+<a href="#specify-dosing-and-sampling-in-rxode" class="anchor" aria-hidden="true"></a>Specify Dosing and sampling in RxODE</h2>
 <p><code>RxODE</code> provides a simple and very flexible way to specify dosing and sampling through functions that generate an event table. First, an empty event table is generated through the “eventTable()” function:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">'mg'</span>, time.units<span class="op">=</span><span class="st">'hours'</span><span class="op">)</span></code></pre></div>
@@ -326,7 +326,7 @@
 </div>
 <div id="solving-odes" class="section level2">
 <h2 class="hasAnchor">
-<a href="#solving-odes" class="anchor"></a>Solving ODEs</h2>
+<a href="#solving-odes" class="anchor" aria-hidden="true"></a>Solving ODEs</h2>
 <p>The ODE can now be solved by calling the model object’s <code>run</code> or <code>solve</code> function. Simulation results for all variables in the model are stored in the output matrix x.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span><span class="op">$</span><span class="fu">solve</span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;
