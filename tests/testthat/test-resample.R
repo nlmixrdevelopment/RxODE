@@ -204,6 +204,7 @@ rxodeTest({
 
 
   context("resample tests; time invariant")
+
   nsub=30
   # Simulate Weight based on age and gender
   AGE<-round(runif(nsub,min=18,max=70))
@@ -300,8 +301,8 @@ rxodeTest({
                                 eta.v2 ~ .191),
                     sigma=lotri(err.sd ~ 0.5), addCov = TRUE)
 
-      expect_equal(f1$mWT[!duplicated(f1$id)], f1$WT)
-      expect_equal(f1$mCRCL[!duplicated(f1$id)], f1$CRCL)
+      expect_equal(f1$mWT, f1$WT)
+      expect_equal(f1$mCRCL, f1$CRCL)
 
       f2 <- rxSolve(m1, e2, iCov=cov.df,
                     ## Lotri uses lower-triangular matrix rep. for named matrix
@@ -313,8 +314,8 @@ rxodeTest({
                     resample=c("SEX", "WT", "CRCL"),
                     resampleID=resampleID)
 
-      expect_equal(f2$mWT[!duplicated(f2$id)], f2$WT)
-      expect_equal(f2$mCRCL[!duplicated(f2$id)], f2$CRCL)
+      expect_equal(f2$mWT, f2$WT)
+      expect_equal(f2$mCRCL, f2$CRCL)
 
       f3 <- rxSolve(m1, e2, iCov=cov.df,
                     ## Lotri uses lower-triangular matrix rep. for named matrix
@@ -327,22 +328,9 @@ rxodeTest({
                     resample=c("SEX", "WT", "CRCL"),
                     resampleID=resampleID)
 
-      expect_equal(f3$mWT[!duplicated(f3$id)], f3$params$WT)
-      expect_equal(f3$mCRCL[!duplicated(f3$id)], f3$params$CRCL)
-      expect_equal(f3$mWT[!duplicated(f3$id)], f3$WT[!duplicated(f3$id)])
-      expect_equal(f3$mCRCL[!duplicated(f3$id)], f3$CRCL[!duplicated(f3$id)])
+      expect_equal(f3$mWT, f3$WT)
+      expect_equal(f3$mCRCL, f3$CRCL)
 
-      expect_false(isTRUE(all.equal(cov.df$WT, f3$params$WT)))
-      expect_false(isTRUE(all.equal(cov.df$CRCL, f3$params$CRCL)))
-
-      r1 <- f1$params[, c("id", "SEX", "WT", "CRCL")]
-      r2 <- f2$params[, c("id", "SEX", "WT", "CRCL")]
-
-      expect_false(isTRUE(all.equal(r1, r2)))
-
-      r3 <- f3$params[, c("id", "SEX", "WT", "CRCL")]
-
-      expect_false(isTRUE(all.equal(r1, r3)))
     }
 
   })

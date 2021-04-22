@@ -2288,27 +2288,18 @@ extern "C" void rxSolveFreeC() {
 }
 
 
-List keepIcov;
 List keepFcov;
 
 extern void resetFkeep() {
   keepFcov = List::create();
-  keepIcov = List::create();
 }
 
-extern "C" double get_ikeep(int col, int id) {
-  return REAL(keepIcov[col])[id];
-}
 
 extern "C" double get_fkeep(int col, int id, rx_solving_options_ind *ind) {
   List keepFcovI= keepFcov.attr("keepCov");
   int idx = keepFcovI[col];
   if (idx == 0) return REAL(keepFcov[col])[id];
   return ind->par_ptr[idx-1];
-}
-
-extern "C" SEXP get_ikeepn() {
-  return as<SEXP>(keepIcov.attr("names"));
 }
 
 extern "C" SEXP get_fkeepn() {
@@ -2927,132 +2918,17 @@ static inline void rxSolve_parSetup(const RObject &obj,
       rxSolveFree();
       stop(_("if parameters are not named, they must match the order and size of the parameters in the model"));
     }
-    RObject iCov = rxControl[Rxc_iCov];
-    if (!rxIsNull(iCov)) {
-      // Create a data frame
-      Function sortId = getRxFn(".sortId");
-      iCov = clone(sortId(iCov, rxSolveDat->idLevels, "iCov", rxSolveDat->warnIdSort));
-      CharacterVector keepC, keepCf;
-      if (rxIsChar(rxControl[Rxc_keepI])){
-	keepC = as<CharacterVector>(rxControl[Rxc_keepI]);
-      }
-      IntegerVector keepIv(keepC.size());
-      std::fill_n(keepIv.begin(), keepC.size(), -1);
-      List lstT=as<List>(iCov);
-      rxSolveDat->parDf = as<DataFrame>(iCov);
-      int nr = rxSolveDat->parDf.nrows();
-      List lstF(rxSolveDat->parNumeric.size()+lstT.size());
-      CharacterVector nmF(lstF.size());
-      CharacterVector nmL = rxSolveDat->nmP;
-      CharacterVector nmT = lstT.attr("names");
-      for (int ii = rxSolveDat->parNumeric.size(); ii--;){
-	NumericVector tmp(nr);
-	std::fill_n(tmp.begin(), nr, rxSolveDat->parNumeric[ii]);
-	lstF[ii] = tmp;
-	nmF[ii] = nmL[ii];
-      }
-      int nKeepi=0;
-      for (int ii=lstT.size(); ii--;){
-	lstF[ii+rxSolveDat->parNumeric.size()] = lstT[ii];
-	nmF[ii+rxSolveDat->parNumeric.size()] = nmT[ii];
-	for (int jj = keepC.size(); jj--;){
-	  if (nmT[ii] == keepC[jj]){
-	    keepIv[jj] = ii;
-	    nKeepi++;
-	    break;
-	  }
-	}
-      }
-      keepIcov=List(nKeepi);
-      keepCf = CharacterVector(nKeepi);
-      int iii=0;
-      for (int ii=keepC.size(); ii--;){
-	if (keepIv[ii] != -1){
-	  keepIcov[iii] = lstT[keepIv[ii]];
-	  keepCf[iii++] = nmT[keepIv[ii]];
-	}
-      }
-      keepIcov.attr("names") = keepCf;
-      keepIcov.attr("class") = "data.frame";
-      keepIcov.attr("row.names") = lstT.attr("row.names");
-      rx->nKeep0 = nKeepi;
-      lstF.attr("names") = nmF;
-      lstF.attr("class") = "data.frame";
-      lstF.attr("row.names") = lstT.attr("row.names");
-      rxSolveDat->par1 = as<RObject>(lstF);
-      rxSolveDat->parDf = as<DataFrame>(rxSolveDat->par1);
-      rxSolveDat->parType = 2;
-      rxSolveDat->nmP = rxSolveDat->parDf.names();
-      rxSolveDat->nPopPar = rxSolveDat->parDf.nrows();
-      rxSolveDat->usePar1=true;
-      rxSolveDat->par1Keep = true;
-    }
   } else if (rxIs(rxSolveDat->par1, "data.frame")) {
     Function sortId = getRxFn(".sortId");
     if (rxSolveDat->idLevels.size() > 0){
       rxSolveDat->par1 = clone(sortId(rxSolveDat->par1, rxSolveDat->idLevels, "parameters", rxSolveDat->warnIdSort));
       rxSolveDat->usePar1=true;
     }
-    RObject iCov = rxControl[Rxc_iCov];
-    if (!rxIsNull(iCov)){
-      Function sortId = getRxFn(".sortId");
-      iCov = clone(sortId(iCov, rxSolveDat->idLevels, "iCov", rxSolveDat->warnIdSort));
-      List lstT=as<List>(iCov);
-      List lst = as<List>(rxSolveDat->par1);
-      List lstF(lst.size()+lstT.size());
-      CharacterVector nmF(lstF.size());
-      CharacterVector nmL = lst.attr("names");
-      CharacterVector nmT = lstT.attr("names");
-      for (int ii = lst.size(); ii--;){
-	lstF[ii] = lst[ii];
-	nmF[ii] = nmL[ii];
-      }
-      int nKeepi=0;
-      CharacterVector keepC, keepCf;
-      if (rxIsChar(rxControl[Rxc_keepI])){
-	keepC = asCv(rxControl[Rxc_keepI], "keepI");
-      }
-      IntegerVector keepIv(keepC.size());
-      for (int ii=lstT.size(); ii--;){
-	lstF[ii+lst.size()] = lstT[ii];
-	nmF[ii+lst.size()] = nmT[ii];
-	for (int jj = keepC.size(); jj--;){
-	  if (nmT[ii] == keepC[jj]){
-	    keepIv[jj] = ii;
-	    nKeepi++;
-	    break;
-	  }
-	}
-      }
-      keepIcov=List(nKeepi);
-      keepCf = CharacterVector(nKeepi);
-      int iii=0;
-      for (int ii=keepC.size(); ii--;){
-	if (keepIv[ii] != -1){
-	  keepIcov[iii] = lstT[keepIv[ii]];
-	  keepCf[iii++] = nmT[keepIv[ii]];
-	}
-      }
-      keepIcov.attr("names") = keepCf;
-      keepIcov.attr("class") = "data.frame";
-      keepIcov.attr("row.names") = lstT.attr("row.names");
-      rx->nKeep0 = nKeepi;
-      lstF.attr("names") = nmF;
-      lstF.attr("class") = "data.frame";
-      lstF.attr("row.names") = lst.attr("row.names");
-      rxSolveDat->par1 = as<RObject>(lstF);
-      rxSolveDat->par1Keep=true;
-    }
     rxSolveDat->parDf = as<DataFrame>(rxSolveDat->par1);
     rxSolveDat->parType = 2;
     rxSolveDat->nmP = rxSolveDat->parDf.names();
     rxSolveDat->nPopPar = rxSolveDat->parDf.nrows();
   } else if (rxIs(rxSolveDat->par1, "matrix")) {
-    RObject iCov = rxControl[Rxc_iCov];
-    if (!rxIsNull(iCov)){
-      rxSolveFree();
-      stop(_("matrix parameters with 'iCov' 'data.frame' is not supported"));
-    }
     rxSolveDat->parMat = as<NumericMatrix>(rxSolveDat->par1);
     rxSolveDat->nPopPar = rxSolveDat->parMat.nrow();
     rxSolveDat->parType = 3;
@@ -3551,7 +3427,6 @@ static inline void rxSolve_resample(const RObject &obj,
 	}
       }
       List parList;
-      List keepIcovF;
       CharacterVector parNames;
       CharacterVector keepNames;
       List parListF;
@@ -3561,10 +3436,6 @@ static inline void rxSolve_resample(const RObject &obj,
 	parNames = parList.names();
 	parListF = clone(parList);
 	updatePar = true;
-	if (rxSolveDat->par1Keep){
-	  keepIcovF = clone(keepIcov);
-	  keepNames = keepIcovF.names();
-	}
       }
       int nrow = rxSolveDat->npars;
       int ncol = rx->nsub;
@@ -3612,18 +3483,6 @@ static inline void rxSolve_resample(const RObject &obj,
 		break;
 	      }
 	    }
-	    for (int ik = keepIcovF.size();ik--;){
-	      if (!strcmp(CHAR(keepNames[ik]), cur)) {
-		SEXP curIn  = keepIcov[ik];
-		SEXP curOut = keepIcovF[ik];
-		if (TYPEOF(curIn) == INTSXP) {
-		  INTEGER(curOut)[ic] = INTEGER(curIn)[val];
-		} else if (TYPEOF(curIn) == REALSXP){
-		  REAL(curOut)[ic] = REAL(curIn)[val];
-		}
-		break;
-	      }
-	    }
 	    ret(ir, is) = iniPars(ir, val);
 	  }
 	} else {
@@ -3635,9 +3494,6 @@ static inline void rxSolve_resample(const RObject &obj,
       }
       if (updatePar){
 	rxSolveDat->par1 = as<RObject>(parListF);
-	if (rxSolveDat->par1Keep){
-	  keepIcov = keepIcovF;
-	}
       }
       // Put sampled dataset in gpars
       std::copy(ret.begin(),ret.end(),&_globals.gpars[0]);
@@ -4312,7 +4168,6 @@ static inline void iniRx(rx_solve* rx) {
   rx->stateIgnore = NULL;
   rx->nCov0 = 0;
   rx->cov0 = NULL;
-  rx->nKeep0 = 0;
   rx->nKeepF = 0;
   rx->istateReset=1;
   rx->cens = 0;
@@ -4587,7 +4442,6 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rxSolveDat->hasCmt = INTEGER(rxSolveDat->mv[RxMv_flags])[RxMvFlag_hasCmt] == 1;
     // Assign Pointers
     rxAssignPtr(rxSolveDat->mv);
-    rx->nKeep0 = 0;
     rx->nKeepF = 0;
     rx->stateTrimU = stateTrimU;
     rx->stateTrimL = stateTrimL;
