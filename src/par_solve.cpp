@@ -2640,7 +2640,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   int add_cov = rx->add_cov;
   int ncov = op->ncov;
   int ncov0 = rx->nCov0;
-  int nkeep0 = rx->nKeep0;
   int nkeep  = rx->nKeepF;
   int nlhs = op->nlhs;
   int nobs = rx->nobs - rx->nevid9;
@@ -2710,7 +2709,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   int sm = 0;
   if (rx->nsim > 1) sm = 1;
   int ncols =1+nPrnState+nlhs;
-  int ncols2 = add_cov*(ncov+ncov0)+nkeep0+nkeep;
+  int ncols2 = add_cov*(ncov+ncov0)+nkeep;
   int doseCols = 0;
   int nevid2col = 0;
   if (doDose){
@@ -2764,7 +2763,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   }
   doseCols += nevid2col;
   SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
-  SEXP ikeepNames = PROTECT(get_ikeepn()); pro++;
   SEXP fkeepNames = PROTECT(get_fkeepn()); pro++;
   for (i = md + sm + ms + doseCols + 2*nmevid; i < ncols + doseCols + nidCols + 2*nmevid; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
@@ -2781,10 +2779,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   par_cov = rx->cov0;
   for (i = 0; i < ncov0*add_cov; i++){
     charItem =CHAR(STRING_ELT(paramNames, par_cov[i]));
-    SET_VECTOR_ELT(df, j++, PROTECT(getDfLevels(charItem, rx))); pro++;
-  }
-  for (i = 0; i < nkeep0; i++){
-    charItem =CHAR(STRING_ELT(ikeepNames, i));
     SET_VECTOR_ELT(df, j++, PROTECT(getDfLevels(charItem, rx))); pro++;
   }
   for (i = 0; i < nkeep; i++){
@@ -3192,17 +3186,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	      jj++;
 	    }
 	  }
-	  for (j = 0; j < nkeep0; j++){
-	    tmp = VECTOR_ELT(df, jj);
-	    if (TYPEOF(tmp) == REALSXP){
-	      dfp = REAL(tmp);
-	      dfp[ii] = get_ikeep(j, neq[1]);
-	    } else {
-	      dfi = INTEGER(tmp);
-	      dfi[ii] = (int)(get_ikeep(j, neq[1]));
-	    }
-	    jj++;
-	  }
 	  if (nkeep && didUpdate==0) _update_par_ptr(curT, solveId, rx, ind->idx);
 	  for (j = 0; j < nkeep; j++){
 	    tmp = VECTOR_ELT(df, jj);
@@ -3328,10 +3311,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]));
     jj++;
   }
-  for (i = 0; i < nkeep0; i++){
-    SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(ikeepNames, i));
-    jj++;
-  }
   for (i = 0; i < nkeep; i++){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(fkeepNames, i));
     jj++;
@@ -3440,11 +3419,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
     par_cov = rx->cov0;
     for (i = 0; i < ncov0*add_cov; i++){
       SET_STRING_ELT(sexp_colnames2,jj, STRING_ELT(paramNames2, par_cov[i]));
-      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
-      jj++;kk++;
-    }
-    for (i = 0; i < nkeep0; i++){
-      SET_STRING_ELT(sexp_colnames2,jj, STRING_ELT(ikeepNames, i));
       SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
       jj++;kk++;
     }

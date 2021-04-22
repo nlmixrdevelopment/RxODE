@@ -288,7 +288,7 @@ First we setup the model:
 
 ```{r}
 rx1 <- RxODE({
-  cl <- tcl*(1+crcl.cl*(CLCR-65)) * exp(eta.v)
+  cl <- tcl*(1+crcl.cl*(CLCR-65)) * exp(eta.cl)
   v <- tv * WT * exp(eta.v)
   ka <- tka * exp(eta.ka)
   ipred <- linCmt()
@@ -363,8 +363,9 @@ sim  <- rxSolve(rx1, theta, evw,  nSub=100, nStud=10,
                 sigmaXform="identity", # default sigma xform="identity"
                 omega=c("eta.cl", "eta.v", "eta.ka"), ## etas are variances
                 omegaXform="variance", # default omega xform="variance"
-                iCov=data.frame(WT=rnorm(1000, 70, 15), CLCR=rnorm(1000, 65, 25)),
-                dfSub=74, dfObs=476)
+                iCov=data.frame(WT=rnorm(100, 70, 15), CLCR=rnorm(100, 65, 25)),
+                dfSub=74, dfObs=476,
+                resample=TRUE)
 
 s <-sim %>% confint(c("ipred"))
 plot(s)
@@ -423,13 +424,12 @@ certain point the speed of solving is limited by things other than
 computing power.
 
 You can also speed up simulation by using the multi-cores to generate
-random deviates with `mvnfast` (either `mvnfast::rmvn()` or
-`mvnfast::rmvt()`).  This is controlled by the `nCoresRV` parameter.
-For example:
+random deviates with the threefry simulation engine.  This is
+controlled by the `nCoresRV` parameter.  For example:
 
 ```{r}
 sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
-                nCoresRV=2);
+                nCoresRV=2)
 
 s <-sim %>% confint(c("eff", "centr"))
 ```

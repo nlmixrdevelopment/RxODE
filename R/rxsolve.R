@@ -223,8 +223,7 @@
 #'   are the same components as `linDiff`
 #'
 #' @param iCov A data frame of individual non-time varying covariates
-#'     to combine with the `params` to form a parameter
-#'     data.frame.
+#'     to combine with the `events` dataset by merge.
 #'
 #' @param covsInterpolation specifies the interpolation method for
 #'     time-varying covariates. When solving ODEs it often samples
@@ -1081,36 +1080,18 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
       }
     }
   }
-  if (.ctl$nSub == 1 && inherits(.ctl$iCov, "data.frame")) {
-    .ctl$nSub <- length(.ctl$iCov[, 1])
-  } else if (.ctl$nSub != 1 && .ctl$nStud == 1 && inherits(.ctl$iCov, "data.frame")) {
-    if (.ctl$nSub != length(.ctl$iCov[, 1])) {
-      stop("'nSub' does not match the number of subjects in 'iCov'",
-        call. = FALSE
-      )
-    }
-  } else if (.ctl$nSub != 1 && .ctl$nStud != 1 && inherits(.ctl$iCov, "data.frame")) {
-    if (.ctl$nSub * .ctl$nStud != length(.ctl$iCov[, 1])) {
-      stop("'nSub'*'nStud' does not match the number of subjects in 'iCov'",
-        call. = FALSE
-      )
-    }
-  }
+
   ## Prefers individual keep over keeping from the input data
-  .keepI <- character(0)
   .keepF <- character(0)
   if (!is.null(.ctl$keep)) {
     .mv <- rxModelVars(object)
     .vars <- c(.mv$lhs, .mv$state)
     .keepF <- setdiff(.ctl$keep, .vars)
-    if (!is.null(.ctl$iCov)) {
-      .keepI <- intersect(.keepF, names(.ctl$iCov))
-      .keepF <- setdiff(.keepF, .keepI)
-    }
   }
-  .ctl$keepI <- .keepI
   .ctl$keepF <- .keepF
   rxSolveFree()
+
+
 
   if (!is.null(theta) | !is.null(eta)) {
     .theta <- theta
@@ -1149,8 +1130,6 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
         .eta <- setNames(eta, paste0("ETA[", seq_along(eta), "]"))
       }
     }
-    .pet <- rxIs(params, "rxEt")
-    .eet <- rxIs(events, "rxEt")
     if (is.null(params)) {
       params <- c(.theta, .eta)
     } else if (is.null(events)) {
@@ -1161,6 +1140,50 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
     }
   }
 
+  if (!is.null(.ctl$iCov)){
+    if (inherits(.ctl$iCov, "data.frame")) {
+      .icovId <- which(tolower(names(.ctl$iCov)) == "id")
+      .useEvents <- FALSE
+      if (rxIs(events, "event.data.frame")) {
+        .events <- events
+        .useEvents <- TRUE
+      } else if (rxIs(params, "event.data.frame")) {
+        .events <- params
+      } else {
+        stop("Cannot detect an event data frame to merge 'iCov'")
+      }
+      .eventId <- which(tolower(names(.events)) == "id")
+      if (length(.eventId) != 1) {
+        stop("to use 'iCov' you must have an id in your event table")
+      }
+      .by <- names(.events)[.eventId]
+      if (length(.icovId) == 0) {
+        .id <- unique(events[[.by]])
+        if (length(.ctl$iCov[, 1]) != length(.id)) {
+          stop("'iCov' and 'id' mismatch")
+        }
+        .ctl$iCov$id <- .id
+      } else if (length(.icovId) > 1) {
+        stop("iCov has duplicate IDs, cannot continue")
+      }
+      names(.ctl$iCov)[.icovId] <- .by
+      .lEvents <- length(.events[, 1])
+      .events <- merge(.events, .ctl$iCov, by=.by)
+      if (.lEvents != length(.events[, 1])) {
+        warning("combining iCov and events dropped some event information")
+      }
+      if (length(unique(.events[[.by]])) != length(.ctl$iCov[, 1])) {
+        warning("combining iCov and events dropped some iCov information")
+      }
+      if (.useEvents) {
+        events <- .events
+      } else {
+        params <- .events
+      }
+    } else {
+      stop("'iCov' must be an input dataset")
+    }
+  }
   .ret <- .collectWarnings(rxSolveSEXP(object, .ctl, .nms, .xtra,
     params, events, inits,
     setupOnlyS = .setupOnly

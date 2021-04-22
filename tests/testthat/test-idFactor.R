@@ -151,6 +151,7 @@ rxodeTest(
       tmp2 <- expect_warning(rxSolve(mod, d, parData2))
 
       expect_false(all(tmp1$params$tka == tmp2$params$tka))
+
     })
 
     test_that("test iCov ID", {
@@ -182,9 +183,6 @@ rxodeTest(
       expect_equal(data.frame(tmp1), data.frame(tmp2))
       expect_equal(data.frame(tmp1$params), data.frame(tmp2$params))
 
-      expect_equal(levels(tmp1$id), levels(tmp1$params$id))
-      expect_equal(levels(tmp2$id), levels(tmp2$params$id))
-
       expect_equal(tmp1$cwt, tmp2$wt)
       expect_equal(tmp2$cwt, tmp2$wt)
 
@@ -196,9 +194,6 @@ rxodeTest(
 
       expect_equal(data.frame(tmp1), data.frame(tmp2))
       expect_equal(data.frame(tmp1$params), data.frame(tmp2$params))
-
-      expect_equal(levels(tmp1$id), levels(tmp1$params$id))
-      expect_equal(levels(tmp2$id), levels(tmp2$params$id))
 
       expect_equal(tmp1$cwt, tmp2$wt)
       expect_equal(tmp2$cwt, tmp2$wt)
@@ -219,9 +214,6 @@ rxodeTest(
 
       expect_equal(data.frame(tmp1), data.frame(tmp2))
       expect_equal(data.frame(tmp1$params), data.frame(tmp2$params))
-
-      expect_equal(levels(tmp1$id), levels(tmp1$params$id))
-      expect_equal(levels(tmp2$id), levels(tmp2$params$id))
 
       expect_equal(tmp1$cwt, tmp2$wt)
       expect_equal(tmp2$cwt, tmp2$wt)
@@ -248,8 +240,6 @@ rxodeTest(
       expect_equal(data.frame(tmp1), data.frame(tmp2))
       expect_equal(data.frame(tmp1$params), data.frame(tmp2$params))
 
-      expect_equal(levels(tmp1$id), levels(tmp1$params$id))
-      expect_equal(levels(tmp2$id), levels(tmp2$params$id))
       expect_equal(tmp1$cwt, tmp2$wt)
       expect_equal(tmp2$cwt, tmp2$wt)
 
@@ -257,15 +247,11 @@ rxodeTest(
       iCov <- data.frame(id = 1:12, wt = 70 + rnorm(12, sd = 0.01))
       iCov$ID <- letters[iCov$id]
 
-      tmp1 <- expect_warning(rxSolve(mod, d, iCov = iCov, keep = "wt"))
+      expect_error(rxSolve(mod, d, iCov = iCov, keep = "wt"))
 
       iCov2 <- iCov[order(-iCov$id), ]
 
-      tmp2 <- expect_warning(rxSolve(mod, d, iCov = iCov2, keep = "wt"))
-
-      expect_false(all(tmp1$params$wt == tmp2$params$wt))
-      expect_equal(tmp1$cwt, tmp1$wt)
-      expect_equal(tmp2$cwt, tmp2$wt)
+      expect_error(rxSolve(mod, d, iCov = iCov2, keep = "wt"))
 
     })
 

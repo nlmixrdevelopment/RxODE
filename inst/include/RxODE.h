@@ -256,7 +256,6 @@ typedef struct {
   int *stateIgnore;
   int nCov0;
   int *cov0;
-  int nKeep0;
   int nKeepF;
   int istateReset;
   int cens;
