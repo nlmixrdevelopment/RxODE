@@ -306,7 +306,18 @@
     if (length(.doubleNames) > 0) {
       .doubleNames <- .doubleNames[names(.doubleNames) != ""]
       if (length(.doubleNames) > 0) {
-        .df <- data.frame(popParameter=.names[.wt], covariate=names(.doubleNames), covariateParameter=setNames(unlist(.doubleNames), NULL))
+        .w <- which(env$muRefCovariateDataFrame$popParameter == .names[.wt])
+        .covariate <- names(.doubleNames)
+        .covariateParameter <- setNames(unlist(.doubleNames), NULL)
+        if (length(.w) > 0) {
+          # Already defined something
+          .tmp <- env$muRefCovariateDataFrame[.w, ]
+          .tmp2 <- with(.tmp, paste0(covariate, ",", covariateParameter))
+          if (!all(.tmp2 %in% paste0(.covariate, ",", .covariateParameter))) {
+            stop(sprintf("improper covariate mu-referencing for '%s', more than one parameter is being estimated for a single covariate", .names[.wt]))
+          }
+        }
+        .df <- data.frame(popParameter=.names[.wt], covariate=.covariate, covariateParameter=.covariateParameter)
         env$muRefCovariateDataFrame <- rbind(env$muRefCovariateDataFrame, .df)
       }
     }

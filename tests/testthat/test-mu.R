@@ -275,8 +275,15 @@ rxodeTest({
       ## cp ~ add(add.sd)
     }), lmat)
 
+    expect_equal(env$muRefCovariateDataFrame,
+                 structure(list(popParameter = c("tcl", "tcl", "tv", "tv", "tv", "tvp", "tvp", "tvp"),
+                                covariate = c("age", "sex", "age", "sex", "wt", "age", "sex", "wt"),
+                                covariateParameter = c("cl.age", "cl.sex", "v.age", "v.sex", "v.wt", "vp.age", "vp.sex", "vp.wt")),
+                           row.names = c(NA, -8L),
+                           class = "data.frame"))
+
     # This one tv is used in 2 covariate references
-    env <- rxMuRef(RxODE({
+    expect_error(rxMuRef(RxODE({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -285,7 +292,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       ## cp ~ add(add.sd)
-    }), lmat)
+    }), lmat))
 
   })
 
@@ -293,35 +300,11 @@ rxodeTest({
 
 }, test="lvl2")
 
-
-## rxMuRef(RxODE({
-##   ka <- exp(tka + eta.ka)
-##   cl <- exp(tcl + eta.cl)
-##   v <- exp(tv + eta.v)
-##   d/dt(depot) = -ka * depot
-##   d/dt(center) = ka * depot - cl/v * center
-##   cp = center/v
-##   ## cp ~ add(add.sd)
-## }), theta=c("tka", "tcl", "tv", "add.sd"),
-## eta=c("eta.ka", "eta.cl", "eta.v"))
-
-
-
 ## ## Composite expressions should be extracted to their own lines
 ## rxMuRef(RxODE({
 ##   ratio <- exp(t.EmaxA + eta.emaxA) / exp(t.EmaxB + eta.emaxB)
 ## }), theta=c("tka", "tcl", "tv", "add.sd"),
 ## eta=c("eta.ka", "eta.cl", "eta.v"))
-
-## ## This composite RxODE model should be extracted to something like above
-## rxMuRef(RxODE({
-##   d/dt(depot) = -exp(tka + eta.ka) * depot
-##   d/dt(center) = exp(tka + eta.ka) * depot - exp(tcl + eta.cl)/exp(tv + eta.v) * center
-##   cp = center/exp(tv + eta.v)
-##   #cp ~ add(add.sd)
-## }), theta=c("tka", "tcl", "tv", "add.sd"),
-## eta=c("eta.ka", "eta.cl", "eta.v"))
-
 
 ## ## This should be expanded to eta.ka mu-referenced variables
 ## rxMuRef(RxODE({
