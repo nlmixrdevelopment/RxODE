@@ -417,14 +417,11 @@ extern "C" int compareFactorVal(int val,
   for (int i = 0; i < totN; ++i) {
     const char *curFactor = rx->factorNames.line[++curG];
     curLen = rx->factorNs[curG];
-    REprintf("'%s' '%s' ;;;\n", valStr, curFactor);
     if (!strncmpci(valStr, curFactor, strlen(valStr))) {
       if (val-1 < curLen){
 	if (base+val-1 >= rx->factors.n) {
 	  return 0;
 	}
-	REprintf("'%s' '%s'\n", rx->factors.line[base+val-1],
-		 cmpValue);
 	return (!strncmpci(rx->factors.line[base+val-1],
 			  cmpValue, strlen(cmpValue)));
       } else {
