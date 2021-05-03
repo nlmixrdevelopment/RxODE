@@ -2575,7 +2575,7 @@ extern "C" SEXP getDfLevels(const char *item, rx_solve *rx){
   for (int i = 2; i < totN; ++i) {
     const char *curFactor = rx->factorNames.line[i];
     curLen = rx->factorNs[i];
-    if (!strcmp(item, curFactor)) {
+    if (!strncmpci(item, curFactor, strlen(item))) {
       SEXP lvl = PROTECT(allocVector(STRSXP, curLen));
       for (int j = 0; j < curLen; j++){
 	SET_STRING_ELT(lvl, j, mkChar(rx->factors.line[base+j]));
