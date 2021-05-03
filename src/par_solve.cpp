@@ -7,6 +7,8 @@
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
+#include "strncmp.h"
+
 extern "C" {
   #include "dop853.h"
   #include "common.h"
@@ -410,18 +412,21 @@ extern "C" int compareFactorVal(int val,
       return 0;
     }
   }
-  int totN = rx->factorNames.n;
+  int totN = rx->factorNames.n-2;
   base += curLen;
   for (int i = 0; i < totN; ++i) {
     const char *curFactor = rx->factorNames.line[++curG];
     curLen = rx->factorNs[curG];
-    if (!strcmp(valStr, curFactor)) {
+    REprintf("'%s' '%s' ;;;\n", valStr, curFactor);
+    if (!strncmpci(valStr, curFactor, strlen(valStr))) {
       if (val-1 < curLen){
 	if (base+val-1 >= rx->factors.n) {
 	  return 0;
 	}
-	return (!strcmp(rx->factors.line[base+val-1],
-			cmpValue));
+	REprintf("'%s' '%s'\n", rx->factors.line[base+val-1],
+		 cmpValue);
+	return (!strncmpci(rx->factors.line[base+val-1],
+			  cmpValue, strlen(cmpValue)));
       } else {
 	return 0;
       }
