@@ -422,8 +422,7 @@ extern "C" int compareFactorVal(int val,
 	if (base+val-1 >= rx->factors.n) {
 	  return 0;
 	}
-	return (!strncmpci(rx->factors.line[base+val-1],
-			  cmpValue, strlen(cmpValue)));
+	return (!strcmp(rx->factors.line[base+val-1], cmpValue));
       } else {
 	return 0;
       }

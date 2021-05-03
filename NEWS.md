@@ -7,6 +7,11 @@
   that clinical trial simulations, resampling is likely better than
   trying to fill out `iCov` for every individual which was the prior
   use.
+  
+* Bug fix for crashes with string covariates or factor covariates,
+  issue #410. Also factor column names are compared with case
+  insensitivity just like the rest of the column names for event
+  tables or data sets in `RxODE`.
 
 # RxODE 1.0.8
 
