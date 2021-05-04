@@ -364,23 +364,23 @@ dropout is equal to or after tmax.</p>
     <pre class="examples"><div class='input'>
 <span class='co'>## Sample homogenous Poisson process of rate 1/10</span>
 <span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>10</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;  [1] 12.63950 26.44291 40.04105 45.55494 61.89415 64.24578 65.56525 68.04926
+</div><div class='co'>#&gt;  [1] 12.63950 26.44291 40.04105 45.55494 61.89415 64.24578 65.56525 68.04926
 #&gt;  [9] 73.80819 86.37053</div><div class='input'>
 <span class='co'>## Sample inhomogenous Poisson rate of 1/10</span>
 
 <span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>10</span>,gamma<span class='op'>=</span><span class='fl'>2</span>,tmax<span class='op'>=</span><span class='fl'>100</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;  [1]  8.388721 12.007209 18.928419 31.615574 31.985592 35.790884 37.382763
+</div><div class='co'>#&gt;  [1]  8.388721 12.007209 18.928419 31.615574 31.985592 35.790884 37.382763
 #&gt;  [8] 37.421945 48.763061 48.980873</div><div class='input'>
 <span class='co'>## Typically the Poisson process times are in a sequential order,</span>
 <span class='co'>## using randomOrder gives the Poisson process in random order</span>
 
 <span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>10</span>,gamma<span class='op'>=</span><span class='fl'>2</span>,tmax<span class='op'>=</span><span class='fl'>10</span>, randomOrder<span class='op'>=</span><span class='cn'>TRUE</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;  [1] 10.000000 10.000000 10.000000 10.000000  2.961469 10.000000 10.000000
+</div><div class='co'>#&gt;  [1] 10.000000 10.000000 10.000000 10.000000  2.961469 10.000000 10.000000
 #&gt;  [8] 10.000000  8.494625 10.000000</div><div class='input'>
 <span class='co'>## This uses an arbitrary function to sample a non-homogenous Poisson process</span>
 
 <span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>10</span>, prob<span class='op'>=</span><span class='kw'>function</span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span><span class='op'>{</span><span class='fl'>1</span><span class='op'>/</span><span class='va'>x</span><span class='op'>}</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;  [1] 100.7495 121.0063 125.9284 158.1039 275.9213 375.0032 377.4571 382.6684
+</div><div class='co'>#&gt;  [1] 100.7495 121.0063 125.9284 158.1039 275.9213 375.0032 377.4571 382.6684
 #&gt;  [9] 526.5412 729.3326</div><div class='input'>
 </div></pre>
   </div>

@@ -349,21 +349,21 @@ reproduce your results.</p>
 <span class='co'>## Use threefry engine</span>
 
 <span class='fu'>rxpois</span><span class='op'>(</span>lambda<span class='op'>=</span><span class='fl'>3</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxpois you have to explicitly state n</span>
-</div><div class='output co'>#&gt;  [1] 5 0 3 2 7 0 1 2 3 8</div><div class='input'><span class='fu'>rxpois</span><span class='op'>(</span>lambda<span class='op'>=</span><span class='fl'>3</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
-</div><div class='output co'>#&gt;  [1] 2 3 1 4 2 1 2 4 1 1</div><div class='input'>
+</div><div class='co'>#&gt;  [1] 5 0 3 2 7 0 1 2 3 8</div><div class='input'><span class='fu'>rxpois</span><span class='op'>(</span>lambda<span class='op'>=</span><span class='fl'>3</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
+</div><div class='co'>#&gt;  [1] 2 3 1 4 2 1 2 4 1 1</div><div class='input'>
 <span class='fu'>rxpois</span><span class='op'>(</span><span class='fl'>4</span><span class='op'>)</span> <span class='co'>## The first arguments are the lambda parameter</span>
-</div><div class='output co'>#&gt; [1] 3</div><div class='input'>
+</div><div class='co'>#&gt; [1] 3</div><div class='input'>
 
 <span class='co'>## This example uses `rxpois` directly in the model</span>
 
 <span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span>
   <span class='va'>a</span> <span class='op'>=</span> <span class='fu'>rxpois</span><span class='op'>(</span><span class='fl'>3</span><span class='op'>)</span>
 <span class='op'>}</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'> </span></div><div class='input'>
+</div><div class='co'>#&gt;  </div><div class='input'>
 <span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span>
 
 <span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='warning'>Warning: thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</span></div><div class='input'><span class='co'># }</span>
+</div><div class='co'>#&gt; <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</div><div class='input'><span class='co'># }</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

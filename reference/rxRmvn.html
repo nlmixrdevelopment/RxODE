@@ -386,7 +386,7 @@ inverse-transformation;</p>
 
     <p>If <code>n==integer</code> (default) the output is an (n x d) matrix
 where the i-th row is the i-th simulated vector.</p>
-<p>If <code><a href='https://rdrr.io/r/base/matrix.html'>is.matrix(n)</a></code> then the random vector are store in <code>n</code>,
+<p>If <code>is.matrix(n)</code> then the random vector are store in <code>n</code>,
 which is provided by the user, and the function returns
 <code>NULL</code> invisibly.</p>
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
@@ -420,21 +420,21 @@ converted to thread safe simulation;</p>
 
 <span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span><span class='op'>(</span><span class='fl'>414</span><span class='op'>)</span>
 <span class='fu'>rxRmvn</span><span class='op'>(</span><span class='fl'>4</span>, <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>, <span class='va'>mcov</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;            [,1]        [,2]     [,3]     [,4]     [,5]
+</div><div class='co'>#&gt;            [,1]        [,2]     [,3]     [,4]     [,5]
 #&gt; [1,]  0.3240382  0.98301870 4.785570 1.786345 4.871032
 #&gt; [2,] -0.3092766 -1.84739954 4.019072 3.452134 4.466194
 #&gt; [3,]  4.7003263  0.02994697 3.741147 5.167629 6.376128
 #&gt; [4,] -0.3970287  2.68134223 1.092500 4.774566 4.005038</div><div class='input'>
 <span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span><span class='op'>(</span><span class='fl'>414</span><span class='op'>)</span>
 <span class='fu'>rxRmvn</span><span class='op'>(</span><span class='fl'>4</span>, <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>, <span class='va'>mcov</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;            [,1]        [,2]     [,3]     [,4]     [,5]
+</div><div class='co'>#&gt;            [,1]        [,2]     [,3]     [,4]     [,5]
 #&gt; [1,]  0.3240382  0.98301870 4.785570 1.786345 4.871032
 #&gt; [2,] -0.3092766 -1.84739954 4.019072 3.452134 4.466194
 #&gt; [3,]  4.7003263  0.02994697 3.741147 5.167629 6.376128
 #&gt; [4,] -0.3970287  2.68134223 1.092500 4.774566 4.005038</div><div class='input'>
 <span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span><span class='op'>(</span><span class='fl'>414</span><span class='op'>)</span>
 <span class='fu'>rxRmvn</span><span class='op'>(</span><span class='fl'>4</span>, <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>, <span class='va'>mcov</span>, ncores <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span> <span class='co'># r.v. generated on the second core are different</span>
-</div><div class='output co'>#&gt;            [,1]        [,2]     [,3]     [,4]     [,5]
+</div><div class='co'>#&gt;            [,1]        [,2]     [,3]     [,4]     [,5]
 #&gt; [1,]  0.3240382  0.98301870 4.785570 6.089701 6.497555
 #&gt; [2,] -0.3092766 -1.84739954 4.019072 4.701690 4.985613
 #&gt; [3,]  4.7003263  0.02994697 4.973642 3.066544 6.343087
@@ -447,7 +447,7 @@ converted to thread safe simulation;</p>
 <span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span><span class='op'>(</span><span class='fl'>414</span><span class='op'>)</span>
 <span class='fu'>rxRmvn</span><span class='op'>(</span><span class='va'>A</span>, <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>, <span class='va'>mcov</span>, ncores <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span> <span class='co'># This returns NULL ...</span>
 <span class='va'>A</span>                                <span class='co'># ... but the result is here</span>
-</div><div class='output co'>#&gt;            [,1]        [,2]     [,3]     [,4]     [,5]
+</div><div class='co'>#&gt;            [,1]        [,2]     [,3]     [,4]     [,5]
 #&gt; [1,]  0.3240382  0.98301870 4.785570 6.089701 6.497555
 #&gt; [2,] -0.3092766 -1.84739954 4.019072 4.701690 4.985613
 #&gt; [3,]  4.7003263  0.02994697 4.973642 3.066544 6.343087
@@ -455,7 +455,7 @@ converted to thread safe simulation;</p>
 <span class='co'>## You can also simulate from a truncated normal:</span>
 
 <span class='fu'>rxRmvn</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>, <span class='va'>mcov</span>, lower<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span><span class='op'>-</span><span class='fl'>1</span>, upper<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span><span class='op'>+</span><span class='fl'>1</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;             [,1]     [,2]     [,3]     [,4]     [,5]
+</div><div class='co'>#&gt;             [,1]     [,2]     [,3]     [,4]     [,5]
 #&gt;  [1,] 1.21230609 1.836775 2.869462 3.921128 5.638532
 #&gt;  [2,] 0.08050236 1.697993 2.778864 4.066135 5.462161
 #&gt;  [3,] 1.46654850 2.453488 3.175589 3.525531 5.984464
@@ -477,7 +477,7 @@ converted to thread safe simulation;</p>
 
 
 <span class='fu'>rxRmvn</span><span class='op'>(</span><span class='fl'>4</span>, <span class='fu'><a href='https://rdrr.io/r/stats/setNames.html'>setNames</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>,<span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span><span class='op'>(</span><span class='st'>"a"</span>,<span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span><span class='op'>)</span><span class='op'>)</span>, <span class='va'>matL</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;               a1         a2         a3       a4       a5
+</div><div class='co'>#&gt;               a1         a2         a3       a4       a5
 #&gt;  [1,]  2.1027689 -3.1277802 -1.7058664 3.877449 6.160238
 #&gt;  [2,] -0.1528749  0.3372425  1.4079033 3.204818 6.771887
 #&gt;  [3,] -1.6178920  2.4185331  4.2854089 4.204923 6.115151

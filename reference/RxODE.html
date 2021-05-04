@@ -504,7 +504,7 @@ are delimited by <code>#</code> and an end-of-line).</p>
 <p>A block of statements is a set of statements delimited by curly braces,
 <code>{ ... }</code>.</p>
 <p>Statements can be either assignments, conditional <code>if</code>/<code>else if</code>/<code>else</code>,
-<code>while</code> loops (can be exited by <code>break</code>), special statements, or
+<code>while</code> loops (can be exited by <code><a href='https://rdrr.io/r/base/Control.html'>break</a></code>), special statements, or
 printing statements (for debugging/testing)</p>
 <p>Assignment statements can be:</p><ul>
 <li><p><strong>simple</strong> assignments, where the left hand is an identifier (i.e.,
@@ -531,8 +531,8 @@ for very stiff ODE systems. However, for the few stiff systems we
 tried with LSODA, this actually slightly slowed down the solving.</p></li>
 </ul>
 
-<p>Note that assignment can be done by <code><a href='https://rdrr.io/r/base/assignOps.html'>=</a></code>, <code>&lt;-</code> or <code><a href='https://rdrr.io/r/base/tilde.html'>~</a></code>.</p>
-<p>When assigning with the <code><a href='https://rdrr.io/r/base/tilde.html'>~</a></code> operator, the <strong>simple assignments</strong> and
+<p>Note that assignment can be done by <code>=</code>, <code>&lt;-</code> or <code>~</code>.</p>
+<p>When assigning with the <code>~</code> operator, the <strong>simple assignments</strong> and
 <strong>time-derivative</strong> assignments will not be output.</p>
 <p>Special statements can be:</p><ul>
 <li><p><strong>Compartment declaration statements</strong>, which can change the default
@@ -611,7 +611,7 @@ use these variables starting with either the <code>rx</code> or <code>nlmixr</co
 <h3 class='hasAnchor' id='logical-operators'><a class='anchor' aria-hidden='true' href='#logical-operators'></a>Logical Operators</h3>
 
 
-<p>Logical operators support the standard R operators <code><a href='https://rdrr.io/r/base/Comparison.html'>==</a></code>, <code><a href='https://rdrr.io/r/base/Comparison.html'>!=</a></code> <code>&gt;=</code> <code>&lt;=</code>
+<p>Logical operators support the standard R operators <code>==</code>, <code>!=</code> <code>&gt;=</code> <code>&lt;=</code>
 <code>&gt;</code> and <code>&lt;</code>. Like R these can be in <code>if()</code> or <code>while()</code> statements,
 <code><a href='https://rdrr.io/r/base/ifelse.html'>ifelse()</a></code> expressions. Additionally they can be in a standard
 assignment. For instance, the following is valid:</p><pre><span class='va'>cov1</span> <span class='op'>=</span> <span class='va'>covm</span><span class='op'>*</span><span class='op'>(</span><span class='va'>sexf</span> <span class='op'>==</span> <span class='st'>"female"</span><span class='op'>)</span> <span class='op'>+</span> <span class='va'>covm</span><span class='op'>*</span><span class='op'>(</span><span class='va'>sexf</span> <span class='op'>!=</span> <span class='st'>"female"</span><span class='op'>)</span>
@@ -667,11 +667,11 @@ Springer-Verlag (1993).</p>
 "</span>
 
 <span class='va'>m1</span> <span class='op'>&lt;-</span> <span class='fu'>RxODE</span><span class='op'>(</span>model <span class='op'>=</span> <span class='va'>ode</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'> </span></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>m1</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>1.0.8.1 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_d019961e1db4817ca3fe7161cee17f60</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). 
-#&gt; </span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff
-#&gt; </span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50
-#&gt; </span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</div><div class='input'>
+</div><div class='co'>#&gt;  </div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>m1</span><span class='op'>)</span>
+</div><div class='co'>#&gt; <span style='font-weight: bold;'>RxODE </span><span>1.0.8.1 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_088aae28259641f9ea41832f89fad188</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>). </span>
+#&gt; <span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff</span>
+#&gt; <span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50</span>
+#&gt; <span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</span></div><div class='input'>
 <span class='co'># Step 2 - Create the model input as an EventTable,</span>
 <span class='co'># including dosing and observation (sampling) events</span>
 
@@ -700,9 +700,9 @@ Springer-Verlag (1993).</p>
 <span class='co'># Step 4 - Fit the model to the data</span>
 
 <span class='va'>qd.cp</span> <span class='op'>&lt;-</span> <span class='va'>m1</span><span class='op'>$</span><span class='fu'>solve</span><span class='op'>(</span><span class='va'>theta</span>, events <span class='op'>=</span> <span class='va'>qd</span>, <span class='va'>inits</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='warning'>Warning: Assumed order of inputs: depot, centr, peri, eff</span></div><div class='input'>
+</div><div class='co'>#&gt; <span class='warning'>Warning: </span>Assumed order of inputs: depot, centr, peri, eff</div><div class='input'>
 <span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span><span class='op'>(</span><span class='va'>qd.cp</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;      time       C2        C3     depot    centr      peri      eff
+</div><div class='co'>#&gt;      time       C2        C3     depot    centr      peri      eff
 #&gt; [1,]    0  0.00000 0.0000000 10000.000    0.000    0.0000 1.000000
 #&gt; [2,]    1 43.99334 0.9113641  7475.157 1768.532  270.6751 1.083968
 #&gt; [3,]    2 54.50866 2.6510696  5587.797 2191.248  787.3677 1.179529
@@ -717,30 +717,30 @@ Springer-Verlag (1993).</p>
 <span class='va'>qd.cp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>m1</span>, <span class='va'>theta</span>, events <span class='op'>=</span> <span class='va'>qd</span>, <span class='va'>inits</span><span class='op'>)</span>;
 
 <span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>qd.cp</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ </span><span style='font-weight: bold;'>Solved RxODE object</span><span> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
-#&gt; ── </span><span style='font-weight: bold;'>Parameters</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>): ───────────────────────────────────────────────────────
+</div><div class='co'>#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ <span style='font-weight: bold;'>Solved RxODE object</span><span> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
+#&gt; ── <span style='font-weight: bold;'>Parameters</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>): ───────────────────────────────────────────────────────</span>
 #&gt;      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 #&gt;  40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000 
-#&gt; ── </span><span style='font-weight: bold;'>Initial Conditions</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$inits</span><span>): ────────────────────────────────────────────────
+#&gt; ── <span style='font-weight: bold;'>Initial Conditions</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$inits</span><span>): ────────────────────────────────────────────────</span>
 #&gt; depot centr  peri   eff 
 #&gt;     0     0     0     1 
-#&gt; ── </span><span style='font-weight: bold;'>First part of data (object):</span><span> ────────────────────────────────────────────────
-#&gt; </span><span style='color: #949494;'># A tibble: 37 x 7</span><span>
+#&gt; ── <span style='font-weight: bold;'>First part of data (object):</span><span> ────────────────────────────────────────────────</span>
+#&gt; <span style='color: #949494;'># A tibble: 37 x 7</span>
 #&gt;    time    C2    C3  depot centr  peri   eff
-#&gt;     </span><span style='color: #949494;'>[h]</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span>  </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span>
-#&gt; </span><span style='color: #BCBCBC;'>1</span><span>     0   0   0     </span><span style='text-decoration: underline;'>10</span><span>000     0     0   1   
-#&gt; </span><span style='color: #BCBCBC;'>2</span><span>     1  44.0 0.911  </span><span style='text-decoration: underline;'>7</span><span>475. </span><span style='text-decoration: underline;'>1</span><span>769.  271.  1.08
-#&gt; </span><span style='color: #BCBCBC;'>3</span><span>     2  54.5 2.65   </span><span style='text-decoration: underline;'>5</span><span>588. </span><span style='text-decoration: underline;'>2</span><span>191.  787.  1.18
-#&gt; </span><span style='color: #BCBCBC;'>4</span><span>     3  51.7 4.42   </span><span style='text-decoration: underline;'>4</span><span>177. </span><span style='text-decoration: underline;'>2</span><span>076. </span><span style='text-decoration: underline;'>1</span><span>314.  1.23
-#&gt; </span><span style='color: #BCBCBC;'>5</span><span>     4  44.4 5.94   </span><span style='text-decoration: underline;'>3</span><span>122. </span><span style='text-decoration: underline;'>1</span><span>784. </span><span style='text-decoration: underline;'>1</span><span>765.  1.23
-#&gt; </span><span style='color: #BCBCBC;'>6</span><span>     5  36.5 7.14   </span><span style='text-decoration: underline;'>2</span><span>334. </span><span style='text-decoration: underline;'>1</span><span>466. </span><span style='text-decoration: underline;'>2</span><span>120.  1.21
-#&gt; </span><span style='color: #949494;'># … with 31 more rows</span><span>
+#&gt;     <span style='color: #949494;'>[h]</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span>  </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span>
+#&gt; <span style='color: #BCBCBC;'>1</span><span>     0   0   0     </span><span style='text-decoration: underline;'>10</span><span>000     0     0   1   </span>
+#&gt; <span style='color: #BCBCBC;'>2</span><span>     1  44.0 0.911  </span><span style='text-decoration: underline;'>7</span><span>475. </span><span style='text-decoration: underline;'>1</span><span>769.  271.  1.08</span>
+#&gt; <span style='color: #BCBCBC;'>3</span><span>     2  54.5 2.65   </span><span style='text-decoration: underline;'>5</span><span>588. </span><span style='text-decoration: underline;'>2</span><span>191.  787.  1.18</span>
+#&gt; <span style='color: #BCBCBC;'>4</span><span>     3  51.7 4.42   </span><span style='text-decoration: underline;'>4</span><span>177. </span><span style='text-decoration: underline;'>2</span><span>076. </span><span style='text-decoration: underline;'>1</span><span>314.  1.23</span>
+#&gt; <span style='color: #BCBCBC;'>5</span><span>     4  44.4 5.94   </span><span style='text-decoration: underline;'>3</span><span>122. </span><span style='text-decoration: underline;'>1</span><span>784. </span><span style='text-decoration: underline;'>1</span><span>765.  1.23</span>
+#&gt; <span style='color: #BCBCBC;'>6</span><span>     5  36.5 7.14   </span><span style='text-decoration: underline;'>2</span><span>334. </span><span style='text-decoration: underline;'>1</span><span>466. </span><span style='text-decoration: underline;'>2</span><span>120.  1.21</span>
+#&gt; <span style='color: #949494;'># … with 31 more rows</span>
 #&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</div><div class='input'>
 <span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>qd.cp</span><span class='op'>)</span>
 </div><div class='img'><img src='RxODE-1.png' alt='' width='700' height='433' /></div><div class='input'>
 <span class='co'># }</span>
 
-</div></span></pre>
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

@@ -327,7 +327,7 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
     <pre class="examples"><div class='input'>
 <span class='co'>##</span>
 <span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>
-</div><div class='output co'>#&gt;     Var1 Var2
+</div><div class='co'>#&gt;     Var1 Var2
 #&gt; 1      a    a
 #&gt; 2      b    a
 #&gt; 3      c    a
@@ -1014,10 +1014,10 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
 
 <span class='co'># \donttest{</span>
  <span class='fu'>microbenchmark</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html'>microbenchmark</a></span><span class='op'>(</span><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>, <span class='fu'>expand.grid.jc</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; Unit: microseconds
-#&gt;                              expr  min    lq   mean median    uq   max neval
-#&gt;    rxExpandGrid(letters, letters) 19.7 21.10 22.675   22.0 23.45  51.6   100
-#&gt;  expand.grid.jc(letters, letters) 26.2 29.25 35.198   31.4 33.05 358.1   100</div><div class='input'><span class='co'># }</span>
+</div><div class='co'>#&gt; Unit: microseconds
+#&gt;                              expr  min   lq   mean median    uq   max neval
+#&gt;    rxExpandGrid(letters, letters) 19.1 20.6 22.643  22.15 23.80  55.8   100
+#&gt;  expand.grid.jc(letters, letters) 25.8 30.5 32.559  31.45 32.85 103.6   100</div><div class='input'><span class='co'># }</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

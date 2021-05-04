@@ -356,23 +356,23 @@ reproduce your results.</p>
 <span class='co'>## Use threefry engine</span>
 
 <span class='fu'>rxweibull</span><span class='op'>(</span>shape<span class='op'>=</span><span class='fl'>1</span>, scale<span class='op'>=</span><span class='fl'>4</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxweibull you have to explicitly state n</span>
-</div><div class='output co'>#&gt;  [1] 0.3486622 2.9635242 9.2460350 4.3840779 5.9624172 1.7138640 0.7363841
+</div><div class='co'>#&gt;  [1] 0.3486622 2.9635242 9.2460350 4.3840779 5.9624172 1.7138640 0.7363841
 #&gt;  [8] 1.2759314 1.0791512 2.9407383</div><div class='input'><span class='fu'>rxweibull</span><span class='op'>(</span>shape<span class='op'>=</span><span class='fl'>1</span>, scale<span class='op'>=</span><span class='fl'>4</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
-</div><div class='output co'>#&gt;  [1]  2.5187157  1.0679777  1.1732240  3.8040546  1.5357556  0.1385729
+</div><div class='co'>#&gt;  [1]  2.5187157  1.0679777  1.1732240  3.8040546  1.5357556  0.1385729
 #&gt;  [7]  0.3315010 10.8155110  8.4266018  3.1755766</div><div class='input'>
 <span class='fu'>rxweibull</span><span class='op'>(</span><span class='fl'>3</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; [1] 1.203126</div><div class='input'>
+</div><div class='co'>#&gt; [1] 1.203126</div><div class='input'>
 
 <span class='co'>## This example uses `rxweibull` directly in the model</span>
 
 <span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span>
   <span class='va'>a</span> <span class='op'>=</span> <span class='fu'>rxweibull</span><span class='op'>(</span><span class='fl'>1</span>,<span class='fl'>3</span><span class='op'>)</span>
 <span class='op'>}</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'> </span></div><div class='input'>
+</div><div class='co'>#&gt;  </div><div class='input'>
 <span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span>
 
 <span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='warning'>Warning: thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</span></div><div class='input'>
+</div><div class='co'>#&gt; <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</div><div class='input'>
 <span class='co'># }</span>
 </div></pre>
   </div>

@@ -235,7 +235,7 @@
       <h1 data-toc-skip>Speeding up RxODE</h1>
                         <h4 data-toc-skip class="author">Matthew Fidler</h4>
             
-            <h4 data-toc-skip class="date">2021-04-22</h4>
+            <h4 data-toc-skip class="date">2021-05-04</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-speed.Rmd" class="external-link"><code>vignettes/RxODE-speed.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-speed.Rmd</code></div>
@@ -270,9 +270,9 @@
 
 <span class="co">## Create an event table</span>
 
-<span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, addl<span class="op">=</span><span class="fl">9</span>,ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fl">120</span>, amt<span class="op">=</span><span class="fl">20000</span>, addl<span class="op">=</span><span class="fl">4</span>, ii<span class="op">=</span><span class="fl">24</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
+    <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, addl<span class="op">=</span><span class="fl">9</span>,ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
+    <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fl">120</span>, amt<span class="op">=</span><span class="fl">20000</span>, addl<span class="op">=</span><span class="fl">4</span>, ii<span class="op">=</span><span class="fl">24</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span> <span class="co">## Add Sampling</span>
 
 <span class="va">nsub</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="co"># 100 sub-problems</span>
@@ -335,11 +335,11 @@
 <code class="sourceCode R"><span class="va">bench</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html" class="external-link">microbenchmark</a></span><span class="op">(</span><span class="fu">runFor</span><span class="op">(</span><span class="op">)</span>, <span class="fu">runSapply</span><span class="op">(</span><span class="op">)</span>, <span class="fu">runSingleThread</span><span class="op">(</span><span class="op">)</span>,<span class="fu">run2Thread</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">bench</span><span class="op">)</span>
 <span class="co">#&gt; Unit: milliseconds</span>
-<span class="co">#&gt;               expr      min        lq      mean    median       uq      max</span>
-<span class="co">#&gt;           runFor() 364.9949 374.99575 382.55209 381.59895 386.4103 477.8343</span>
-<span class="co">#&gt;        runSapply() 364.6425 376.25010 386.67253 382.68195 388.2146 485.0112</span>
-<span class="co">#&gt;  runSingleThread()  47.4887  47.98410  48.95541  48.38800  49.0806  55.1985</span>
-<span class="co">#&gt;       run2Thread()  28.9122  29.33395  30.32438  29.85015  30.6438  40.5319</span>
+<span class="co">#&gt;               expr      min       lq      mean    median        uq      max</span>
+<span class="co">#&gt;           runFor() 389.4888 402.6689 408.96448 407.59195 413.78610 484.6485</span>
+<span class="co">#&gt;        runSapply() 386.2171 400.2923 412.29104 406.85265 414.39640 525.4721</span>
+<span class="co">#&gt;  runSingleThread()  49.9679  51.4877  52.93333  52.15155  53.51520  64.3117</span>
+<span class="co">#&gt;       run2Thread()  29.4738  30.4367  31.46763  31.02285  31.91195  37.6821</span>
 <span class="co">#&gt;  neval</span>
 <span class="co">#&gt;    100</span>
 <span class="co">#&gt;    100</span>
@@ -361,9 +361,9 @@
                                            collapse<span class="op">=</span><span class="st">","</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">bench</span><span class="op">)</span>
 <span class="co">#&gt; Unit: milliseconds</span>
-<span class="co">#&gt;          expr     min       lq     mean  median      uq     max neval</span>
-<span class="co">#&gt;  runThread(1) 47.6020 48.12075 49.33175 48.5138 49.5010 64.7612   100</span>
-<span class="co">#&gt;  runThread(2) 28.9664 29.36440 30.37394 29.7926 30.5468 38.3590   100</span></code></pre></div>
+<span class="co">#&gt;          expr     min       lq     mean   median      uq     max neval</span>
+<span class="co">#&gt;  runThread(1) 49.3992 51.22145 52.72610 52.11095 53.3838 64.7995   100</span>
+<span class="co">#&gt;  runThread(2) 29.5594 31.01725 32.78578 32.01605 33.6383 41.4804   100</span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">bench</span><span class="op">)</span>
 <span class="co">#&gt; Coordinate system already present. Adding new coordinate system, which will replace the existing one.</span></code></pre></div>
@@ -444,7 +444,7 @@
 <span class="va">Stoplapply</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>
   
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">Stoplapply</span> <span class="op">-</span> <span class="va">Startlapply</span><span class="op">)</span>
-<span class="co">#&gt; Time difference of 10.52495 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 11.63917 secs</span></code></pre></div>
 <p>By applying some of the new parallel solving concepts you can simply run the same simulation both with less code and faster:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">rx</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
@@ -469,12 +469,12 @@
 <span class="va">startParallel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">"rbind"</span>,
         <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">doses</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">{</span>
-            <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-                <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="va">doses</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Add single dose</span>
-                <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># Add 0 observation</span>
+            <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
+                <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="va">doses</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># Add single dose</span>
+                <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># Add 0 observation</span>
                 <span class="co">## Generate 4 samples in 24 hour period</span>
-                <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">24</span><span class="op">)</span><span class="op">}</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-                <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">nsubg</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="va">nsubg</span><span class="op">)</span> <span class="op">%&gt;%</span>
+                <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">24</span><span class="op">)</span><span class="op">}</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
+                <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">nsubg</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="va">nsubg</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
                 <span class="co">## Convert to data frame to skip sorting the data</span>
                 <span class="co">## When binding the data together</span>
                 <span class="va">as.data.frame</span> 
@@ -483,12 +483,12 @@
 <span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">rx</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span>, returnType<span class="op">=</span><span class="st">"data.table"</span><span class="op">)</span>
 <span class="va">endParallel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">endParallel</span> <span class="op">-</span> <span class="va">startParallel</span><span class="op">)</span>
-<span class="co">#&gt; Time difference of 0.1679692 secs</span></code></pre></div>
+<span class="co">#&gt; Time difference of 0.1648102 secs</span></code></pre></div>
 <p>You can see a striking time difference between the two methods; A few things to keep in mind:</p>
 <ul>
 <li><p><code>RxODE</code> use the thread-safe sitmo <code>threefry</code> routines for simulation of <code>eta</code> values. Therefore the results are expected to be different (also the random samples are taken in a different order which would be different)</p></li>
 <li><p>This prior simulation was run in R 3.5, which has a different random number generator so the results in this simulation will be different from the actual nlmixr comparison when using the slower simulation.</p></li>
-<li><p>This speed comparison used <code>data.table</code>. <code>RxODE</code> uses <code>data.table</code> internally (when available) try to speed up sorting, so this would be different than installations where <code>data.table</code> is not installed. You can force RxODE to use <code><a href="https://Rdatatable.gitlab.io/data.table/reference/setorder.html" class="external-link">order()</a></code> when sorting by using <code><a href="../reference/forderForceBase.html">forderForceBase(TRUE)</a></code>. In this case there is little difference between the two, though in other examples <code>data.table</code>’s presence leads to a speed increase (and less likely it could lead to a slowdown).</p></li>
+<li><p>This speed comparison used <code>data.table</code>. <code>RxODE</code> uses <code>data.table</code> internally (when available) try to speed up sorting, so this would be different than installations where <code>data.table</code> is not installed. You can force RxODE to use <code><a href="https://Rdatatable.gitlab.io/data.table/reference/setorder.html" class="external-link">order()</a></code> when sorting by using <code>forderForceBase(TRUE)</code>. In this case there is little difference between the two, though in other examples <code>data.table</code>’s presence leads to a speed increase (and less likely it could lead to a slowdown).</p></li>
 </ul>
 <div id="want-more-ways-to-run-multi-subject-simulations" class="section level2">
 <h2 class="hasAnchor">
@@ -525,26 +525,26 @@
 <span class="co">#&gt; [4] microbenchmark_1.4-7 RxODE_1.0.8.1       </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; loaded via a namespace (and not attached):</span>
-<span class="co">#&gt;  [1] tidyselect_1.1.0    xfun_0.22           bslib_0.2.4        </span>
-<span class="co">#&gt;  [4] purrr_0.3.4         colorspace_2.0-0    vctrs_0.3.7        </span>
+<span class="co">#&gt;  [1] tidyselect_1.1.1    xfun_0.22           bslib_0.2.4        </span>
+<span class="co">#&gt;  [4] purrr_0.3.4         colorspace_2.0-1    vctrs_0.3.8        </span>
 <span class="co">#&gt;  [7] generics_0.1.0      htmltools_0.5.1.1   yaml_2.2.1         </span>
-<span class="co">#&gt; [10] utf8_1.2.1          rlang_0.4.10        pkgdown_1.6.1.9001 </span>
-<span class="co">#&gt; [13] jquerylib_0.1.3     pillar_1.6.0        withr_2.4.2        </span>
+<span class="co">#&gt; [10] utf8_1.2.1          rlang_0.4.11        pkgdown_1.6.1.9001 </span>
+<span class="co">#&gt; [13] jquerylib_0.1.4     pillar_1.6.0        withr_2.4.2        </span>
 <span class="co">#&gt; [16] glue_1.4.2          lifecycle_1.0.0     stringr_1.4.0      </span>
 <span class="co">#&gt; [19] munsell_0.5.0       gtable_0.3.0        ragg_1.1.2         </span>
 <span class="co">#&gt; [22] stringfish_0.15.1   memoise_2.0.0       evaluate_0.14      </span>
-<span class="co">#&gt; [25] RApiSerialize_0.1.0 knitr_1.32          fastmap_1.1.0      </span>
+<span class="co">#&gt; [25] RApiSerialize_0.1.0 knitr_1.33          fastmap_1.1.0      </span>
 <span class="co">#&gt; [28] sys_3.4             fansi_0.4.2         highr_0.9          </span>
 <span class="co">#&gt; [31] Rcpp_1.0.6          scales_1.1.1        backports_1.2.1    </span>
 <span class="co">#&gt; [34] checkmate_2.0.0     cachem_1.0.4        desc_1.3.0         </span>
-<span class="co">#&gt; [37] RcppParallel_5.1.2  jsonlite_1.7.2      farver_2.1.0       </span>
+<span class="co">#&gt; [37] RcppParallel_5.1.4  jsonlite_1.7.2      farver_2.1.0       </span>
 <span class="co">#&gt; [40] mime_0.10           systemfonts_1.0.1   fs_1.5.0           </span>
 <span class="co">#&gt; [43] textshaping_0.3.3   digest_0.6.27       stringi_1.5.3      </span>
 <span class="co">#&gt; [46] lotri_0.3.1         dplyr_1.0.5         qs_0.24.1          </span>
-<span class="co">#&gt; [49] grid_4.0.5          rprojroot_2.0.2     cli_2.4.0          </span>
+<span class="co">#&gt; [49] grid_4.0.5          rprojroot_2.0.2     cli_2.5.0          </span>
 <span class="co">#&gt; [52] tools_4.0.5         dparser_1.3.1-4     magrittr_2.0.1     </span>
 <span class="co">#&gt; [55] sass_0.3.1          tibble_3.1.1        PreciseSums_0.4    </span>
-<span class="co">#&gt; [58] crayon_1.4.1        pkgconfig_2.0.3     ellipsis_0.3.1     </span>
+<span class="co">#&gt; [58] crayon_1.4.1        pkgconfig_2.0.3     ellipsis_0.3.2     </span>
 <span class="co">#&gt; [61] rmarkdown_2.7       R6_2.5.0            units_0.7-1        </span>
 <span class="co">#&gt; [64] compiler_4.0.5</span></code></pre></div>
 </div>

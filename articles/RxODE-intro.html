@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Introduction to RxODE</h1>
             
-            <h4 data-toc-skip class="date">2021-04-22</h4>
+            <h4 data-toc-skip class="date">2021-05-04</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-intro.Rmd" class="external-link"><code>vignettes/RxODE-intro.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-intro.Rmd</code></div>
@@ -293,12 +293,12 @@
 <span class="va">ev</span><span class="op">$</span><span class="fu">add.dosing</span><span class="op">(</span>dose<span class="op">=</span><span class="fl">20000</span>, nbr.doses<span class="op">=</span><span class="fl">5</span>, start.time<span class="op">=</span><span class="fl">120</span>,
               dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span>
 <span class="va">ev</span><span class="op">$</span><span class="fu">add.sampling</span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span></code></pre></div>
-<p>If you wish you can also do this with the <code>mattigr</code> pipe operator <code><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></code></p>
+<p>If you wish you can also do this with the <code>mattigr</code> pipe operator <code>%&gt;%</code></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hours"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="../reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">10000</span>, nbr.doses<span class="op">=</span><span class="fl">10</span>, dosing.interval<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hours"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
+  <span class="fu"><a href="../reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">10000</span>, nbr.doses<span class="op">=</span><span class="fl">10</span>, dosing.interval<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/add.dosing.html">add.dosing</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">20000</span>, nbr.doses<span class="op">=</span><span class="fl">5</span>, start.time<span class="op">=</span><span class="fl">120</span>,
-             dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span> <span class="op">%&gt;%</span>
+             dosing.interval<span class="op">=</span><span class="fl">24</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/add.sampling.html">add.sampling</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span></code></pre></div>
 <p>The functions <code>get.dosing()</code> and <code>get.sampling()</code> can be used to retrieve information from the event table.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -317,9 +317,9 @@
 <span class="co">#&gt; 6  1  NA    5   NA (obs)  NA   NA NA   NA    0 NA  NA</span></code></pre></div>
 <p>You may notice that these are similar to NONMEM event tables; If you are more familiar with NONMEM data and events you could use them directly with the event table function <code>et</code></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">ev</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amountUnits<span class="op">=</span><span class="st">"mg"</span>, timeUnits<span class="op">=</span><span class="st">"hours"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, addl<span class="op">=</span><span class="fl">9</span>,ii<span class="op">=</span><span class="fl">12</span>,cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fl">120</span>, amt<span class="op">=</span><span class="fl">2000</span>, addl<span class="op">=</span><span class="fl">4</span>, ii<span class="op">=</span><span class="fl">14</span>, cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<code class="sourceCode R"><span class="va">ev</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amountUnits<span class="op">=</span><span class="st">"mg"</span>, timeUnits<span class="op">=</span><span class="st">"hours"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
+  <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, addl<span class="op">=</span><span class="fl">9</span>,ii<span class="op">=</span><span class="fl">12</span>,cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
+  <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fl">120</span>, amt<span class="op">=</span><span class="fl">2000</span>, addl<span class="op">=</span><span class="fl">4</span>, ii<span class="op">=</span><span class="fl">14</span>, cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">240</span><span class="op">)</span> <span class="co"># Add sampling </span></code></pre></div>
 <p>You can see from the above code, you can dose to the compartment named in the RxODE model. This slight deviation from NONMEM can reduce the need for compartment renumbering.</p>
 <p>These events can also be combined and expanded (to multi-subject events and complex regimens) with <code>rbind</code>, <code>c</code>, <code>seq</code>, and <code>rep</code>. For more information about creating complex dosing regimens using RxODE see the <a href="https://nlmixrdevelopment.github.io/RxODE.doc/articles/RxODE-events.html">RxODE events vignette</a>.</p>
@@ -400,7 +400,7 @@
 </table>
 <p>You can also solve this and create a RxODE data frame:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;
+<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">mod1</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">theta</span>, <span class="va">ev</span>, <span class="va">inits</span><span class="op">)</span>;
 <span class="va">x</span>
 <span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
 <span class="co">#&gt; ── Parameters (x$params): ──────────────────────────────────────────────────────</span>

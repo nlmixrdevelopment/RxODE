@@ -1,7 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/404.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/LICENSE-text.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-cmt.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-covariates.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-data-frame.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-datasets.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-table.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events-classic.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-intro.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-model-types.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-nesting.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-pipeline.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-plot.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-prior-data.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-rxUse.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-shiny.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-sim-var.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-speed.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-stiff.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-syntax.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-transit-compartments.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-tutorials.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-wt.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/index.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/rxode-single-subject.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/authors.html</loc>
+  </url>
+  <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/index.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/news/index.html</loc>
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/RxODE.html</loc>
@@ -131,6 +215,9 @@
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/guide_none.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/reference/index.html</loc>
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/invWR1d.html</loc>
@@ -503,74 +590,5 @@
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/uppergamma.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-cmt.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-covariates.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-data-frame.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-datasets.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-table.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-events-classic.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-intro.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-model-types.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-nesting.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-pipeline.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-plot.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-prior-data.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-rxUse.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-shiny.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-sim-var.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-speed.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-stiff.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-syntax.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-transit-compartments.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-tutorials.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-wt.html</loc>
-  </url>
-  <url>
-    <loc>https://nlmixrdevelopment.github.io/RxODE/articles/rxode-single-subject.html</loc>
   </url>
 </urlset>
