@@ -1587,7 +1587,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 #endif
   
   
-  if (idxOutput.size()==0) stop(_("empty data"));
+  if (idxOutput.size()==0) stop(_("no rows in event table or input data"));
   lastId = id[idxOutput.back()]+42;
   int rmAmt = 0;
   // Remove trailing doses
