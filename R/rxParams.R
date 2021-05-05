@@ -190,7 +190,7 @@ rxParams.default <- function(obj, ..., constants = TRUE) {
   } else {
     .lst <- list(...)
     .nm <- c(
-      "cov", "params", "inits" "keep",
+      "cov", "params", "inits", "keep",
       "thetaMat", "omega", "dfSub",
       "sigma", "dfObs", "nSub", "nStud"
     )
