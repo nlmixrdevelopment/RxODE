@@ -29,9 +29,12 @@ rxParams.RxODE <- function(obj, constants = TRUE, ...,
                            thetaMat = NULL,
                            omega = NULL, dfSub = NULL,
                            sigma = NULL, dfObs = NULL,
-                           nSub = NULL, nStud = NULL) {
+                           nSub = NULL, nStud = NULL)  {
+  if (!is.null(iCov)) {
+    stop("'iCov' in a pipline is no longer supported", call.=FALSE)
+  }
   .ret <- list(
-    params = params, inits = inits, iCov = iCov, keep = keep,
+    params = params, inits = inits, keep = keep,
     thetaMat = thetaMat,
     omega = omega, dfSub = dfSub,
     sigma = sigma, dfObs = dfObs,
@@ -60,7 +63,6 @@ rxParams.RxODE <- function(obj, constants = TRUE, ...,
     assignInMyNamespace(".pipelineInits", NULL)
     assignInMyNamespace(".pipelineEvents", NULL)
     assignInMyNamespace(".pipelineParams", NULL)
-    assignInMyNamespace(".pipelineICov", NULL)
     assignInMyNamespace(".pipelineKeep", NULL)
     assignInMyNamespace(".pipelineThetaMat", NULL)
     assignInMyNamespace(".pipelineOmega", NULL)
@@ -85,8 +87,11 @@ rxParams.rxSolve <- function(obj, constants = TRUE, ...,
                              omega = NULL, dfSub = NULL,
                              sigma = NULL, dfObs = NULL,
                              nSub = NULL, nStud = NULL) {
+  if (!is.null(iCov)) {
+    stop("'iCov' in a pipline is no longer supported", call.=FALSE)
+  }
   .ret <- list(
-    params = params, inits = inits, iCov = iCov, keep = keep,
+    params = params, inits = inits, keep = keep,
     thetaMat = thetaMat,
     omega = omega, dfSub = dfSub,
     sigma = sigma, dfObs = dfObs,
@@ -122,7 +127,6 @@ rxParams.rxSolve <- function(obj, constants = TRUE, ...,
     assignInMyNamespace(".pipelineEvents", .x$.args.events)
     ## 2. RxODE parameters
     assignInMyNamespace(".pipelineParams", .x$.args.par0)
-    assignInMyNamespace(".pipelineICov", .x$.args$iCov)
     ## 3. RxODE inits
     assignInMyNamespace(".pipelineInits", .x$.args.inits)
     ## 4. RxODE thetaMat
@@ -149,17 +153,20 @@ rxParams.rxEt <- function(obj, ...,
                           omega = NULL, dfSub = NULL,
                           sigma = NULL, dfObs = NULL,
                           nSub = NULL, nStud = NULL) {
+  if (!is.null(iCov)) {
+    stop("'iCov' in a pipline is no longer supported", call.=FALSE)
+  }
   # et() %>% rxParams() %>%
   assignInMyNamespace(".pipelineEvents", obj)
   .lst <- list(...)
   if (length(.lst) > 0) {
     .clearPipe()
     stop(sprintf(gettext("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'"), paste(names(.lst), collapse = ", ")),
-      call. = FALSE
-    )
+         call. = FALSE
+         )
   }
   .ret <- list(
-    params = params, inits = inits, iCov = iCov, keep = keep,
+    params = params, inits = inits, keep = keep,
     thetaMat = thetaMat, omega = omega, dfSub = dfSub,
     sigma = sigma, dfObs = dfObs,
     nSub = nSub, nStud = nStud
@@ -183,7 +190,7 @@ rxParams.default <- function(obj, ..., constants = TRUE) {
   } else {
     .lst <- list(...)
     .nm <- c(
-      "cov", "params", "inits", "iCov", "keep",
+      "cov", "params", "inits", "keep",
       "thetaMat", "omega", "dfSub",
       "sigma", "dfObs", "nSub", "nStud"
     )

@@ -362,7 +362,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	     bool keepDosingOnly=false, Nullable<LogicalVector> combineDvid=R_NilValue,
 	     CharacterVector keep = CharacterVector(0)){
 #ifdef rxSolveT
-   clock_t _lastT0 = clock();
+  clock_t _lastT0 = clock();
 #endif
   Environment rx = RxODEenv();
   bool combineDvidB = false;
@@ -417,11 +417,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
   }
 #ifdef rxSolveT
-   RSprintf("  Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
-   _lastT0 = clock();
+  RSprintf("  Time1: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
+  _lastT0 = clock();
 #endif
   // Translates events + model into translated events
-   CharacterVector dName = as<CharacterVector>(Rf_getAttrib(inData, R_NamesSymbol));
+  CharacterVector dName = as<CharacterVector>(Rf_getAttrib(inData, R_NamesSymbol));
   CharacterVector lName = clone(dName);
 
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
@@ -1587,7 +1587,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 #endif
   
   
-  if (idxOutput.size()==0) stop(_("empty data"));
+  if (idxOutput.size()==0) stop(_("no rows in event table or input data"));
   lastId = id[idxOutput.back()]+42;
   int rmAmt = 0;
   // Remove trailing doses
@@ -2021,7 +2021,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     if (!warnedNeg){
       Rf_warningcall(R_NilValue, _("\nwith negative times, compartments initialize at first negative observed time\nwith positive times, compartments initialize at time zero\nuse 'rxSetIni0(FALSE)' to initialize at first observed time\nthis warning is displayed once per session"));
       warnedNeg=true;
-    } 
+    }
   }
 #ifdef rxSolveT
   RSprintf("  Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
