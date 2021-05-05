@@ -350,30 +350,35 @@ can run the same number of cores as you are running so they can
 reproduce your results.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
-<span class='co'># \donttest{</span>
-
-<span class='co'>## Use threefry engine</span>
-
-<span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>0.5</span>, <span class='fl'>0.5</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxbeta you have to explicitly state n</span>
-</div><div class='co'>#&gt;  [1] 0.0004690681 0.6727080811 0.2280225069 0.9548148504 0.7139799772
-#&gt;  [6] 0.2912083042 0.0188587045 0.7032470099 0.6541439665 0.8967891937</div><div class='input'><span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>5</span>, <span class='fl'>1</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
-</div><div class='co'>#&gt;  [1] 0.8715034 0.7734984 0.6682309 0.8949303 0.9956695 0.9510797 0.9931999
-#&gt;  [8] 0.7393555 0.8048349 0.8147421</div><div class='input'>
-<span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>3</span><span class='op'>)</span>
-</div><div class='co'>#&gt; [1] 0.3095902</div><div class='input'>
-
-<span class='co'>## This example uses `rxbeta` directly in the model</span>
-
-<span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span>
-  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span>
-<span class='op'>}</span><span class='op'>)</span>
-</div><div class='co'>#&gt;  </div><div class='input'>
-<span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span>
-
-<span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span>
-</div><div class='co'>#&gt; <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</div><div class='input'><span class='co'># }</span>
-</div></pre>
+    <pre class="examples"><span class='r-in'></span>
+<span class='r-in'><span class='co'># \donttest{</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'>## Use threefry engine</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>0.5</span>, <span class='fl'>0.5</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxbeta you have to explicitly state n</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 0.0004690681 0.6727080811 0.2280225069 0.9548148504 0.7139799772</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [6] 0.2912083042 0.0188587045 0.7032470099 0.6541439665 0.8967891937</span>
+<span class='r-in'><span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>5</span>, <span class='fl'>1</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 0.8715034 0.7734984 0.6682309 0.8949303 0.9956695 0.9510797 0.9931999</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [8] 0.7393555 0.8048349 0.8147421</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>3</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 0.3095902</span>
+<span class='r-in'></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'>## This example uses `rxbeta` directly in the model</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span></span>
+<span class='r-in'>  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'><span class='op'>}</span><span class='op'>)</span></span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span>  </span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span></span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</span>
+<span class='r-in'><span class='co'># }</span></span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

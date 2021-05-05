@@ -324,701 +324,703 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
     <p>Matthew Fidler</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
-<span class='co'>##</span>
-<span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>
-</div><div class='co'>#&gt;     Var1 Var2
-#&gt; 1      a    a
-#&gt; 2      b    a
-#&gt; 3      c    a
-#&gt; 4      d    a
-#&gt; 5      e    a
-#&gt; 6      f    a
-#&gt; 7      g    a
-#&gt; 8      h    a
-#&gt; 9      i    a
-#&gt; 10     j    a
-#&gt; 11     k    a
-#&gt; 12     l    a
-#&gt; 13     m    a
-#&gt; 14     n    a
-#&gt; 15     o    a
-#&gt; 16     p    a
-#&gt; 17     q    a
-#&gt; 18     r    a
-#&gt; 19     s    a
-#&gt; 20     t    a
-#&gt; 21     u    a
-#&gt; 22     v    a
-#&gt; 23     w    a
-#&gt; 24     x    a
-#&gt; 25     y    a
-#&gt; 26     z    a
-#&gt; 27     a    b
-#&gt; 28     b    b
-#&gt; 29     c    b
-#&gt; 30     d    b
-#&gt; 31     e    b
-#&gt; 32     f    b
-#&gt; 33     g    b
-#&gt; 34     h    b
-#&gt; 35     i    b
-#&gt; 36     j    b
-#&gt; 37     k    b
-#&gt; 38     l    b
-#&gt; 39     m    b
-#&gt; 40     n    b
-#&gt; 41     o    b
-#&gt; 42     p    b
-#&gt; 43     q    b
-#&gt; 44     r    b
-#&gt; 45     s    b
-#&gt; 46     t    b
-#&gt; 47     u    b
-#&gt; 48     v    b
-#&gt; 49     w    b
-#&gt; 50     x    b
-#&gt; 51     y    b
-#&gt; 52     z    b
-#&gt; 53     a    c
-#&gt; 54     b    c
-#&gt; 55     c    c
-#&gt; 56     d    c
-#&gt; 57     e    c
-#&gt; 58     f    c
-#&gt; 59     g    c
-#&gt; 60     h    c
-#&gt; 61     i    c
-#&gt; 62     j    c
-#&gt; 63     k    c
-#&gt; 64     l    c
-#&gt; 65     m    c
-#&gt; 66     n    c
-#&gt; 67     o    c
-#&gt; 68     p    c
-#&gt; 69     q    c
-#&gt; 70     r    c
-#&gt; 71     s    c
-#&gt; 72     t    c
-#&gt; 73     u    c
-#&gt; 74     v    c
-#&gt; 75     w    c
-#&gt; 76     x    c
-#&gt; 77     y    c
-#&gt; 78     z    c
-#&gt; 79     a    d
-#&gt; 80     b    d
-#&gt; 81     c    d
-#&gt; 82     d    d
-#&gt; 83     e    d
-#&gt; 84     f    d
-#&gt; 85     g    d
-#&gt; 86     h    d
-#&gt; 87     i    d
-#&gt; 88     j    d
-#&gt; 89     k    d
-#&gt; 90     l    d
-#&gt; 91     m    d
-#&gt; 92     n    d
-#&gt; 93     o    d
-#&gt; 94     p    d
-#&gt; 95     q    d
-#&gt; 96     r    d
-#&gt; 97     s    d
-#&gt; 98     t    d
-#&gt; 99     u    d
-#&gt; 100    v    d
-#&gt; 101    w    d
-#&gt; 102    x    d
-#&gt; 103    y    d
-#&gt; 104    z    d
-#&gt; 105    a    e
-#&gt; 106    b    e
-#&gt; 107    c    e
-#&gt; 108    d    e
-#&gt; 109    e    e
-#&gt; 110    f    e
-#&gt; 111    g    e
-#&gt; 112    h    e
-#&gt; 113    i    e
-#&gt; 114    j    e
-#&gt; 115    k    e
-#&gt; 116    l    e
-#&gt; 117    m    e
-#&gt; 118    n    e
-#&gt; 119    o    e
-#&gt; 120    p    e
-#&gt; 121    q    e
-#&gt; 122    r    e
-#&gt; 123    s    e
-#&gt; 124    t    e
-#&gt; 125    u    e
-#&gt; 126    v    e
-#&gt; 127    w    e
-#&gt; 128    x    e
-#&gt; 129    y    e
-#&gt; 130    z    e
-#&gt; 131    a    f
-#&gt; 132    b    f
-#&gt; 133    c    f
-#&gt; 134    d    f
-#&gt; 135    e    f
-#&gt; 136    f    f
-#&gt; 137    g    f
-#&gt; 138    h    f
-#&gt; 139    i    f
-#&gt; 140    j    f
-#&gt; 141    k    f
-#&gt; 142    l    f
-#&gt; 143    m    f
-#&gt; 144    n    f
-#&gt; 145    o    f
-#&gt; 146    p    f
-#&gt; 147    q    f
-#&gt; 148    r    f
-#&gt; 149    s    f
-#&gt; 150    t    f
-#&gt; 151    u    f
-#&gt; 152    v    f
-#&gt; 153    w    f
-#&gt; 154    x    f
-#&gt; 155    y    f
-#&gt; 156    z    f
-#&gt; 157    a    g
-#&gt; 158    b    g
-#&gt; 159    c    g
-#&gt; 160    d    g
-#&gt; 161    e    g
-#&gt; 162    f    g
-#&gt; 163    g    g
-#&gt; 164    h    g
-#&gt; 165    i    g
-#&gt; 166    j    g
-#&gt; 167    k    g
-#&gt; 168    l    g
-#&gt; 169    m    g
-#&gt; 170    n    g
-#&gt; 171    o    g
-#&gt; 172    p    g
-#&gt; 173    q    g
-#&gt; 174    r    g
-#&gt; 175    s    g
-#&gt; 176    t    g
-#&gt; 177    u    g
-#&gt; 178    v    g
-#&gt; 179    w    g
-#&gt; 180    x    g
-#&gt; 181    y    g
-#&gt; 182    z    g
-#&gt; 183    a    h
-#&gt; 184    b    h
-#&gt; 185    c    h
-#&gt; 186    d    h
-#&gt; 187    e    h
-#&gt; 188    f    h
-#&gt; 189    g    h
-#&gt; 190    h    h
-#&gt; 191    i    h
-#&gt; 192    j    h
-#&gt; 193    k    h
-#&gt; 194    l    h
-#&gt; 195    m    h
-#&gt; 196    n    h
-#&gt; 197    o    h
-#&gt; 198    p    h
-#&gt; 199    q    h
-#&gt; 200    r    h
-#&gt; 201    s    h
-#&gt; 202    t    h
-#&gt; 203    u    h
-#&gt; 204    v    h
-#&gt; 205    w    h
-#&gt; 206    x    h
-#&gt; 207    y    h
-#&gt; 208    z    h
-#&gt; 209    a    i
-#&gt; 210    b    i
-#&gt; 211    c    i
-#&gt; 212    d    i
-#&gt; 213    e    i
-#&gt; 214    f    i
-#&gt; 215    g    i
-#&gt; 216    h    i
-#&gt; 217    i    i
-#&gt; 218    j    i
-#&gt; 219    k    i
-#&gt; 220    l    i
-#&gt; 221    m    i
-#&gt; 222    n    i
-#&gt; 223    o    i
-#&gt; 224    p    i
-#&gt; 225    q    i
-#&gt; 226    r    i
-#&gt; 227    s    i
-#&gt; 228    t    i
-#&gt; 229    u    i
-#&gt; 230    v    i
-#&gt; 231    w    i
-#&gt; 232    x    i
-#&gt; 233    y    i
-#&gt; 234    z    i
-#&gt; 235    a    j
-#&gt; 236    b    j
-#&gt; 237    c    j
-#&gt; 238    d    j
-#&gt; 239    e    j
-#&gt; 240    f    j
-#&gt; 241    g    j
-#&gt; 242    h    j
-#&gt; 243    i    j
-#&gt; 244    j    j
-#&gt; 245    k    j
-#&gt; 246    l    j
-#&gt; 247    m    j
-#&gt; 248    n    j
-#&gt; 249    o    j
-#&gt; 250    p    j
-#&gt; 251    q    j
-#&gt; 252    r    j
-#&gt; 253    s    j
-#&gt; 254    t    j
-#&gt; 255    u    j
-#&gt; 256    v    j
-#&gt; 257    w    j
-#&gt; 258    x    j
-#&gt; 259    y    j
-#&gt; 260    z    j
-#&gt; 261    a    k
-#&gt; 262    b    k
-#&gt; 263    c    k
-#&gt; 264    d    k
-#&gt; 265    e    k
-#&gt; 266    f    k
-#&gt; 267    g    k
-#&gt; 268    h    k
-#&gt; 269    i    k
-#&gt; 270    j    k
-#&gt; 271    k    k
-#&gt; 272    l    k
-#&gt; 273    m    k
-#&gt; 274    n    k
-#&gt; 275    o    k
-#&gt; 276    p    k
-#&gt; 277    q    k
-#&gt; 278    r    k
-#&gt; 279    s    k
-#&gt; 280    t    k
-#&gt; 281    u    k
-#&gt; 282    v    k
-#&gt; 283    w    k
-#&gt; 284    x    k
-#&gt; 285    y    k
-#&gt; 286    z    k
-#&gt; 287    a    l
-#&gt; 288    b    l
-#&gt; 289    c    l
-#&gt; 290    d    l
-#&gt; 291    e    l
-#&gt; 292    f    l
-#&gt; 293    g    l
-#&gt; 294    h    l
-#&gt; 295    i    l
-#&gt; 296    j    l
-#&gt; 297    k    l
-#&gt; 298    l    l
-#&gt; 299    m    l
-#&gt; 300    n    l
-#&gt; 301    o    l
-#&gt; 302    p    l
-#&gt; 303    q    l
-#&gt; 304    r    l
-#&gt; 305    s    l
-#&gt; 306    t    l
-#&gt; 307    u    l
-#&gt; 308    v    l
-#&gt; 309    w    l
-#&gt; 310    x    l
-#&gt; 311    y    l
-#&gt; 312    z    l
-#&gt; 313    a    m
-#&gt; 314    b    m
-#&gt; 315    c    m
-#&gt; 316    d    m
-#&gt; 317    e    m
-#&gt; 318    f    m
-#&gt; 319    g    m
-#&gt; 320    h    m
-#&gt; 321    i    m
-#&gt; 322    j    m
-#&gt; 323    k    m
-#&gt; 324    l    m
-#&gt; 325    m    m
-#&gt; 326    n    m
-#&gt; 327    o    m
-#&gt; 328    p    m
-#&gt; 329    q    m
-#&gt; 330    r    m
-#&gt; 331    s    m
-#&gt; 332    t    m
-#&gt; 333    u    m
-#&gt; 334    v    m
-#&gt; 335    w    m
-#&gt; 336    x    m
-#&gt; 337    y    m
-#&gt; 338    z    m
-#&gt; 339    a    n
-#&gt; 340    b    n
-#&gt; 341    c    n
-#&gt; 342    d    n
-#&gt; 343    e    n
-#&gt; 344    f    n
-#&gt; 345    g    n
-#&gt; 346    h    n
-#&gt; 347    i    n
-#&gt; 348    j    n
-#&gt; 349    k    n
-#&gt; 350    l    n
-#&gt; 351    m    n
-#&gt; 352    n    n
-#&gt; 353    o    n
-#&gt; 354    p    n
-#&gt; 355    q    n
-#&gt; 356    r    n
-#&gt; 357    s    n
-#&gt; 358    t    n
-#&gt; 359    u    n
-#&gt; 360    v    n
-#&gt; 361    w    n
-#&gt; 362    x    n
-#&gt; 363    y    n
-#&gt; 364    z    n
-#&gt; 365    a    o
-#&gt; 366    b    o
-#&gt; 367    c    o
-#&gt; 368    d    o
-#&gt; 369    e    o
-#&gt; 370    f    o
-#&gt; 371    g    o
-#&gt; 372    h    o
-#&gt; 373    i    o
-#&gt; 374    j    o
-#&gt; 375    k    o
-#&gt; 376    l    o
-#&gt; 377    m    o
-#&gt; 378    n    o
-#&gt; 379    o    o
-#&gt; 380    p    o
-#&gt; 381    q    o
-#&gt; 382    r    o
-#&gt; 383    s    o
-#&gt; 384    t    o
-#&gt; 385    u    o
-#&gt; 386    v    o
-#&gt; 387    w    o
-#&gt; 388    x    o
-#&gt; 389    y    o
-#&gt; 390    z    o
-#&gt; 391    a    p
-#&gt; 392    b    p
-#&gt; 393    c    p
-#&gt; 394    d    p
-#&gt; 395    e    p
-#&gt; 396    f    p
-#&gt; 397    g    p
-#&gt; 398    h    p
-#&gt; 399    i    p
-#&gt; 400    j    p
-#&gt; 401    k    p
-#&gt; 402    l    p
-#&gt; 403    m    p
-#&gt; 404    n    p
-#&gt; 405    o    p
-#&gt; 406    p    p
-#&gt; 407    q    p
-#&gt; 408    r    p
-#&gt; 409    s    p
-#&gt; 410    t    p
-#&gt; 411    u    p
-#&gt; 412    v    p
-#&gt; 413    w    p
-#&gt; 414    x    p
-#&gt; 415    y    p
-#&gt; 416    z    p
-#&gt; 417    a    q
-#&gt; 418    b    q
-#&gt; 419    c    q
-#&gt; 420    d    q
-#&gt; 421    e    q
-#&gt; 422    f    q
-#&gt; 423    g    q
-#&gt; 424    h    q
-#&gt; 425    i    q
-#&gt; 426    j    q
-#&gt; 427    k    q
-#&gt; 428    l    q
-#&gt; 429    m    q
-#&gt; 430    n    q
-#&gt; 431    o    q
-#&gt; 432    p    q
-#&gt; 433    q    q
-#&gt; 434    r    q
-#&gt; 435    s    q
-#&gt; 436    t    q
-#&gt; 437    u    q
-#&gt; 438    v    q
-#&gt; 439    w    q
-#&gt; 440    x    q
-#&gt; 441    y    q
-#&gt; 442    z    q
-#&gt; 443    a    r
-#&gt; 444    b    r
-#&gt; 445    c    r
-#&gt; 446    d    r
-#&gt; 447    e    r
-#&gt; 448    f    r
-#&gt; 449    g    r
-#&gt; 450    h    r
-#&gt; 451    i    r
-#&gt; 452    j    r
-#&gt; 453    k    r
-#&gt; 454    l    r
-#&gt; 455    m    r
-#&gt; 456    n    r
-#&gt; 457    o    r
-#&gt; 458    p    r
-#&gt; 459    q    r
-#&gt; 460    r    r
-#&gt; 461    s    r
-#&gt; 462    t    r
-#&gt; 463    u    r
-#&gt; 464    v    r
-#&gt; 465    w    r
-#&gt; 466    x    r
-#&gt; 467    y    r
-#&gt; 468    z    r
-#&gt; 469    a    s
-#&gt; 470    b    s
-#&gt; 471    c    s
-#&gt; 472    d    s
-#&gt; 473    e    s
-#&gt; 474    f    s
-#&gt; 475    g    s
-#&gt; 476    h    s
-#&gt; 477    i    s
-#&gt; 478    j    s
-#&gt; 479    k    s
-#&gt; 480    l    s
-#&gt; 481    m    s
-#&gt; 482    n    s
-#&gt; 483    o    s
-#&gt; 484    p    s
-#&gt; 485    q    s
-#&gt; 486    r    s
-#&gt; 487    s    s
-#&gt; 488    t    s
-#&gt; 489    u    s
-#&gt; 490    v    s
-#&gt; 491    w    s
-#&gt; 492    x    s
-#&gt; 493    y    s
-#&gt; 494    z    s
-#&gt; 495    a    t
-#&gt; 496    b    t
-#&gt; 497    c    t
-#&gt; 498    d    t
-#&gt; 499    e    t
-#&gt; 500    f    t
-#&gt; 501    g    t
-#&gt; 502    h    t
-#&gt; 503    i    t
-#&gt; 504    j    t
-#&gt; 505    k    t
-#&gt; 506    l    t
-#&gt; 507    m    t
-#&gt; 508    n    t
-#&gt; 509    o    t
-#&gt; 510    p    t
-#&gt; 511    q    t
-#&gt; 512    r    t
-#&gt; 513    s    t
-#&gt; 514    t    t
-#&gt; 515    u    t
-#&gt; 516    v    t
-#&gt; 517    w    t
-#&gt; 518    x    t
-#&gt; 519    y    t
-#&gt; 520    z    t
-#&gt; 521    a    u
-#&gt; 522    b    u
-#&gt; 523    c    u
-#&gt; 524    d    u
-#&gt; 525    e    u
-#&gt; 526    f    u
-#&gt; 527    g    u
-#&gt; 528    h    u
-#&gt; 529    i    u
-#&gt; 530    j    u
-#&gt; 531    k    u
-#&gt; 532    l    u
-#&gt; 533    m    u
-#&gt; 534    n    u
-#&gt; 535    o    u
-#&gt; 536    p    u
-#&gt; 537    q    u
-#&gt; 538    r    u
-#&gt; 539    s    u
-#&gt; 540    t    u
-#&gt; 541    u    u
-#&gt; 542    v    u
-#&gt; 543    w    u
-#&gt; 544    x    u
-#&gt; 545    y    u
-#&gt; 546    z    u
-#&gt; 547    a    v
-#&gt; 548    b    v
-#&gt; 549    c    v
-#&gt; 550    d    v
-#&gt; 551    e    v
-#&gt; 552    f    v
-#&gt; 553    g    v
-#&gt; 554    h    v
-#&gt; 555    i    v
-#&gt; 556    j    v
-#&gt; 557    k    v
-#&gt; 558    l    v
-#&gt; 559    m    v
-#&gt; 560    n    v
-#&gt; 561    o    v
-#&gt; 562    p    v
-#&gt; 563    q    v
-#&gt; 564    r    v
-#&gt; 565    s    v
-#&gt; 566    t    v
-#&gt; 567    u    v
-#&gt; 568    v    v
-#&gt; 569    w    v
-#&gt; 570    x    v
-#&gt; 571    y    v
-#&gt; 572    z    v
-#&gt; 573    a    w
-#&gt; 574    b    w
-#&gt; 575    c    w
-#&gt; 576    d    w
-#&gt; 577    e    w
-#&gt; 578    f    w
-#&gt; 579    g    w
-#&gt; 580    h    w
-#&gt; 581    i    w
-#&gt; 582    j    w
-#&gt; 583    k    w
-#&gt; 584    l    w
-#&gt; 585    m    w
-#&gt; 586    n    w
-#&gt; 587    o    w
-#&gt; 588    p    w
-#&gt; 589    q    w
-#&gt; 590    r    w
-#&gt; 591    s    w
-#&gt; 592    t    w
-#&gt; 593    u    w
-#&gt; 594    v    w
-#&gt; 595    w    w
-#&gt; 596    x    w
-#&gt; 597    y    w
-#&gt; 598    z    w
-#&gt; 599    a    x
-#&gt; 600    b    x
-#&gt; 601    c    x
-#&gt; 602    d    x
-#&gt; 603    e    x
-#&gt; 604    f    x
-#&gt; 605    g    x
-#&gt; 606    h    x
-#&gt; 607    i    x
-#&gt; 608    j    x
-#&gt; 609    k    x
-#&gt; 610    l    x
-#&gt; 611    m    x
-#&gt; 612    n    x
-#&gt; 613    o    x
-#&gt; 614    p    x
-#&gt; 615    q    x
-#&gt; 616    r    x
-#&gt; 617    s    x
-#&gt; 618    t    x
-#&gt; 619    u    x
-#&gt; 620    v    x
-#&gt; 621    w    x
-#&gt; 622    x    x
-#&gt; 623    y    x
-#&gt; 624    z    x
-#&gt; 625    a    y
-#&gt; 626    b    y
-#&gt; 627    c    y
-#&gt; 628    d    y
-#&gt; 629    e    y
-#&gt; 630    f    y
-#&gt; 631    g    y
-#&gt; 632    h    y
-#&gt; 633    i    y
-#&gt; 634    j    y
-#&gt; 635    k    y
-#&gt; 636    l    y
-#&gt; 637    m    y
-#&gt; 638    n    y
-#&gt; 639    o    y
-#&gt; 640    p    y
-#&gt; 641    q    y
-#&gt; 642    r    y
-#&gt; 643    s    y
-#&gt; 644    t    y
-#&gt; 645    u    y
-#&gt; 646    v    y
-#&gt; 647    w    y
-#&gt; 648    x    y
-#&gt; 649    y    y
-#&gt; 650    z    y
-#&gt; 651    a    z
-#&gt; 652    b    z
-#&gt; 653    c    z
-#&gt; 654    d    z
-#&gt; 655    e    z
-#&gt; 656    f    z
-#&gt; 657    g    z
-#&gt; 658    h    z
-#&gt; 659    i    z
-#&gt; 660    j    z
-#&gt; 661    k    z
-#&gt; 662    l    z
-#&gt; 663    m    z
-#&gt; 664    n    z
-#&gt; 665    o    z
-#&gt; 666    p    z
-#&gt; 667    q    z
-#&gt; 668    r    z
-#&gt; 669    s    z
-#&gt; 670    t    z
-#&gt; 671    u    z
-#&gt; 672    v    z
-#&gt; 673    w    z
-#&gt; 674    x    z
-#&gt; 675    y    z
-#&gt; 676    z    z</div><div class='input'>
-<span class='co'>## Another fast method; See</span>
-<span class='co'>## https://stackoverflow.com/questions/10405637/use-outer-instead-of-expand-grid</span>
-
-<span class='va'>expand.grid.jc</span> <span class='op'>&lt;-</span> <span class='kw'>function</span><span class='op'>(</span><span class='va'>seq1</span>,<span class='va'>seq2</span><span class='op'>)</span> <span class='op'>{</span>
- <span class='fu'><a href='https://rdrr.io/r/base/cbind.html'>cbind</a></span><span class='op'>(</span>Var1 <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep.int</a></span><span class='op'>(</span><span class='va'>seq1</span>, <span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>seq2</span><span class='op'>)</span><span class='op'>)</span>,
-  Var2 <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep.int</a></span><span class='op'>(</span><span class='va'>seq2</span>, <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep.int</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>seq1</span><span class='op'>)</span>,<span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>seq2</span><span class='op'>)</span><span class='op'>)</span><span class='op'>)</span><span class='op'>)</span>
-<span class='op'>}</span>
-
-<span class='co'># \donttest{</span>
- <span class='fu'>microbenchmark</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html'>microbenchmark</a></span><span class='op'>(</span><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>, <span class='fu'>expand.grid.jc</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span><span class='op'>)</span>
-</div><div class='co'>#&gt; Unit: microseconds
-#&gt;                              expr  min   lq   mean median    uq   max neval
-#&gt;    rxExpandGrid(letters, letters) 19.1 20.6 22.643  22.15 23.80  55.8   100
-#&gt;  expand.grid.jc(letters, letters) 25.8 30.5 32.559  31.45 32.85 103.6   100</div><div class='input'><span class='co'># }</span>
-</div></pre>
+    <pre class="examples"><span class='r-in'></span>
+<span class='r-in'><span class='co'>##</span></span>
+<span class='r-in'><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>     Var1 Var2</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 1      a    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 2      b    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 3      c    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 4      d    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 5      e    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 6      f    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 7      g    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 8      h    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 9      i    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 10     j    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 11     k    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 12     l    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 13     m    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 14     n    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 15     o    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 16     p    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 17     q    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 18     r    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 19     s    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 20     t    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 21     u    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 22     v    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 23     w    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 24     x    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 25     y    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 26     z    a</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 27     a    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 28     b    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 29     c    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 30     d    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 31     e    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 32     f    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 33     g    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 34     h    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 35     i    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 36     j    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 37     k    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 38     l    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 39     m    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 40     n    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 41     o    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 42     p    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 43     q    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 44     r    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 45     s    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 46     t    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 47     u    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 48     v    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 49     w    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 50     x    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 51     y    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 52     z    b</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 53     a    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 54     b    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 55     c    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 56     d    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 57     e    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 58     f    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 59     g    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 60     h    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 61     i    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 62     j    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 63     k    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 64     l    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 65     m    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 66     n    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 67     o    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 68     p    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 69     q    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 70     r    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 71     s    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 72     t    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 73     u    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 74     v    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 75     w    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 76     x    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 77     y    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 78     z    c</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 79     a    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 80     b    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 81     c    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 82     d    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 83     e    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 84     f    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 85     g    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 86     h    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 87     i    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 88     j    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 89     k    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 90     l    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 91     m    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 92     n    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 93     o    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 94     p    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 95     q    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 96     r    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 97     s    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 98     t    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 99     u    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 100    v    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 101    w    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 102    x    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 103    y    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 104    z    d</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 105    a    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 106    b    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 107    c    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 108    d    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 109    e    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 110    f    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 111    g    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 112    h    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 113    i    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 114    j    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 115    k    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 116    l    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 117    m    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 118    n    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 119    o    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 120    p    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 121    q    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 122    r    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 123    s    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 124    t    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 125    u    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 126    v    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 127    w    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 128    x    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 129    y    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 130    z    e</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 131    a    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 132    b    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 133    c    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 134    d    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 135    e    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 136    f    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 137    g    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 138    h    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 139    i    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 140    j    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 141    k    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 142    l    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 143    m    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 144    n    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 145    o    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 146    p    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 147    q    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 148    r    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 149    s    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 150    t    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 151    u    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 152    v    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 153    w    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 154    x    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 155    y    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 156    z    f</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 157    a    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 158    b    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 159    c    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 160    d    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 161    e    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 162    f    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 163    g    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 164    h    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 165    i    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 166    j    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 167    k    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 168    l    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 169    m    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 170    n    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 171    o    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 172    p    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 173    q    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 174    r    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 175    s    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 176    t    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 177    u    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 178    v    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 179    w    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 180    x    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 181    y    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 182    z    g</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 183    a    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 184    b    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 185    c    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 186    d    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 187    e    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 188    f    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 189    g    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 190    h    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 191    i    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 192    j    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 193    k    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 194    l    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 195    m    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 196    n    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 197    o    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 198    p    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 199    q    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 200    r    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 201    s    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 202    t    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 203    u    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 204    v    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 205    w    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 206    x    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 207    y    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 208    z    h</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 209    a    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 210    b    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 211    c    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 212    d    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 213    e    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 214    f    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 215    g    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 216    h    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 217    i    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 218    j    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 219    k    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 220    l    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 221    m    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 222    n    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 223    o    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 224    p    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 225    q    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 226    r    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 227    s    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 228    t    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 229    u    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 230    v    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 231    w    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 232    x    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 233    y    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 234    z    i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 235    a    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 236    b    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 237    c    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 238    d    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 239    e    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 240    f    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 241    g    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 242    h    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 243    i    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 244    j    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 245    k    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 246    l    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 247    m    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 248    n    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 249    o    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 250    p    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 251    q    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 252    r    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 253    s    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 254    t    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 255    u    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 256    v    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 257    w    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 258    x    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 259    y    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 260    z    j</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 261    a    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 262    b    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 263    c    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 264    d    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 265    e    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 266    f    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 267    g    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 268    h    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 269    i    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 270    j    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 271    k    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 272    l    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 273    m    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 274    n    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 275    o    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 276    p    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 277    q    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 278    r    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 279    s    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 280    t    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 281    u    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 282    v    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 283    w    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 284    x    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 285    y    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 286    z    k</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 287    a    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 288    b    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 289    c    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 290    d    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 291    e    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 292    f    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 293    g    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 294    h    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 295    i    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 296    j    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 297    k    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 298    l    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 299    m    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 300    n    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 301    o    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 302    p    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 303    q    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 304    r    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 305    s    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 306    t    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 307    u    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 308    v    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 309    w    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 310    x    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 311    y    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 312    z    l</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 313    a    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 314    b    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 315    c    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 316    d    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 317    e    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 318    f    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 319    g    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 320    h    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 321    i    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 322    j    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 323    k    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 324    l    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 325    m    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 326    n    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 327    o    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 328    p    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 329    q    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 330    r    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 331    s    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 332    t    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 333    u    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 334    v    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 335    w    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 336    x    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 337    y    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 338    z    m</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 339    a    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 340    b    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 341    c    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 342    d    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 343    e    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 344    f    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 345    g    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 346    h    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 347    i    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 348    j    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 349    k    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 350    l    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 351    m    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 352    n    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 353    o    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 354    p    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 355    q    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 356    r    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 357    s    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 358    t    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 359    u    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 360    v    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 361    w    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 362    x    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 363    y    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 364    z    n</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 365    a    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 366    b    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 367    c    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 368    d    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 369    e    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 370    f    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 371    g    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 372    h    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 373    i    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 374    j    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 375    k    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 376    l    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 377    m    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 378    n    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 379    o    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 380    p    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 381    q    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 382    r    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 383    s    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 384    t    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 385    u    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 386    v    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 387    w    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 388    x    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 389    y    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 390    z    o</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 391    a    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 392    b    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 393    c    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 394    d    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 395    e    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 396    f    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 397    g    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 398    h    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 399    i    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 400    j    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 401    k    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 402    l    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 403    m    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 404    n    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 405    o    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 406    p    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 407    q    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 408    r    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 409    s    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 410    t    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 411    u    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 412    v    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 413    w    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 414    x    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 415    y    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 416    z    p</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 417    a    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 418    b    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 419    c    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 420    d    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 421    e    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 422    f    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 423    g    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 424    h    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 425    i    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 426    j    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 427    k    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 428    l    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 429    m    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 430    n    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 431    o    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 432    p    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 433    q    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 434    r    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 435    s    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 436    t    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 437    u    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 438    v    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 439    w    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 440    x    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 441    y    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 442    z    q</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 443    a    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 444    b    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 445    c    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 446    d    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 447    e    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 448    f    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 449    g    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 450    h    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 451    i    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 452    j    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 453    k    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 454    l    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 455    m    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 456    n    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 457    o    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 458    p    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 459    q    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 460    r    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 461    s    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 462    t    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 463    u    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 464    v    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 465    w    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 466    x    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 467    y    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 468    z    r</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 469    a    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 470    b    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 471    c    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 472    d    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 473    e    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 474    f    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 475    g    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 476    h    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 477    i    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 478    j    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 479    k    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 480    l    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 481    m    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 482    n    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 483    o    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 484    p    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 485    q    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 486    r    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 487    s    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 488    t    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 489    u    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 490    v    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 491    w    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 492    x    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 493    y    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 494    z    s</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 495    a    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 496    b    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 497    c    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 498    d    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 499    e    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 500    f    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 501    g    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 502    h    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 503    i    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 504    j    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 505    k    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 506    l    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 507    m    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 508    n    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 509    o    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 510    p    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 511    q    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 512    r    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 513    s    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 514    t    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 515    u    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 516    v    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 517    w    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 518    x    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 519    y    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 520    z    t</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 521    a    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 522    b    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 523    c    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 524    d    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 525    e    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 526    f    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 527    g    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 528    h    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 529    i    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 530    j    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 531    k    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 532    l    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 533    m    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 534    n    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 535    o    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 536    p    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 537    q    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 538    r    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 539    s    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 540    t    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 541    u    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 542    v    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 543    w    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 544    x    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 545    y    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 546    z    u</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 547    a    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 548    b    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 549    c    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 550    d    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 551    e    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 552    f    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 553    g    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 554    h    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 555    i    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 556    j    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 557    k    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 558    l    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 559    m    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 560    n    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 561    o    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 562    p    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 563    q    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 564    r    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 565    s    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 566    t    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 567    u    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 568    v    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 569    w    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 570    x    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 571    y    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 572    z    v</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 573    a    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 574    b    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 575    c    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 576    d    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 577    e    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 578    f    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 579    g    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 580    h    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 581    i    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 582    j    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 583    k    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 584    l    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 585    m    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 586    n    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 587    o    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 588    p    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 589    q    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 590    r    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 591    s    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 592    t    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 593    u    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 594    v    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 595    w    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 596    x    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 597    y    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 598    z    w</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 599    a    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 600    b    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 601    c    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 602    d    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 603    e    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 604    f    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 605    g    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 606    h    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 607    i    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 608    j    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 609    k    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 610    l    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 611    m    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 612    n    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 613    o    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 614    p    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 615    q    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 616    r    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 617    s    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 618    t    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 619    u    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 620    v    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 621    w    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 622    x    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 623    y    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 624    z    x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 625    a    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 626    b    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 627    c    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 628    d    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 629    e    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 630    f    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 631    g    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 632    h    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 633    i    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 634    j    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 635    k    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 636    l    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 637    m    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 638    n    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 639    o    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 640    p    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 641    q    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 642    r    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 643    s    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 644    t    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 645    u    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 646    v    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 647    w    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 648    x    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 649    y    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 650    z    y</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 651    a    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 652    b    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 653    c    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 654    d    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 655    e    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 656    f    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 657    g    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 658    h    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 659    i    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 660    j    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 661    k    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 662    l    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 663    m    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 664    n    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 665    o    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 666    p    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 667    q    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 668    r    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 669    s    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 670    t    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 671    u    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 672    v    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 673    w    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 674    x    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 675    y    z</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 676    z    z</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'>## Another fast method; See</span></span>
+<span class='r-in'><span class='co'>## https://stackoverflow.com/questions/10405637/use-outer-instead-of-expand-grid</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>expand.grid.jc</span> <span class='op'>&lt;-</span> <span class='kw'>function</span><span class='op'>(</span><span class='va'>seq1</span>,<span class='va'>seq2</span><span class='op'>)</span> <span class='op'>{</span></span>
+<span class='r-in'> <span class='fu'><a href='https://rdrr.io/r/base/cbind.html'>cbind</a></span><span class='op'>(</span>Var1 <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep.int</a></span><span class='op'>(</span><span class='va'>seq1</span>, <span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>seq2</span><span class='op'>)</span><span class='op'>)</span>,</span>
+<span class='r-in'>  Var2 <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep.int</a></span><span class='op'>(</span><span class='va'>seq2</span>, <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep.int</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>seq1</span><span class='op'>)</span>,<span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>seq2</span><span class='op'>)</span><span class='op'>)</span><span class='op'>)</span><span class='op'>)</span></span>
+<span class='r-in'><span class='op'>}</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'># \donttest{</span></span>
+<span class='r-in'> <span class='fu'>microbenchmark</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html'>microbenchmark</a></span><span class='op'>(</span><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>, <span class='fu'>expand.grid.jc</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> Unit: microseconds</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>                              expr min    lq   mean median   uq  max neval</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    rxExpandGrid(letters, letters)  18 20.45 21.729  21.50 22.3 48.2   100</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  expand.grid.jc(letters, letters)  24 28.55 30.059  29.95 30.9 59.2   100</span>
+<span class='r-in'><span class='co'># }</span></span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

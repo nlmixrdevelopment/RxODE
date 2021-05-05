@@ -304,36 +304,37 @@
     <p>list of supported functions in RxODE</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>rxSupportedFuns</span><span class='op'>(</span><span class='op'>)</span>
-</div><div class='co'>#&gt;   [1] "gammafn"      "lgammafn"     "lgamma"       "loggamma"     "digamma"     
-#&gt;   [6] "trigamma"     "tetragamma"   "pentagamma"   "cospi"        "sinpi"       
-#&gt;  [11] "tanpi"        "log1p"        "expm1"        "factorial"    "lfactorial"  
-#&gt;  [16] "lgamma1p"     "expm1"        "log10"        "log2"         "log1pexp"    
-#&gt;  [21] "!"            "phi"          "pnorm"        "normcdf"      "qnorm"       
-#&gt;  [26] "fabs"         "pow"          "R_pow"        "R_pow_di"     "Rx_pow_di"   
-#&gt;  [31] "Rx_pow"       "lbeta"        "=="           "!="           "&gt;="          
-#&gt;  [36] "&lt;="           "&lt;"            "&gt;"            "&amp;&amp;"           "||"          
-#&gt;  [41] "&amp;"            "|"            "lgamma"       "abs"          "acos"        
-#&gt;  [46] "acosh"        "asin"         "asinh"        "atan"         "atan2"       
-#&gt;  [51] "atanh"        "beta"         "cos"          "cosh"         "erf"         
-#&gt;  [56] "erfc"         "exp"          "gamma"        "linCmtA"      "linCmtC"     
-#&gt;  [61] "linCmtB"      "log"          "polygamma"    "rxTBS"        "rxTBSi"      
-#&gt;  [66] "rxTBSd"       "rxTBSd2"      "sin"          "sinh"         "sqrt"        
-#&gt;  [71] "tan"          "tanh"         "gammap"       "floor"        "round"       
-#&gt;  [76] "ceil"         "trunc"        "bessel_i"     "bessel_j"     "bessel_k"    
-#&gt;  [81] "bessel_y"     "logspace_add" "logspace_sub" "fmax2"        "fmin2"       
-#&gt;  [86] "sign"         "fsign"        "fprec"        "fround"       "ftrunc"      
-#&gt;  [91] "transit"      "gammaq"       "gammapDer"    "gammapInv"    "gammapInva"  
-#&gt;  [96] "gammaqInv"    "gammaqInva"   "lowergamma"   "uppergamma"   "max"         
-#&gt; [101] "min"          "logit"        "expit"        "probit"       "probitInv"   
-#&gt; [106] "tlast"        "tfirst"       "lag"          "lead"         "dabs"        
-#&gt; [111] "dabs2"        "abs1"         "dabs1"        "erfinv"       "abs0"        
-#&gt; [116] "dosenum"      "first"        "last"         "diff"         "is.nan"      
-#&gt; [121] "is.na"        "is.finite"    "is.infinite"  "linCmt"       "rnorm"       
-#&gt; [126] "rxnorm"       "rxbinom"      "rbinom"       "rxcauchy"     "rcauchy"     
-#&gt; [131] "rchisq"       "rxchisq"      "rexp"         "rxexp"        "rbeta"       
-#&gt; [136] "rxbeta"       "rgeom"        "rxgeom"       "rxpois"       "rpois"       
-#&gt; [141] "rxt"          "rt"          </div></pre>
+    <pre class="examples"><span class='r-in'><span class='fu'>rxSupportedFuns</span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   [1] "gammafn"      "lgammafn"     "lgamma"       "loggamma"     "digamma"     </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   [6] "trigamma"     "tetragamma"   "pentagamma"   "cospi"        "sinpi"       </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [11] "tanpi"        "log1p"        "expm1"        "factorial"    "lfactorial"  </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [16] "lgamma1p"     "expm1"        "log10"        "log2"         "log1pexp"    </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [21] "!"            "phi"          "pnorm"        "normcdf"      "qnorm"       </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [26] "fabs"         "pow"          "R_pow"        "R_pow_di"     "Rx_pow_di"   </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [31] "Rx_pow"       "lbeta"        "=="           "!="           "&gt;="          </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [36] "&lt;="           "&lt;"            "&gt;"            "&amp;&amp;"           "||"          </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [41] "&amp;"            "|"            "lgamma"       "abs"          "acos"        </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [46] "acosh"        "asin"         "asinh"        "atan"         "atan2"       </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [51] "atanh"        "beta"         "cos"          "cosh"         "erf"         </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [56] "erfc"         "exp"          "gamma"        "linCmtA"      "linCmtC"     </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [61] "linCmtB"      "log"          "polygamma"    "rxTBS"        "rxTBSi"      </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [66] "rxTBSd"       "rxTBSd2"      "sin"          "sinh"         "sqrt"        </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [71] "tan"          "tanh"         "gammap"       "floor"        "round"       </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [76] "ceil"         "trunc"        "bessel_i"     "bessel_j"     "bessel_k"    </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [81] "bessel_y"     "logspace_add" "logspace_sub" "fmax2"        "fmin2"       </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [86] "sign"         "fsign"        "fprec"        "fround"       "ftrunc"      </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [91] "transit"      "gammaq"       "gammapDer"    "gammapInv"    "gammapInva"  </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [96] "gammaqInv"    "gammaqInva"   "lowergamma"   "uppergamma"   "max"         </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [101] "min"          "logit"        "expit"        "probit"       "probitInv"   </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [106] "tlast"        "tfirst"       "lag"          "lead"         "dabs"        </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [111] "dabs2"        "abs1"         "dabs1"        "erfinv"       "abs0"        </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [116] "dosenum"      "first"        "last"         "diff"         "is.nan"      </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [121] "is.na"        "is.finite"    "is.infinite"  "linCmt"       "rnorm"       </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [126] "rxnorm"       "rxbinom"      "rbinom"       "rxcauchy"     "rcauchy"     </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [131] "rchisq"       "rxchisq"      "rexp"         "rxexp"        "rbeta"       </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [136] "rxbeta"       "rgeom"        "rxgeom"       "rxpois"       "rpois"       </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [141] "rxt"          "rt"          </span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

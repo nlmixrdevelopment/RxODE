@@ -350,32 +350,37 @@ can run the same number of cores as you are running so they can
 reproduce your results.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
-<span class='co'># \donttest{</span>
-
-<span class='co'>## Use threefry engine</span>
-
-<span class='fu'>rxf</span><span class='op'>(</span><span class='fl'>0.5</span>, <span class='fl'>0.5</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxf you have to explicitly state n</span>
-</div><div class='co'>#&gt;  [1]   0.17318270   0.02600366  89.84660477   0.72439630 997.43049933
-#&gt;  [6]   1.69328279   0.55766883  10.54716414   0.28591453 119.30077455</div><div class='input'><span class='fu'>rxf</span><span class='op'>(</span><span class='fl'>5</span>, <span class='fl'>1</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
-</div><div class='co'>#&gt;  [1]  0.1888919  3.0254665  4.1656141  0.2431162  0.9624515 24.7813902
-#&gt;  [7]  3.9515299  0.2776057  0.9689611 62.2537194</div><div class='input'>
-<span class='fu'>rxf</span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>3</span><span class='op'>)</span>
-</div><div class='co'>#&gt; [1] 0.04959931</div><div class='input'>
-
-<span class='co'>## This example uses `rxf` directly in the model</span>
-
-<span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span>
-  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'>rxf</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span>
-<span class='op'>}</span><span class='op'>)</span>
-</div><div class='co'>#&gt;  </div><div class='input'>
-<span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span>
-
-<span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span>
-</div><div class='co'>#&gt; <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</div><div class='input'>
-<span class='co'># }</span>
-
-</div></pre>
+    <pre class="examples"><span class='r-in'></span>
+<span class='r-in'><span class='co'># \donttest{</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'>## Use threefry engine</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'>rxf</span><span class='op'>(</span><span class='fl'>0.5</span>, <span class='fl'>0.5</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxf you have to explicitly state n</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1]   0.17318270   0.02600366  89.84660477   0.72439630 997.43049933</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [6]   1.69328279   0.55766883  10.54716414   0.28591453 119.30077455</span>
+<span class='r-in'><span class='fu'>rxf</span><span class='op'>(</span><span class='fl'>5</span>, <span class='fl'>1</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1]  0.1888919  3.0254665  4.1656141  0.2431162  0.9624515 24.7813902</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7]  3.9515299  0.2776057  0.9689611 62.2537194</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'>rxf</span><span class='op'>(</span><span class='fl'>1</span>, <span class='fl'>3</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 0.04959931</span>
+<span class='r-in'></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'>## This example uses `rxf` directly in the model</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span></span>
+<span class='r-in'>  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'>rxf</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'><span class='op'>}</span><span class='op'>)</span></span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span>  </span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span></span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'># }</span></span>
+<span class='r-in'></span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

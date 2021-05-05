@@ -290,61 +290,45 @@
 
     <div id="rxode-108" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.8">
-<a href="#rxode-108" class="anchor" aria-hidden="true"></a>RxODE 1.0.8<small> 2021-04-10 </small>
-</h1>
-<ul>
-<li>Fix issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/399'>#399</a></li>
-</ul>
-</div>
+<a href="#rxode-108" class="anchor" aria-hidden="true"></a>RxODE 1.0.8<small> 2021-04-10 </small></h1>
+<ul><li>Fix issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/399'>#399</a></li>
+</ul></div>
     <div id="rxode-107" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.7">
-<a href="#rxode-107" class="anchor" aria-hidden="true"></a>RxODE 1.0.7<small> 2021-04-08 </small>
-</h1>
-<ul>
-<li><p>Change syntax vignette to use markdown option <code>screenshot.force=FALSE</code>. This should get rid of the <code>webshot</code> error</p></li>
+<a href="#rxode-107" class="anchor" aria-hidden="true"></a>RxODE 1.0.7<small> 2021-04-08 </small></h1>
+<ul><li><p>Change syntax vignette to use markdown option <code>screenshot.force=FALSE</code>. This should get rid of the <code>webshot</code> error</p></li>
 <li><p>Change to depend on dparser 1.3.0, which has some memory fixes</p></li>
-</ul>
-</div>
+</ul></div>
     <div id="rxode-106" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.6">
-<a href="#rxode-106" class="anchor" aria-hidden="true"></a>RxODE 1.0.6<small> 2021-03-21 </small>
-</h1>
-<ul>
-<li><p>RxODE imports but does not link to <code>checkmate</code> any longer. This change should make recompilation of RxODE to work with different releases of <code>checkmate</code> unnecessary.</p></li>
+<a href="#rxode-106" class="anchor" aria-hidden="true"></a>RxODE 1.0.6<small> 2021-03-21 </small></h1>
+<ul><li><p>RxODE imports but does not link to <code>checkmate</code> any longer. This change should make recompilation of RxODE to work with different releases of <code>checkmate</code> unnecessary.</p></li>
 <li><p>Default Solaris solver changed back to “lsoda”</p></li>
 <li><p>Fix Bug <a href='https://github.com/nlmixrdevelopment/RxODE/issues/393'>#393</a>, where in certain circumstances <code>rxSolve(...,theta=)</code> did not solve for all subjects.</p></li>
 <li><p>Will not ignore NEWS and README when building the package so that they will show up on CRAN. You can also access the news by <code>news(package="RxODE")</code></p></li>
 <li><p>Changed <code>ODR</code> model names from time id to <code>_rx</code> followed by the <code>md5</code> hash id and a per-session counter id; For packages the id is <code>_rxp</code> followed by the <code>md5</code> hash and a per-session counter id.</p></li>
 <li><p>Changed <code>qs</code> to be more conservative in hash creation. Add a check hash as well as NOT using altrep stringfish representation.</p></li>
-</ul>
-</div>
+</ul></div>
     <div id="rxode-105" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.5">
-<a href="#rxode-105" class="anchor" aria-hidden="true"></a>RxODE 1.0.5<small> 2021-03-09 </small>
-</h1>
-<ul>
-<li><p>Maintainance release – use <code>std::floor</code> and cast variables to <code>double</code> for internal C functions. This should allow a successful compile on Solaris CRAN.</p></li>
+<a href="#rxode-105" class="anchor" aria-hidden="true"></a>RxODE 1.0.5<small> 2021-03-09 </small></h1>
+<ul><li><p>Maintainance release – use <code>std::floor</code> and cast variables to <code>double</code> for internal C functions. This should allow a successful compile on Solaris CRAN.</p></li>
 <li><p>Changed <code>units</code> from an Imports to a Suggests to allow testing on Solaris rhub</p></li>
 <li><p>Changed <code>ODR</code> model names from time id to <code>_rx</code> followed by the <code>md5</code> hash id; For packages the id is <code>_rxp</code> followed by the <code>md5</code> hash.</p></li>
 <li>
 <p>Removed AD linear compartment solutions for Windows R 3.6, though they still work for Windows R 4.0 (You can get them back for Windows R 3.6 if you install <code>BH</code> 1.66.0-1 and then recompile from source).</p>
-<ul>
-<li>This will cause <code>nlmixr</code> to fail with solved systems on Windows 3.6. Currently the Stan Headers do not compile on this system so they are disabled at this time.</li>
-</ul>
-</li>
+<ul><li>This will cause <code>nlmixr</code> to fail with solved systems on Windows 3.6. Currently the Stan Headers do not compile on this system so they are disabled at this time.</li>
+</ul></li>
 <li><p>RxODE imports but does not link to <code>qs</code> any longer; This change should make recompilation of RxODE to work with different releases of <code>qs</code> unnecessary.</p></li>
 <li><p>RxODE now checks for binary compatibility for <code>Rcpp</code>, <code>dparser</code>, <code>checkmate</code>, and <code>PreciseSums</code></p></li>
-</ul>
-</div>
+</ul></div>
     <div id="rxode-104" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.4">
-<a href="#rxode-104" class="anchor" aria-hidden="true"></a>RxODE 1.0.4<small> 2021-02-24 </small>
-</h1>
+<a href="#rxode-104" class="anchor" aria-hidden="true"></a>RxODE 1.0.4<small> 2021-02-24 </small></h1>
 <div id="breaking-changes" class="section level2">
 <h2 class="hasAnchor">
 <a href="#breaking-changes" class="anchor" aria-hidden="true"></a>Breaking changes</h2>
-<ul>
-<li><p>RxODE can only use supported functions (could be breaking); You may add your own functions with <code>rxFun</code> and their derivatives with <code>rxD</code></p></li>
+<ul><li><p>RxODE can only use supported functions (could be breaking); You may add your own functions with <code>rxFun</code> and their derivatives with <code>rxD</code></p></li>
 <li><p>RxODE now uses its own internal truncated multivariate normal simulations based on the threefry sitmo library. Therefore random numbers generated within <code>RxODE</code> like providing <code>rxSolve(...,omega=)</code> will have different results with this new random number generator. This was done to allow internal re-sampling of sigmas/etas with thread-safe random number generators (calling R through <code>mvnfast</code> or R’s simulation engines are not thread safe).</p></li>
 <li><p><code>RxODE</code> now moved the precise sum/product type options for <code><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum()</a></code> and <code><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod()</a></code> to <code>rxSolve</code> or <code>rxControl</code></p></li>
 <li><p><code>cvPost</code> now will returned a named list of matrices if the input matrix was named</p></li>
@@ -352,13 +336,11 @@
 <li><p>When mixing ODEs and <code>linCmt()</code> models, the <code>linCmt()</code> compartments are 1 and possibly 2 instead of right after the last internal ODE. This is more aligned with how PK/PD models are typically defined.</p></li>
 <li><p><code>EVID=3</code> and <code>EVID=4</code> now (possibly) reset time as well. This occurs when the input dataset is sorted before solving.</p></li>
 <li><p>When <code>EVID=2</code> is present, an <code>evid</code> column is output to distinguish <code>evid=0</code> and <code>evid=2</code></p></li>
-</ul>
-</div>
+</ul></div>
 <div id="new-features" class="section level2">
 <h2 class="hasAnchor">
 <a href="#new-features" class="anchor" aria-hidden="true"></a>New features</h2>
-<ul>
-<li><p>Add the ability to order input parameters with the <code>param()</code> pseudo-function</p></li>
+<ul><li><p>Add the ability to order input parameters with the <code>param()</code> pseudo-function</p></li>
 <li><p>Add the ability to resample covariates with <code>resample=TRUE</code> or <code>resample=c("SEX", "CRCL")</code>. You can resample all the covariates by <code>ID</code> with <code>resampleID=TRUE</code> or resample the covariates without respect to <code>ID</code> with <code>resampleID=FALSE</code></p></li>
 <li><p>Comparison of factors/strings is now supported in <code>RxODE</code>; Therefore ID==“Study-1” is now allowed.</p></li>
 <li><p>Completion for elements of <code><a href="../reference/rxSolve.html">rxSolve()</a></code> objects, and <code><a href="../reference/et.html">et()</a></code> objects have been added (accessed through <code>$</code>)</p></li>
@@ -369,34 +351,27 @@
 <li><p>Printing upgraded to cli 2.0</p></li>
 <li>
 <p>Caching of internal C data setup is now supported increasing speed of <code>optim</code> code when:</p>
-<ul>
-<li>Event Table doesn’t change</li>
+<ul><li>Event Table doesn’t change</li>
 <li>The size of the parameters doesn’t change</li>
 <li>
 <code>inits</code> do not change (though you can specify them as <code>cmt(0)=...</code> in the model and change them by parameters)</li>
 <li>See Issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/109'>#109</a></li>
-</ul>
-</li>
+</ul></li>
 <li><p>Allow <code>while(logical)</code> statements with ability to break out if them by <code><a href="https://rdrr.io/r/base/Control.html" class="external-link">break</a></code>. The while has an escape valve controlled by <code>maxwhere</code> which by default is 10000 iterations. It can be change with <code>rxSolve(..., maxwhere = NNN)</code></p></li>
 <li>
 <p>Allow accessing different time-varying components of an input dataset for each individual with:</p>
-<ul>
-<li><code>lag(var, #)</code></li>
+<ul><li><code>lag(var, #)</code></li>
 <li><code>lead(var, #)</code></li>
 <li><code>first(var)</code></li>
 <li><code>last(var)</code></li>
 <li><code>diff(var)</code></li>
-</ul>
-</li>
-</ul>
-<p>Each of these are similar to the R <code>lag</code>, <code>lead</code>, <code>first</code>, <code>last</code> and <code>diff</code>. However when undefined, it returns <code>NA</code></p>
-<ul>
-<li>
+</ul></li>
+</ul><p>Each of these are similar to the R <code>lag</code>, <code>lead</code>, <code>first</code>, <code>last</code> and <code>diff</code>. However when undefined, it returns <code>NA</code></p>
+<ul><li>
 <p>Allow sticky left-handed side of the equation; This means for an observation the left handed values are saved for the next observations and then reassigned to the last calculated value.</p>
 <p>This allows NONMEM-style of calculating parameters like tad:</p>
 </li>
-</ul>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+</ul><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 <span class="va">mod1</span> <span class="op">&lt;-</span><span class="fu"><a href="../reference/RxODE.html">RxODE</a></span><span class="op">(</span><span class="op">{</span>
     <span class="va">KA</span><span class="op">=</span><span class="fl">2.94E-01</span>;
@@ -440,62 +415,48 @@
     <span class="va">tad</span> <span class="op">&lt;-</span> <span class="va">time</span> <span class="op">-</span> <span class="va">tlast</span>
 <span class="op">}</span><span class="op">)</span></code></pre></div>
 <p>If the <code>lhs</code> parameters haven’t been defined yet, they are <code>NA</code></p>
-<ul>
-<li><p>Now the NONMEM-style <code>newind</code> flag can be used to initialize <code>lhs</code> parameters.</p></li>
+<ul><li><p>Now the NONMEM-style <code>newind</code> flag can be used to initialize <code>lhs</code> parameters.</p></li>
 <li><p>Added <code>tad()</code>, <code>tad(cmt)</code> functions for time since last dose and time since last dose for a compartment; Also added time after first dose and time after first dose for a compartment <code>tafd()</code>, <code>tafd(cmt)</code>; time of last dose <code>tlast()</code>, <code>tlast(cmt)</code> and dose number <code>dosenum()</code> (currently not for each compartment)</p></li>
 <li><p>Changed linear solved systems to use “advan” style <code>linCmt()</code> solutions, to allow correct solutions of time-varying covariates values with solved systems; As such, the solutions may be slightly different. Infusions to the depot compartment are now supported.</p></li>
 <li>
 <p>Added sensitivity auto-differentiation of <code>linCmt()</code> solutions. This allows sensitivities of <code>linCmt()</code> solutions and enables <code>nlmixr</code> focei to support solved systems.</p>
-<ul>
-<li>One solution is to use Stan’s auto-differentiation which requires <code>C++14</code>
+<ul><li>One solution is to use Stan’s auto-differentiation which requires <code>C++14</code>
 </li>
-</ul>
-</li>
+</ul></li>
 <li><p>When calculating the empirical Bayesian estimates for with <code>rxInner</code> (used for nlmixr’s ‘focei’) ignore any variable beginning with <code>rx_</code> and <code>nlmixr_</code> to hide internal variables from table output. This also added <code>tad=tad()</code> and <code>dosenum=dosenum()</code> to the <code>ebe</code> output allowing grouping by id, dose number and use TAD for individual plot stratification.</p></li>
 <li><p>Added ability to prune branching with <code>rxPrune</code>. This converts <code>if</code>/<code>else</code> or <code>ifelse</code> to single line statements without any <code>if</code>/<code>then</code> branching within them.</p></li>
 <li>
 <p>Added ability to take more complex conditional expressions, including:</p>
-<ul>
-<li><code>ifelse(expr, yes, no)</code></li>
+<ul><li><code>ifelse(expr, yes, no)</code></li>
 <li><code>x = (x==1)*1 + (!(x==1))*2</code></li>
 <li>
 <code>if (logic){ expr} else if (logic) {expr} else {}</code>. The preferred syntax is still only <code>if</code>/<code>else</code> and the corresponding parsed code reflects this preference.
-<ul>
-<li>Note <code>ifelse</code> is not allowed as an ODE compartment or a variable.</li>
-</ul>
-</li>
-</ul>
-</li>
+<ul><li>Note <code>ifelse</code> is not allowed as an ODE compartment or a variable.</li>
+</ul></li>
+</ul></li>
 <li>
 <p>Switched to <code>symengine</code> instead of using <code>sympy</code></p>
-<ul>
-<li>Remove dependence on python.</li>
+<ul><li>Remove dependence on python.</li>
 <li>Since symengine is C-based and doesn’t require the python interface it is much faster than <code>sympy</code>, though some functions in <code>sympy</code> are no longer accessible.</li>
 <li>Also symengine requires R 3.6, so now RxODE requires R 3.6</li>
-</ul>
-</li>
+</ul></li>
 <li><p>Added new ODE solving method “indLin”, or inductive linearization. When the full model is a linear ODE system this becomes simply the matrix exponential solution. Currently this requires a different setup.</p></li>
 <li>
 <p>Added arbitrary function definition to RxODE using <code>rxFun</code></p>
-<ul>
-<li>Requires function, arguments and corresponding C-code</li>
+<ul><li>Requires function, arguments and corresponding C-code</li>
 <li>Derivatives (if required) can be added to the derivative table <code>rxD</code>. When taking deviates without a derivative function, RxODE will use numerical differences.</li>
-</ul>
-</li>
+</ul></li>
 <li>
 <p>Will error if RxODE does not know of a function that you are trying to use; This could be a breaking change. Currently:</p>
-<ul>
-<li>C’s functions from <code>math.h</code> are supported</li>
+<ul><li>C’s functions from <code>math.h</code> are supported</li>
 <li>R’s function returning and taking doubles are supported</li>
 <li>Other functions can be added using <code>rxFun</code> and <code>rxD</code>
 </li>
-</ul>
-</li>
+</ul></li>
 <li><p>Added <code>NA</code>, <code>NaN</code>, <code>Inf</code> and <code>+Inf</code> handling to a RxODE model. Can be useful to diagnose problems in models and provide alternate solutions. In addition, added R-like functions <code>is.nan</code>, <code>is.na</code>, <code>is.finite</code> and <code>is.infinite</code> which can be called within the RxODE block.</p></li>
 <li>
 <p>Allowed the following data variables can be accessed (but not assigned or used as a state):</p>
-<ul>
-<li><code>cmt</code></li>
+<ul><li><code>cmt</code></li>
 <li><code>dvid</code></li>
 <li><code>addl</code></li>
 <li><code>ss</code></li>
@@ -503,14 +464,12 @@
 <li><code>rate</code></li>
 <li>
 <code>id</code> which requires calling the id as factor <code>ID=="1"</code> for instance.</li>
-</ul>
-</li>
+</ul></li>
 <li><p>Kept <code>evid</code> and <code>ii</code> as restricted items since they are not part of the covariate table and are restricted in use.</p></li>
 <li>
 <p>Added the following random number generators; They are thread safe (based on <code>threefry</code> <code>sitmo</code> and c++11) and your simulations with them will depend on the number of cores used in your simulation (Be careful about reproducibility with large number of threads; Also use parallel-solve type of RxODE simulations to avoid the <a href="https://www.johndcook.com/blog/2016/01/29/random-number-generator-seed-mistakes/" class="external-link">birthday problem</a>).</p>
 <p>During ODE solving, the values of these are <code>0</code>, but while calculating the final output the variable is randomized at least for every output. These are:</p>
-<ul>
-<li>
+<ul><li>
 <code><a href="../reference/rxnormV.html">rxnorm()</a></code> and <code><a href="../reference/rxnormV.html">rxnormV()</a></code> (low discrepancy normal)</li>
 <li><code><a href="../reference/rxcauchy.html">rxcauchy()</a></code></li>
 <li><code><a href="../reference/rxchisq.html">rxchisq()</a></code></li>
@@ -523,10 +482,8 @@
 <li><code><a href="../reference/rxt.html">rxt()</a></code></li>
 <li><code><a href="../reference/rxunif.html">rxunif()</a></code></li>
 <li><code><a href="../reference/rxweibull.html">rxweibull()</a></code></li>
-</ul>
-<p>In addition, while initializing the system, the following values are simulated and retained for each individual:</p>
-<ul>
-<li>
+</ul><p>In addition, while initializing the system, the following values are simulated and retained for each individual:</p>
+<ul><li>
 <code>rinorm()</code> and <code>rinormV()</code> (low discrepancy normal)</li>
 <li><code>ricauchy()</code></li>
 <li><code>richisq()</code></li>
@@ -539,16 +496,13 @@
 <li><code>rit()</code></li>
 <li><code>riunif()</code></li>
 <li><code>riweibull()</code></li>
-</ul>
-</li>
+</ul></li>
 <li><p>Added <code>simeta()</code> which simulates a new <code>eta</code> when called based on the possibly truncated normal <code>omega</code> specified by the original simulation. This simulation occurs at the same time as the ODE is initialized or when an ODE is missing, before calculating the final output values. The <code>omega</code> will reflect whatever study is being simulated.</p></li>
 <li><p>Added <code>simeps()</code> which simulates a new <code>eps</code> from the possibly truncated normal <code>sigma</code> at the same time as calculating the final output values. Before this time, the <code>sigma</code> variables are zero.</p></li>
-</ul>
-<p>All these change the solving to single thread by default to make sure the simulation is reproducible. With high loads/difficult problems the random number generator may be on a different thread and give a different number than another computer/try.</p>
+</ul><p>All these change the solving to single thread by default to make sure the simulation is reproducible. With high loads/difficult problems the random number generator may be on a different thread and give a different number than another computer/try.</p>
 <p>Also please note that the <code>clang</code> and <code>gcc</code> compiler use different methods to create the more complex random numbers. Therefore <code>MacOS</code> random numbers will be different than <code>Linux</code>/<code>Windows</code> at this time (with the exception of uniform numbers).</p>
 <p>These numbers are still non-correlated random numbers (based on the sitmo test) with the exception of the vandercorput distributions, so if you increase the number of threads (cores=…) the results should still be valid, though maybe harder to reproduce. The faster the random number generation, the more likely these results will be reproduced across platforms.</p>
-<ul>
-<li><p>Added the ability to integrate standard deviations/errors of omega diagonals and sigma diagonals. This is done by specifying the omega diagonals in the theta matrix and having them represent the variabilities or standard deviations. Then these standard deviations are simulated along with the correlations using the IJK correlation matrix (omega dimension &lt; 10) or a correlation matrix or Inverse Wishart-based correlation matrix (omega dimension &gt; 10). The information about how to simulate this is in the variability simulation vignette.</p></li>
+<ul><li><p>Added the ability to integrate standard deviations/errors of omega diagonals and sigma diagonals. This is done by specifying the omega diagonals in the theta matrix and having them represent the variabilities or standard deviations. Then these standard deviations are simulated along with the correlations using the IJK correlation matrix (omega dimension &lt; 10) or a correlation matrix or Inverse Wishart-based correlation matrix (omega dimension &gt; 10). The information about how to simulate this is in the variability simulation vignette.</p></li>
 <li><p>Now have a method to use <code>lotri</code> to simulate between occasion variability and other levels of nesting.</p></li>
 <li><p>Added lower gamma functions See Issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/185'>#185</a></p></li>
 <li><p>Upgraded comparison sort to timsort 2.0.1</p></li>
@@ -560,72 +514,55 @@
 <li><p>Changed method for setting/getting number of threads based on <code>data.table</code>’s method</p></li>
 <li><p>Added function <code>rxDerived</code> which will calculate derived parameters for 1, 2, and 3 compartment models</p></li>
 <li><p>More descriptive errors when types of input are different than expected</p></li>
-</ul>
-</div>
+</ul></div>
 <div id="engine-changes" class="section level2">
 <h2 class="hasAnchor">
 <a href="#engine-changes" class="anchor" aria-hidden="true"></a>Engine changes</h2>
-<ul>
-<li>
+<ul><li>
 <p>Moved many C functions to C++. CRAN OpenMP support requires C++ only when C and C++ are mixed. See:</p>
 <p>https://stackoverflow.com/questions/54056594/cran-acceptable-way-of-linking-to-openmp-some-c-code-called-from-rcpp</p>
 </li>
 <li><p>No longer produces C code that create the model variables. Instead, use <code>qs</code> to serialize, compress and encode in base91 and then write the string into the C file. The <code>qs</code> package then decodes all of that into the model variables. This also increases the compilation speed for models in RxODE.</p></li>
 <li><p>Pre-compile RxODE headers once (if cache is enabled), which increases compilation speed for models in RxODE</p></li>
 <li><p><code>RxODE</code>’s translation from the mini-language to C has been refactored</p></li>
-</ul>
-</div>
+</ul></div>
 <div id="bug-fixes" class="section level2">
 <h2 class="hasAnchor">
 <a href="#bug-fixes" class="anchor" aria-hidden="true"></a>Bug fixes:</h2>
-<ul>
-<li><p>Occasionally RxODE misidentified dual <code>lhs</code>/<code>param</code> values. An additional check is performed so that this does not happen.</p></li>
+<ul><li><p>Occasionally RxODE misidentified dual <code>lhs</code>/<code>param</code> values. An additional check is performed so that this does not happen.</p></li>
 <li><p>For solved matrices with similar names (like “tadd” and “tad”) RxODE will now prefer exact matches instead of the first match found when accessing the items with <code>$tad</code>.</p></li>
 <li><p>A fix where all ID information is kept with <code>keep=c(""..."")</code></p></li>
 <li><p>Transit compartment models using the <code>transit</code> ODE or variable are now allowed. Also check for more internally parsed items (see Issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/145'>#145</a>).</p></li>
 <li><p>Bug fix for <code>etSeq</code> and <code>etRep</code> where greater than 2 items were mis-calculated</p></li>
-</ul>
-</div>
+</ul></div>
 </div>
     <div id="rxode-v092-0" class="section level1">
 <h1 class="page-header" data-toc-text="0.9.2-0">
-<a href="#rxode-v092-0" class="anchor" aria-hidden="true"></a>RxODE v0.9.2-0<small> 2020-03-13 </small>
-</h1>
-<ul>
-<li>New plotting engine</li>
+<a href="#rxode-v092-0" class="anchor" aria-hidden="true"></a>RxODE v0.9.2-0<small> 2020-03-13 </small></h1>
+<ul><li>New plotting engine</li>
 <li>Various bug fixes for upcoming R 4.0 release:
-<ul>
-<li>Dropped some imports for 21 imports restriction</li>
+<ul><li>Dropped some imports for 21 imports restriction</li>
 <li>Fixed incompatibility with new <code>ggplot2</code> 3.3.0</li>
 <li>Fixed allowing <code>NA</code>s in RxODE dataset</li>
 <li>Fixed setting all compartment default values for bioavailability, rate, etc.</li>
 <li>Added additional protection against floating point -&gt; NaN for power functions</li>
-</ul>
-</li>
-</ul>
-</div>
+</ul></li>
+</ul></div>
     <div id="rxode-v091-9" class="section level1">
 <h1 class="page-header" data-toc-text="0.9.1-9">
-<a href="#rxode-v091-9" class="anchor" aria-hidden="true"></a>RxODE v0.9.1-9<small> 2020-01-10 </small>
-</h1>
-<ul>
-<li>Minor namespace/documentation changes for R 4.0 compatibility</li>
-</ul>
-</div>
+<a href="#rxode-v091-9" class="anchor" aria-hidden="true"></a>RxODE v0.9.1-9<small> 2020-01-10 </small></h1>
+<ul><li>Minor namespace/documentation changes for R 4.0 compatibility</li>
+</ul></div>
     <div id="rxode-v091-8" class="section level1">
 <h1 class="page-header" data-toc-text="0.9.1-8">
-<a href="#rxode-v091-8" class="anchor" aria-hidden="true"></a>RxODE v0.9.1-8<small> 2019-11-12 </small>
-</h1>
-<ul>
-<li>Added the ability to have an input parameter to be assigned to a new value (Issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/135'>#135</a>)</li>
+<a href="#rxode-v091-8" class="anchor" aria-hidden="true"></a>RxODE v0.9.1-8<small> 2019-11-12 </small></h1>
+<ul><li>Added the ability to have an input parameter to be assigned to a new value (Issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/135'>#135</a>)</li>
 <li>Added LINPACK authors as contributors</li>
 <li>Added a <code>NEWS.md</code> file to track changes to the package</li>
-</ul>
-<!--  LocalWords:  resample covariates Rstudio NONMEM advan focei
+</ul><!--  LocalWords:  resample covariates Rstudio NONMEM advan focei
  --><!--  LocalWords:  nlmixr's symengine linearization RxODE
  --><!--  LocalWords:  reproducibility
- -->
-</div>
+ --></div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

@@ -328,48 +328,58 @@ uses the vandercorput generator</p></td>
     <p>normal random number deviates</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'># \donttest{</span>
-<span class='co'>## Use threefry engine</span>
-
-<span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxnorm you have to explicitly state n</span>
-</div><div class='co'>#&gt;  [1]  0.1945161  0.3257924  1.1856819 -0.7793726 -0.7295080  0.5288050
-#&gt;  [7]  0.9454559  2.1334278 -2.0224568 -2.4576973</div><div class='input'><span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span>,ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
-</div><div class='co'>#&gt;  [1] -1.0364195 -0.5274504 -0.2963513 -0.1958067 -0.5099234 -0.1615895
-#&gt;  [7]  0.4190054 -0.7658105 -1.2929063 -0.6089959</div><div class='input'>
-<span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span><span class='fl'>2</span>,<span class='fl'>3</span><span class='op'>)</span> <span class='co'>## The first 2 arguments are the mean and standard deviation</span>
-</div><div class='co'>#&gt; [1] 1.693309</div><div class='input'>
-
-<span class='co'>## This example uses `rxnorm` directly in the model</span>
-
-<span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span>
-  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span><span class='op'>)</span>
-<span class='op'>}</span><span class='op'>)</span>
-</div><div class='co'>#&gt;  </div><div class='input'>
-<span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span>
-
-<span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span>
-</div><div class='co'>#&gt; <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</div><div class='input'>
-<span class='co'>## Use vandercorput generator</span>
-
-<span class='fu'><a href='rxnormV.html'>rxnormV</a></span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxnorm you have to explicitly state n</span>
-</div><div class='co'>#&gt;  [1]  0.8766283 -0.7818548  0.3652488 -0.9458966  0.8844971 -0.2515529
-#&gt;  [7]  0.1385289 -0.7635145  0.9702994 -0.5143096</div><div class='input'><span class='fu'><a href='rxnormV.html'>rxnormV</a></span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span>,ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span>
-</div><div class='co'>#&gt;  [1] -1.79242841  0.26696706 -0.53195331  0.43850494 -0.21890731  0.03515225
-#&gt;  [7] -0.50717978  0.92139728 -0.70992317  0.44365644</div><div class='input'>
-<span class='fu'><a href='rxnormV.html'>rxnormV</a></span><span class='op'>(</span><span class='fl'>2</span>,<span class='fl'>3</span><span class='op'>)</span> <span class='co'>## The first 2 arguments are the mean and standard deviation</span>
-</div><div class='co'>#&gt; [1] 4.698535</div><div class='input'>
-
-<span class='co'>## This example uses `rxnormV` directly in the model</span>
-
-<span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span>
-  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'><a href='rxnormV.html'>rxnormV</a></span><span class='op'>(</span><span class='op'>)</span>
-<span class='op'>}</span><span class='op'>)</span>
-</div><div class='co'>#&gt;  </div><div class='input'>
-<span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span>
-
-<span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span>
-</div><div class='co'>#&gt; <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</div><div class='input'><span class='co'># }</span>
-</div></pre>
+    <pre class="examples"><span class='r-in'><span class='co'># \donttest{</span></span>
+<span class='r-in'><span class='co'>## Use threefry engine</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxnorm you have to explicitly state n</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1]  0.1945161  0.3257924  1.1856819 -0.7793726 -0.7295080  0.5288050</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7]  0.9454559  2.1334278 -2.0224568 -2.4576973</span>
+<span class='r-in'><span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span>,ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] -1.0364195 -0.5274504 -0.2963513 -0.1958067 -0.5099234 -0.1615895</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7]  0.4190054 -0.7658105 -1.2929063 -0.6089959</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span><span class='fl'>2</span>,<span class='fl'>3</span><span class='op'>)</span> <span class='co'>## The first 2 arguments are the mean and standard deviation</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 1.693309</span>
+<span class='r-in'></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'>## This example uses `rxnorm` directly in the model</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span></span>
+<span class='r-in'>  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-in'><span class='op'>}</span><span class='op'>)</span></span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span>  </span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span></span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'>## Use vandercorput generator</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='rxnormV.html'>rxnormV</a></span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxnorm you have to explicitly state n</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1]  0.8766283 -0.7818548  0.3652488 -0.9458966  0.8844971 -0.2515529</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7]  0.1385289 -0.7635145  0.9702994 -0.5143096</span>
+<span class='r-in'><span class='fu'><a href='rxnormV.html'>rxnormV</a></span><span class='op'>(</span>n<span class='op'>=</span><span class='fl'>10</span>,ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] -1.7924284  0.2669671 -0.5319533  0.4385049 -1.0176672 -1.0176672</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7]  1.7300645 -1.7157521  1.0499560 -0.4332438</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='rxnormV.html'>rxnormV</a></span><span class='op'>(</span><span class='fl'>2</span>,<span class='fl'>3</span><span class='op'>)</span> <span class='co'>## The first 2 arguments are the mean and standard deviation</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 4.698535</span>
+<span class='r-in'></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'>## This example uses `rxnormV` directly in the model</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span></span>
+<span class='r-in'>  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'><a href='rxnormV.html'>rxnormV</a></span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-in'><span class='op'>}</span><span class='op'>)</span></span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span>  </span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span></span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</span>
+<span class='r-in'><span class='co'># }</span></span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
