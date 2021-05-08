@@ -189,14 +189,17 @@
 ##'
 ##' @param x Expression
 ##' @param names Names to prepend to the final names output
+##' @param env Environment that contains a boolean `.found` that
+##'   indicates if an interesting expression has been found
 ##' @return character vector of names that are uncomplicated, like
 ##'   "a", "b"; If the names are part of a larger expression these
 ##'   names are skipped.
 ##' @author Matthew Fidler
 ##' @noRd
-.muRefExtractSingleVariableNames <- function(x, names) {
+.muRefExtractSingleVariableNames <- function(x, names, env) {
   c(names, do.call(`c`, lapply(x, function(y) {
     if(is.name(y)) {
+      env$found <- TRUE
       return(as.character(y))
     }
     return(NULL)
@@ -231,6 +234,7 @@
                                                   "' is duplicated in mu-referenced expression for '",
                                                   .y2[2], "' and '", doubleNames[[.y2[1]]], "'")))
             }
+            env$.found <- TRUE
             return(setNames(list(.y2[2]), .y2[1]))
           } else if (any(.y2[2] == env$info$cov) &&
                        any(.y2[1] == env$info$theta)) {
@@ -239,6 +243,7 @@
                                                   "' is duplicated in mu-referenced expression for '",
                                                   .y2[1], "' and '", doubleNames[[.y2[2]]], "'")))
             }
+            env$.found <- TRUE
             return(setNames(list(.y2[1]), .y2[2]))
           }
         }
@@ -327,6 +332,26 @@
 
 ## To reduce code from nlmixr, the
 ## Covariate references should have the following structure:
+## To reduce code from nlmixr the mu reference:
+## -------------------------------
+## > f$nmodel$mu.ref
+## $eta.ka
+## [1] "tka"
+##
+## $eta.cl
+## [1] "tcl"
+##
+## $eta.v
+## [1] "tv"
+
+## > f$cov.ref
+## $age
+## cov.age
+##   "tcl"
+##
+## $wt
+## cov.wt
+##  "tcl"
 
 
 ##' Handle the + expressions to determine mu-reference expressions
@@ -337,32 +362,17 @@
 ##' @author Matthew Fidler
 ##' @noRd
 .muRefHandlePlus <- function(x, env) {
-  ## To reduce code from nlmixr the mu reference:
-  ## -------------------------------
-  ## > f$nmodel$mu.ref
-  ## $eta.ka
-  ## [1] "tka"
-  ##
-  ## $eta.cl
-  ## [1] "tcl"
-  ##
-  ## $eta.v
-  ## [1] "tv"
-
-  ## > f$cov.ref
-  ## $age
-  ## cov.age
-  ##   "tcl"
-  ##
-  ## $wt
-  ## cov.wt
-  ##  "tcl"
   .x2 <- x[-1]
   .names <- NULL
   .doubleNames <- list(0)
+  .extraItems <- NULL
   while (!is.null(.x2)) {
-    .names <- .muRefExtractSingleVariableNames(.x2, .names)
+    env$.found <- FALSE
+    .names <- .muRefExtractSingleVariableNames(.x2, .names, env)
     .doubleNames <- .muRefExtractMultiplyMuCovariates(.x2, .doubleNames, env)
+    if (!env$.found && !is.name(.x2[[2]])) {
+      .extraItems <- c(.extraItems, deparse1(.x2[[2]]))
+    }
     .x2 <- .muRefNextAdditiveExpression(.x2)
   }
   .wt <- which(.names %in% env$info$theta)
@@ -372,6 +382,7 @@
                         paste0("syntax error: 2+ single population parameters in a single mu-referenced expression: '",
                                paste(env$info$theta[.wt], collapse="', '"), "'")))
   } else if (length(.wt) == 1) {
+    #print(.extraItems)
     .muRefHandleSingleThetaMuRef(.we, .wt, .names, .doubleNames, env)
   } else if (length(.we) == 1){
     .curEta <- .names[.we]
