@@ -560,8 +560,7 @@
 ##' support non mu-referenced models by a parsing trick.
 ##'
 ##' @param mod Model
-##' @param theta Thetas from model initialization (like Lori)
-##' @param eta Etas from model initialization (like lotri)
+##' @param ini lotri initialization information
 ##' @return
 ##' @author Matthew Fidler
 ##' @examples

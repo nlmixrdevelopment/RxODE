@@ -9,9 +9,7 @@ rxMuRef(mod, ini = NULL)
 \arguments{
 \item{mod}{Model}
 
-\item{theta}{Thetas from model initialization (like Lori)}
-
-\item{eta}{Etas from model initialization (like lotri)}
+\item{ini}{lotri initialization information}
 }
 \value{
 
