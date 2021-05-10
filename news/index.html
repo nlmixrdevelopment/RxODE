@@ -94,7 +94,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.8.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
       </span>
     </div>
 
@@ -288,6 +288,18 @@
       <small>Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
+    <div id="rxode-109" class="section level1">
+<h1 class="page-header" data-toc-text="1.0.9">
+<a href="#rxode-109" class="anchor" aria-hidden="true"></a>RxODE 1.0.9<small> Unreleased </small></h1>
+<ul><li><p>At the request of CRAN, stripping the debugging symbols for the CRAN release is no longer performed. This means a larger binary size for RxODE in this release.</p></li>
+<li><p>At the request of CRAN the <code>liblsoda</code> code has been changed so that the memory in C defined by <code>_C()</code> is now defined by <code>_rxC()</code>. This will be seen in some of the error messages, which will no longer match the error messages of unmodified liblsoda.</p></li>
+<li>
+<p><code>iCov</code> behavior has shifted to merge on the input event dataset. See Issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/409'>#409</a>; This is more in line with expectations of <code>iCov</code> behavior, and reduces the amount of code needed to maintain <code>iCov</code>.</p>
+<p>The <code>iCov</code> in the pipeline is no longer supported because it simply is a merge with the event dataset.</p>
+<p>This can be a breaking change depending on the code you use. Note that clinical trial simulations, resampling is likely better than trying to fill out <code>iCov</code> for every individual which was the prior use.</p>
+</li>
+<li><p>Bug fix for crashes with string covariates or factor covariates, issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/410'>#410</a>. Also factor column names are compared with case insensitivity just like the rest of the column names for event tables or data sets in <code>RxODE</code>.</p></li>
+</ul></div>
     <div id="rxode-108" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.8">
 <a href="#rxode-108" class="anchor" aria-hidden="true"></a>RxODE 1.0.8<small> 2021-04-10 </small></h1>
