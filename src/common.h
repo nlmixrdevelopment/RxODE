@@ -44,4 +44,4 @@ struct lsoda_common_t {
 					jcur, meth, mused, nq, nst,
 					ncf, nfe, nje, nqu, miter;
 };
-#define _C(x) (ctx->common->x)
+#define _rxC(x) (ctx->common->x)

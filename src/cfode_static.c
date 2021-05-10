@@ -10,12 +10,12 @@ void cfode_static (struct lsoda_context_t * ctx, int meth)
 {
 #ifdef CFODE_STATIC
 	if (meth == 1) {
-		_C(elco) = elco1;
-		_C(tesco) = tesco1;
+		_rxC(elco) = elco1;
+		_rxC(tesco) = tesco1;
 
 	} else {
-		_C(elco) = elco2;
-		_C(tesco) = tesco2;
+		_rxC(elco) = elco2;
+		_rxC(tesco) = tesco2;
 	}
 #endif
 }

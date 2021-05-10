@@ -1,5 +1,5 @@
 Package: RxODE
-Version: 1.0.8.1
+Version: 1.0.9
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Matthew L.","Fidler",
@@ -15,7 +15,6 @@ Authors@R: c(
    person("Matt", "Dowle", role="ctb", email="mattjdowle@gmail.com"),
    person("Cleve", "Moler", role="ctb"),
    person("David", "Cooley", role="ctb"), 
-   person("Daniel C.", "Dillon", role="ctb"),
    person("Drew", "Schmidt", role="ctb"),
    person("Arun", "Srinivasan", role="ctb", email="arunkumar.sriniv@gmail.com"),
    person("Ernst", "Hairer", role="ctb"),

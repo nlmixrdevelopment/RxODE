@@ -14,9 +14,9 @@ void cfode(struct lsoda_context_t * ctx, int meth)
    cfode is called once at the beginning of the problem, and
    is not called again unless and until meth is changed.
 
-   The _C(elco) array contains the basic method coefficients.
+   The _rxC(elco) array contains the basic method coefficients.
    The coefficients el[i], 1 < i < nq+1, for the method of
-   order nq are stored in _C(elco)[nq][i].  They are given by a generating
+   order nq are stored in _rxC(elco)[nq][i].  They are given by a generating
    polynomial, i.e.,
 
       l(x) = el[1] + el[2]*x + ... + el[nq+1]*x^nq.
@@ -31,19 +31,19 @@ void cfode(struct lsoda_context_t * ctx, int meth)
 
    where   k = factorial(nq)*(1+1/2+...+1/nq).
 
-   The _C(tesco) array contains test constants used for the
+   The _rxC(tesco) array contains test constants used for the
    local error test and the selection of step size and/or order.
-   At order nq, _C(tesco)[nq][k] is used for the selection of step
+   At order nq, _rxC(tesco)[nq][k] is used for the selection of step
    size at order nq-1 if k = 1, at order nq if k = 2, and at order
    nq+1 if k = 3.
 */
 	if (meth == 1) {
-		_C(elco)[1][1] = 1.;
-		_C(elco)[1][2] = 1.;
-		_C(tesco)[1][1] = 0.;
-		_C(tesco)[1][2] = 2.;
-		_C(tesco)[2][1] = 1.;
-		_C(tesco)[12][3] = 0.;
+		_rxC(elco)[1][1] = 1.;
+		_rxC(elco)[1][2] = 1.;
+		_rxC(tesco)[1][1] = 0.;
+		_rxC(tesco)[1][2] = 2.;
+		_rxC(tesco)[2][1] = 1.;
+		_rxC(tesco)[12][3] = 0.;
 		pc[1] = 1.;
 		rqfac = 1.;
 		for (nq = 2; nq <= 12; nq++) {
@@ -78,18 +78,18 @@ void cfode(struct lsoda_context_t * ctx, int meth)
 				xpin += tsign * pc[i] / (double) (i + 1);
 			}
 /*
-   Store coefficients in _C(elco) and _C(tesco).
+   Store coefficients in _rxC(elco) and _rxC(tesco).
 */
-			_C(elco)[nq][1] = pint * rq1fac;
-			_C(elco)[nq][2] = 1.;
+			_rxC(elco)[nq][1] = pint * rq1fac;
+			_rxC(elco)[nq][2] = 1.;
 			for (i = 2; i <= nq; i++)
-				_C(elco)[nq][i + 1] = rq1fac * pc[i] / (double) i;
+				_rxC(elco)[nq][i + 1] = rq1fac * pc[i] / (double) i;
 			agamq = rqfac * xpin;
 			ragq = 1. / agamq;
-			_C(tesco)[nq][2] = ragq;
+			_rxC(tesco)[nq][2] = ragq;
 			if (nq < 12)
-				_C(tesco)[nqp1][1] = ragq * rqfac / (double) nqp1;
-			_C(tesco)[nqm1][3] = ragq;
+				_rxC(tesco)[nqp1][1] = ragq * rqfac / (double) nqp1;
+			_rxC(tesco)[nqm1][3] = ragq;
 		}		/* end for   */
 		return;
 	}			/* end if ( meth == 1 )   */
@@ -116,14 +116,14 @@ void cfode(struct lsoda_context_t * ctx, int meth)
 			pc[i] = pc[i - 1] + fnq * pc[i];
 		pc[1] *= fnq;
 /*
-   Store coefficients in _C(elco) and _C(tesco).
+   Store coefficients in _rxC(elco) and _rxC(tesco).
 */
 		for (i = 1; i <= nqp1; i++)
-			_C(elco)[nq][i] = pc[i] / pc[2];
-		_C(elco)[nq][2] = 1.;
-		_C(tesco)[nq][1] = rq1fac;
-		_C(tesco)[nq][2] = ((double) nqp1) / _C(elco)[nq][1];
-		_C(tesco)[nq][3] = ((double) (nq + 2)) / _C(elco)[nq][1];
+			_rxC(elco)[nq][i] = pc[i] / pc[2];
+		_rxC(elco)[nq][2] = 1.;
+		_rxC(tesco)[nq][1] = rq1fac;
+		_rxC(tesco)[nq][2] = ((double) nqp1) / _rxC(elco)[nq][1];
+		_rxC(tesco)[nq][3] = ((double) (nq + 2)) / _rxC(elco)[nq][1];
 		rq1fac /= fnq;
 	}
 	return;

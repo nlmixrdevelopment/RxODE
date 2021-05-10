@@ -43,15 +43,6 @@ if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {
   close(file.out)
 }
 
-if (file.exists("src/Makevars.in.r-stripper.bak")) {
-  ## Reset to old Makevars.in
-  l <- readLines("src/Makevars.in.r-stripper.bak")
-  file.out <- file("src/Makevars.in", "wb")
-  writeLines(l, file.out)
-  close(file.out)
-  unlink("src/Makevars.in.r-stripper.bak")
-}
-
 if (file.exists("man/reexports.Rd")) {
   l <- readLines("man/reexports.Rd")
   if (!any(regexpr("[\\]value", l) != -1)) {
