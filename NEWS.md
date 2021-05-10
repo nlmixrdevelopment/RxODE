@@ -1,4 +1,8 @@
-# RxODE development version
+# RxODE 1.0.9
+
+* At the request of CRAN, stripping the debugging symbols for the CRAN
+  release is no longer performed.  This means a larger binary size for
+  RxODE in this release.
 
 * At the request of CRAN the `liblsoda` code has been changed so that
   the memory in C defined by `_C()` is now defined by `_rxC()`. This
