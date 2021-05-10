@@ -135,8 +135,8 @@ tam@wri.com
  \
 	ERROR(fmt, __VA_ARGS__); \
 	for (i = 1; i <= neq; i++) \
-	  y[i] = _C(yh)[1][i];	   \
-	*t = _C(tn); \
+	  y[i] = _rxC(yh)[1][i];	   \
+	*t = _rxC(tn); \
 	ctx->state = code; \
 	return ctx->state; \
 }
@@ -144,7 +144,7 @@ tam@wri.com
 
 /*
    The following block handles all successful returns from lsoda.
-   If itask != 1, y is loaded from _C(yh) and t is set accordingly.
+   If itask != 1, y is loaded from _rxC(yh) and t is set accordingly.
    *Istate is set to 2, the illegal input counter is zeroed, and the
    optional outputs are loaded into the work arrays before returning.
 */
@@ -155,8 +155,8 @@ tam@wri.com
 	int neq = ctx->neq; \
  \
 	for (i = 1; i <= neq; i++) \
-		y[i] = _C(yh)[1][i]; \
-	*t = _C(tn); \
+		y[i] = _rxC(yh)[1][i]; \
+	*t = _rxC(tn); \
 	if (itask == 4 || itask == 5) \
 		if (ihit) \
 			*t = tcrit; \
@@ -170,8 +170,8 @@ tam@wri.com
 	if (iflag != 0) { \
 		ERROR("[lsoda] trouble from intdy, itask = %d, tout = %g\n", itask, tout); \
 		for (i = 1; i <= neq; i++) \
-			y[i] = _C(yh)[1][i]; \
-		*t = _C(tn); \
+			y[i] = _rxC(yh)[1][i]; \
+		*t = _rxC(tn); \
 	} \
 	*t = tout; \
 	ctx->state = 2; \
@@ -276,7 +276,7 @@ static int alloc_mem(struct lsoda_context_t * ctx) {
 	long offset = 0;
 	int i=0;
 	long yhoff = offset;
-	/* _C(yh) */
+	/* _rxC(yh) */
 	offset += (1 + lenyh) * sizeof(double *);
 	long yh0off = offset;
 	for(i = 0; i <= lenyh; i++) {
@@ -285,45 +285,45 @@ static int alloc_mem(struct lsoda_context_t * ctx) {
 
 	long wmoff = offset;
 	long wm0off = offset;
-	/* _C(wm) */
+	/* _rxC(wm) */
 	offset += (1 + nyh) * sizeof(double *);
 	for(i = 0; i <= nyh; i++) {
 		offset += (1 + nyh) * sizeof(double);
 	}
 
-	/* _C(ewt) */
+	/* _rxC(ewt) */
 	long ewtoff =  offset;
 	offset += (1 + nyh) * sizeof(double);
 
-	/* _C(savf) */
+	/* _rxC(savf) */
 	long savfoff = offset;
 	offset += (1 + nyh) * sizeof(double);
 
-	/* _C(acor) */
+	/* _rxC(acor) */
 	long acoroff = offset;
 	offset += (1 + nyh) * sizeof(double);
 
-	/* _C(ipvt) */
+	/* _rxC(ipvt) */
 	long ipvtoff = offset;
 	offset += (1 + nyh) * sizeof(int);
 
-	_C(memory) = malloc(offset);
+	_rxC(memory) = malloc(offset);
 
-	_C(yh) = (double **)((char *)_C(memory) + yhoff);
-	_C(wm) =  (double **)((char *)_C(memory) + wmoff);
-	_C(ewt) = (double *)((char *)_C(memory) + ewtoff);
-	_C(savf) =(double *)((char *)_C(memory) + savfoff);
-	_C(acor) =(double *)((char *)_C(memory) + acoroff);
-	_C(ipvt) =(int *)((char *)_C(memory) + ipvtoff);
+	_rxC(yh) = (double **)((char *)_rxC(memory) + yhoff);
+	_rxC(wm) =  (double **)((char *)_rxC(memory) + wmoff);
+	_rxC(ewt) = (double *)((char *)_rxC(memory) + ewtoff);
+	_rxC(savf) =(double *)((char *)_rxC(memory) + savfoff);
+	_rxC(acor) =(double *)((char *)_rxC(memory) + acoroff);
+	_rxC(ipvt) =(int *)((char *)_rxC(memory) + ipvtoff);
 
 	for(i = 0; i <= lenyh; i++) {
-		_C(yh)[i] = (double *)((char *)_C(memory) + yh0off + i * (1 + nyh) * sizeof(double));
+		_rxC(yh)[i] = (double *)((char *)_rxC(memory) + yh0off + i * (1 + nyh) * sizeof(double));
 	}
 	for(i = 0; i <= nyh; i++) {
-		_C(wm)[i] = (double *)((char *)_C(memory) + wm0off + i * (1 + nyh) * sizeof(double));
+		_rxC(wm)[i] = (double *)((char *)_rxC(memory) + wm0off + i * (1 + nyh) * sizeof(double));
 	}
 
-	return _C(memory) != NULL;
+	return _rxC(memory) != NULL;
 }
 
 /*
@@ -388,7 +388,7 @@ c rtol   = relative tolerance parameter (array, one for each dim).
 c atol   = absolute tolerance parameter (array, one for each dim).
 c          the estimated local error in y(i) will be controlled so as
 c          to be less than
-c             _C(ewt)(i) = rtol(i*abs(y(i)) + atol(i)
+c             _rxC(ewt)(i) = rtol(i*abs(y(i)) + atol(i)
 c          thus the local error test passes if, in each component,
 c          either the absolute error is less than atol (or atol(i)),
 c          or the relative error is less than rtol.
@@ -498,10 +498,10 @@ void lsoda_free(struct lsoda_context_t * ctx) {
 	int i=0; \
  \
 	for (i = 1; i <= neq; i++) \
-		_C(ewt)[i] = rtol[i] * fabs((ycur)[i]) + atol[i]; \
+		_rxC(ewt)[i] = rtol[i] * fabs((ycur)[i]) + atol[i]; \
  \
 	for (i = 1; i <= neq; i++) { \
-		_C(ewt)[i] = 1. / _C(ewt)[i]; \
+		_rxC(ewt)[i] = 1. / _rxC(ewt)[i]; \
 	} \
 }
 
@@ -533,7 +533,7 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 		   Block a.
 		   This code block is executed on every call.
 		   It tests ctx->state and itask for legality and branches appropriately.
-		   If ctx->state > 1 but the flag _C(init) shows that initialization has not
+		   If ctx->state > 1 but the flag _rxC(init) shows that initialization has not
 		   yet been done, an error return occurs.
 		   If ctx->state = 1 and tout = t, return immediately.
 		 */
@@ -561,7 +561,7 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 		const int itask = opt->itask;
 
 		/*
-		   If ctx->state = 1, _C(meth) is initialized to 1.
+		   If ctx->state = 1, _rxC(meth) is initialized to 1.
 
 		 */
 		/*
@@ -575,14 +575,14 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 		   The next block is for the initial call only ( ctx->state = 1 ).
 		   It contains all remaining initializations, the initial call to f,
 		   and the calculation of the initial step size.
-		   The error weights in _C(ewt) are inverted after being loaded.
+		   The error weights in _rxC(ewt) are inverted after being loaded.
 		 */
 		const double * rtol = opt->rtol - 1;
 		const double * atol = opt->atol - 1;
 		if (ctx->state == 1) {
-			_C(meth) = 1;
-			_C(tn) = *t;
-			_C(tsw) = *t;
+			_rxC(meth) = 1;
+			_rxC(tn) = *t;
+			_rxC(tsw) = *t;
 			if (itask == 4 || itask == 5) {
 				tcrit = opt->tcrit;
 				if ((tcrit - tout) * (tout - *t) < 0.) {
@@ -593,27 +593,27 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 			}
 			jstart = 0;
 			/* set the order to 1*/
-			_C(nq) = 1;
+			_rxC(nq) = 1;
 
 			/*
 			   Initial call to f.
 			 */
-			(*ctx->function) (*t, y + 1, _C(yh)[2] + 1, ctx->data);
-			_C(nfe) = 1;
+			(*ctx->function) (*t, y + 1, _rxC(yh)[2] + 1, ctx->data);
+			_rxC(nfe) = 1;
 			/*
-			   Load the initial value vector in _C(yh).
+			   Load the initial value vector in _rxC(yh).
 			 */
 			for (i = 1; i <= neq; i++)
-				_C(yh)[1][i] = y[i];
+				_rxC(yh)[1][i] = y[i];
 
 			/*
-			   Load and invert the _C(ewt) array.
+			   Load and invert the _rxC(ewt) array.
 			 */
 			ewset(y);
 
 			for (i = 1; i <= neq; i++) {
-				if(_C(ewt)[i] <= 0.) {
-					hardfailure("[lsoda] ewt[%d] = %g <= 0.\n", i, _C(ewt)[i]);
+				if(_rxC(ewt)[i] <= 0.) {
+					hardfailure("[lsoda] ewt[%d] = %g <= 0.\n", i, _rxC(ewt)[i]);
 				}
 			}
 
@@ -632,7 +632,7 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 			   f      = the initial value of the vector f(t,y), and
 			   norm() = the weighted vector norm used throughout, given by
 			   the vmnorm function routine, and weighted by the
-			   tolerances initially loaded into the _C(ewt) array.
+			   tolerances initially loaded into the _rxC(ewt) array.
 
 			   The sign of h0 is inferred from the initial values of tout and *t.
 			   fabs(h0) is made < fabs(tout-*t) in any case.
@@ -656,7 +656,7 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 				}
 				tol = fmax(tol, 100. * ETA);
 				tol = fmin(tol, 0.001);
-				sum = vmnorm0(neq, _C(yh)[2], _C(ewt));
+				sum = vmnorm0(neq, _rxC(yh)[2], _rxC(ewt));
 				sum = 1. / (tol * w0 * w0) + tol * sum * sum;
 				h0 = 1. / sqrt(sum);
 				h0 = fmin(h0, tdist);
@@ -669,11 +669,11 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 			if (rh > 1.)
 				h0 /= rh;
 			/*
-			   Load _C(h) with h0 and scale _C(yh)[2] by h0.
+			   Load _rxC(h) with h0 and scale _rxC(yh)[2] by h0.
 			 */
-			_C(h) = h0;
+			_rxC(h) = h0;
 			for (i = 1; i <= neq; i++)
-				_C(yh)[2][i] *= h0;
+				_rxC(yh)[2][i] *= h0;
 		}			/* if ( ctx->state == 1 )   */
 		/*
 		   Block d.
@@ -682,50 +682,50 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 		 */
 		if (ctx->state == 2 || ctx->state == 3) {
 			jstart = 1;
-			_C(nslast) = _C(nst);
+			_rxC(nslast) = _rxC(nst);
 			switch (itask) {
 				case 1:
-					if ((_C(tn) - tout) * _C(h) >= 0.) {
+					if ((_rxC(tn) - tout) * _rxC(h) >= 0.) {
 						intdyreturn();
 					}
 					break;
 				case 2:
 					break;
 				case 3:
-					tp = _C(tn) - _C(hu) * (1. + 100. * ETA);
-					if ((tp - tout) * _C(h) > 0.) {
-						hardfailure("[lsoda] itask = %d and tout behind tcur - _C(hu)\n", itask);
+					tp = _rxC(tn) - _rxC(hu) * (1. + 100. * ETA);
+					if ((tp - tout) * _rxC(h) > 0.) {
+						hardfailure("[lsoda] itask = %d and tout behind tcur - _rxC(hu)\n", itask);
 					}
-					if ((_C(tn) - tout) * _C(h) < 0.) break;
+					if ((_rxC(tn) - tout) * _rxC(h) < 0.) break;
 					successreturn();
 				case 4:
 					tcrit = opt->tcrit;
-					if ((_C(tn) - tcrit) * _C(h) > 0.) {
+					if ((_rxC(tn) - tcrit) * _rxC(h) > 0.) {
 						hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tcur%s\n","");
 					}
-					if ((tcrit - tout) * _C(h) < 0.) {
+					if ((tcrit - tout) * _rxC(h) < 0.) {
 						hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tout%s\n","");
 					}
-					if ((_C(tn) - tout) * _C(h) >= 0.) {
+					if ((_rxC(tn) - tout) * _rxC(h) >= 0.) {
 						intdyreturn();
 					}
 				case 5:
 					if (itask == 5) {
 						tcrit = opt->tcrit;
-						if ((_C(tn) - tcrit) * _C(h) > 0.) {
+						if ((_rxC(tn) - tcrit) * _rxC(h) > 0.) {
 							hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tcur%s\n","");
 						}
 					}
-					hmx = fabs(_C(tn)) + fabs(_C(h));
-					int ihit = fabs(_C(tn) - tcrit) <= (100. * ETA * hmx);
+					hmx = fabs(_rxC(tn)) + fabs(_rxC(h));
+					int ihit = fabs(_rxC(tn) - tcrit) <= (100. * ETA * hmx);
 					if (ihit) {
 						*t = tcrit;
 						successreturn();
 					}
-					tnext = _C(tn) + _C(h) * (1. + 4. * ETA);
-					if ((tnext - tcrit) * _C(h) <= 0.)
+					tnext = _rxC(tn) + _rxC(h) * (1. + 4. * ETA);
+					if ((tnext - tcrit) * _rxC(h) <= 0.)
 						break;
-					_C(h) = (tcrit - _C(tn)) * (1. - 4. * ETA);
+					_rxC(h) = (tcrit - _rxC(tn)) * (1. - 4. * ETA);
 					if (ctx->state == 2)
 						jstart = -2;
 					break;
@@ -738,38 +738,38 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 
 		   This is a looping point for the integration steps.
 
-		   First check for too many steps being taken, update _C(ewt) ( if not at
+		   First check for too many steps being taken, update _rxC(ewt) ( if not at
 		   start of problem).  Check for too much accuracy being requested, and
-		   check for _C(h) below the roundoff level in *t.
+		   check for _rxC(h) below the roundoff level in *t.
 		 */
 		while (1) {
-			if (ctx->state != 1 || _C(nst) != 0) {
-				if ((_C(nst) - _C(nslast)) >= opt->mxstep) {
+			if (ctx->state != 1 || _rxC(nst) != 0) {
+				if ((_rxC(nst) - _rxC(nslast)) >= opt->mxstep) {
 					softfailure(-1, "[lsoda] %d steps taken before reaching tout\n", opt->mxstep);
 				}
-				ewset(_C(yh)[1]);
+				ewset(_rxC(yh)[1]);
 				for (i = 1; i <= neq; i++) {
-					if (_C(ewt)[i] <= 0.) {
-						softfailure(-6, "[lsoda] ewt[%d] = %g <= 0.\n", i, _C(ewt)[i]);
+					if (_rxC(ewt)[i] <= 0.) {
+						softfailure(-6, "[lsoda] ewt[%d] = %g <= 0.\n", i, _rxC(ewt)[i]);
 					}
 				}
 			}
-			tolsf = ETA * vmnorm0(neq, _C(yh)[1], _C(ewt));
+			tolsf = ETA * vmnorm0(neq, _rxC(yh)[1], _rxC(ewt));
 			if (tolsf > 0.01) {
 				tolsf = tolsf * 200.;
-				if (_C(nst) == 0) {
+				if (_rxC(nst) == 0) {
 					hardfailure("lsoda -- at start of problem, too much accuracy\n requested for precision of machine,\n suggested scaling factor = %g\n", tolsf);
 				}
 				softfailure(-2, "lsoda -- at t = %g, too much accuracy requested\n  for precision of machine, suggested\n scaling factor = %g\n", *t, tolsf);
 			}
-			if ((_C(tn) + _C(h)) == _C(tn)) {
-				_C(nhnil)++;
-				if (_C(nhnil) <= opt->mxhnil) {
-				  RSprintf(_("lsoda -- warning..internal t = %g and _C(h) = %g are\n"), _C(tn), _C(h));
-				  RSprintf(_("         such that in the machine, t + _C(h) = t on the next step\n"));
+			if ((_rxC(tn) + _rxC(h)) == _rxC(tn)) {
+				_rxC(nhnil)++;
+				if (_rxC(nhnil) <= opt->mxhnil) {
+				  RSprintf(_("lsoda -- warning..internal t = %g and _rxC(h) = %g are\n"), _rxC(tn), _rxC(h));
+				  RSprintf(_("         such that in the machine, t + _rxC(h) = t on the next step\n"));
 				  RSprintf(_("         solver will continue anyway.\n"));
-					if (_C(nhnil) == opt->mxhnil) {
-					  RSprintf(_("lsoda -- above warning has been issued %d times,\n"), _C(nhnil));
+					if (_rxC(nhnil) == opt->mxhnil) {
+					  RSprintf(_("lsoda -- above warning has been issued %d times,\n"), _rxC(nhnil));
 					  RSprintf(_("         it will not be issued again for this problem\n"));
 					}
 				}
@@ -779,11 +779,11 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 			 */
 			kflag = stoda(ctx, y, jstart);
 			/*
-			   RSprintf("_C(meth)= %d,   order= %d,   _C(nfe)= %d,   _C(nje)= %d\n",
-			   _C(meth), _C(nq), _C(nfe), _C(nje) );
-			   RSprintf("t= %20.15e,   _C(h)= %20.15e,   _C(nst)=%d\n", _C(tn), _C(h), _C(nst) );
+			   RSprintf("_rxC(meth)= %d,   order= %d,   _rxC(nfe)= %d,   _rxC(nje)= %d\n",
+			   _rxC(meth), _rxC(nq), _rxC(nfe), _rxC(nje) );
+			   RSprintf("t= %20.15e,   _rxC(h)= %20.15e,   _rxC(nst)=%d\n", _rxC(tn), _rxC(h), _rxC(nst) );
 			   RSprintf("y= %20.15e,   %20.15e,   %20.15e\n\n\n",
-			   _C(yh)[1][1], _C(yh)[1][2], _C(yh)[1][3] );
+			   _rxC(yh)[1][1], _rxC(yh)[1][2], _rxC(yh)[1][3] );
 			 */
 
 			if (kflag == 0) {
@@ -791,29 +791,29 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 				   Block f.
 				   The following block handles the case of a successful return from the
 				   core integrator ( kflag = 0 ).
-				   If a method switch was just made, record _C(tsw), reset maxord,
+				   If a method switch was just made, record _rxC(tsw), reset maxord,
 				   set jstart to -1 to signal stoda to complete the switch,
 				   and do extra printing of data if ixpr = 1.
 				   Then, in any case, check for stop conditions.
 				 */
 				jstart = 1;
-				if (_C(meth) != _C(mused)) {
-					_C(tsw) = _C(tn);
+				if (_rxC(meth) != _rxC(mused)) {
+					_rxC(tsw) = _rxC(tn);
 					jstart = -1;
 					if (opt->ixpr) {
-						if (_C(meth) == 2)
+						if (_rxC(meth) == 2)
 						  RSprintf(_("[lsoda] a switch to the stiff method has occurred "));
-						if (_C(meth) == 1)
+						if (_rxC(meth) == 1)
 						  RSprintf(_("[lsoda] a switch to the nonstiff method has occurred"));
-						RSprintf(_("at t = %g, tentative step size _C(h) = %g, step _C(nst) = %d\n"), _C(tn), _C(h), _C(nst));
+						RSprintf(_("at t = %g, tentative step size _rxC(h) = %g, step _rxC(nst) = %d\n"), _rxC(tn), _rxC(h), _rxC(nst));
 					}
-				}	/* end if ( _C(meth) != _C(mused) )   */
+				}	/* end if ( _rxC(meth) != _rxC(mused) )   */
 				/*
 				   itask = 1.
 				   If tout has been reached, interpolate.
 				 */
 				if (itask == 1) {
-					if ((_C(tn) - tout) * _C(h) < 0.)
+					if ((_rxC(tn) - tout) * _rxC(h) < 0.)
 						continue;
 					intdyreturn();
 				}
@@ -828,29 +828,29 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 				   Jump to exit if tout was reached.
 				 */
 				if (itask == 3) {
-					if ((_C(tn) - tout) * _C(h) >= 0.) {
+					if ((_rxC(tn) - tout) * _rxC(h) >= 0.) {
 						successreturn();
 					}
 					continue;
 				}
 				/*
 				   itask = 4.
-				   See if tout or tcrit was reached.  Adjust _C(h) if necessary.
+				   See if tout or tcrit was reached.  Adjust _rxC(h) if necessary.
 				 */
 				if (itask == 4) {
 					tcrit = opt->tcrit;
-					if ((_C(tn) - tout) * _C(h) >= 0.) {
+					if ((_rxC(tn) - tout) * _rxC(h) >= 0.) {
 						intdyreturn();
 					} else {
-						hmx = fabs(_C(tn)) + fabs(_C(h));
-						int ihit = fabs(_C(tn) - tcrit) <= (100. * ETA * hmx);
+						hmx = fabs(_rxC(tn)) + fabs(_rxC(h));
+						int ihit = fabs(_rxC(tn) - tcrit) <= (100. * ETA * hmx);
 						if (ihit) {
 							successreturn();
 						}
-						tnext = _C(tn) + _C(h) * (1. + 4. * ETA);
-						if ((tnext - tcrit) * _C(h) <= 0.)
+						tnext = _rxC(tn) + _rxC(h) * (1. + 4. * ETA);
+						if ((tnext - tcrit) * _rxC(h) <= 0.)
 							continue;
-						_C(h) = (tcrit - _C(tn)) * (1. - 4. * ETA);
+						_rxC(h) = (tcrit - _rxC(tn)) * (1. - 4. * ETA);
 						jstart = -2;
 						continue;
 					}
@@ -861,30 +861,30 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 				 */
 				if (itask == 5) {
 					tcrit = opt->tcrit;
-					hmx = fabs(_C(tn)) + fabs(_C(h));
-					int ihit = fabs(_C(tn) - tcrit) <= (100. * ETA * hmx);
+					hmx = fabs(_rxC(tn)) + fabs(_rxC(h));
+					int ihit = fabs(_rxC(tn) - tcrit) <= (100. * ETA * hmx);
 					successreturn();
 				}
 			}		/* end if ( kflag == 0 )   */
 			/*
-			   kflag = -1, error test failed repeatedly or with fabs(_C(h)) = hmin.
-			   kflag = -2, convergence failed repeatedly or with fabs(_C(h)) = hmin.
+			   kflag = -1, error test failed repeatedly or with fabs(_rxC(h)) = hmin.
+			   kflag = -2, convergence failed repeatedly or with fabs(_rxC(h)) = hmin.
 			 */
 			if (kflag == -1 || kflag == -2) {
 				big = 0.;
-				_C(imxer) = 1;
+				_rxC(imxer) = 1;
 				for (i = 1; i <= neq; i++) {
-					size = fabs(_C(acor)[i]) * _C(ewt)[i];
+					size = fabs(_rxC(acor)[i]) * _rxC(ewt)[i];
 					if (big < size) {
 						big = size;
-						_C(imxer) = i;
+						_rxC(imxer) = i;
 					}
 				}
 				if (kflag == -1) {
-					softfailure(-4, "lsoda -- at t = %g and step size _C(h) = %g, the\n error test failed repeatedly or\n with fabs(_C(h)) = hmin\n", _C(tn), _C(h));
+					softfailure(-4, "lsoda -- at t = %g and step size _rxC(h) = %g, the\n error test failed repeatedly or\n with fabs(_rxC(h)) = hmin\n", _rxC(tn), _rxC(h));
 				}
 				if (kflag == -2) {
-					softfailure(-5, "lsoda -- at t = %g and step size _C(h) = %g, the\n corrector convergence failed repeatedly or\n with fabs(_C(h)) = hmin\n" , _C(tn), _C(h));
+					softfailure(-5, "lsoda -- at t = %g and step size _rxC(h) = %g, the\n corrector convergence failed repeatedly or\n with fabs(_rxC(h)) = hmin\n" , _rxC(tn), _rxC(h));
 				}
 			}		/* end if ( kflag == -1 || kflag == -2 )   */
 		}			/* end while   */

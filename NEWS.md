@@ -1,5 +1,10 @@
 # RxODE development version
 
+* At the request of CRAN the `liblsoda` code has been changed so that
+  the memory in C defined by `_C()` is now defined by `_rxC()`. This
+  will be seen in some of the error messages, which will no longer
+  match the error messages of unmodified liblsoda.
+
 * `iCov` behavior has shifted to merge on the input event dataset.
   See Issue #409; This is more in line with expectations of `iCov`
   behavior, and reduces the amount of code needed to maintain `iCov`.

@@ -20,51 +20,51 @@ int correction(struct lsoda_context_t * ctx, double *y, double pnorm, double *de
 /*
    Up to maxcor corrector iterations are taken.  A convergence test is
    made on the r.m.s. norm of each correction, weighted by the error
-   weight vector _C(ewt).  The sum of the corrections is accumulated in the
-   vector _C(acor)[i].  The _C(yh) array is not altered in the corrector loop.
+   weight vector _rxC(ewt).  The sum of the corrections is accumulated in the
+   vector _rxC(acor)[i].  The _rxC(yh) array is not altered in the corrector loop.
 */
 
 	*m = 0;
 	rate = 0.;
 	*del = 0.;
 	for (i = 1; i <= neq; i++)
-		y[i] = _C(yh)[1][i];
-	(*ctx->function) (_C(tn), y + 1, _C(savf) + 1, ctx->data);
-	_C(nfe)++;
+		y[i] = _rxC(yh)[1][i];
+	(*ctx->function) (_rxC(tn), y + 1, _rxC(savf) + 1, ctx->data);
+	_rxC(nfe)++;
 /*
-   If indicated, the matrix P = I - _C(h) * _C(el)[1] * J is reevaluated and
-   preprocessed before starting the corrector iteration.  _C(ipup) is set
+   If indicated, the matrix P = I - _rxC(h) * _rxC(el)[1] * J is reevaluated and
+   preprocessed before starting the corrector iteration.  _rxC(ipup) is set
    to 0 as an indicator that this has been done.
 */
 	while (1) {
 		if (*m == 0) {
-			if (_C(ipup) > 0) {
+			if (_rxC(ipup) > 0) {
 				int ierpj = prja(ctx, y);
-				_C(jcur) = 1;
-				_C(ipup) = 0;
-				_C(rc) = 1.;
-				_C(nslp) = _C(nst);
-				_C(crate) = 0.7;
+				_rxC(jcur) = 1;
+				_rxC(ipup) = 0;
+				_rxC(rc) = 1.;
+				_rxC(nslp) = _rxC(nst);
+				_rxC(crate) = 0.7;
 				if (!ierpj) {
 					return corfailure(ctx, told);
 				}
 			}
 			for (i = 1; i <= neq; i++)
-				_C(acor)[i] = 0.;
+				_rxC(acor)[i] = 0.;
 		}		/* end if ( *m == 0 )   */
-		if (_C(miter) == 0) {
+		if (_rxC(miter) == 0) {
 /*
    In case of functional iteration, update y directly from
    the result of the last function evaluation.
 */
 			for (i = 1; i <= neq; i++) {
-				_C(savf)[i] = _C(h) * _C(savf)[i] - _C(yh)[2][i];
-				y[i] = _C(savf)[i] - _C(acor)[i];
+				_rxC(savf)[i] = _rxC(h) * _rxC(savf)[i] - _rxC(yh)[2][i];
+				y[i] = _rxC(savf)[i] - _rxC(acor)[i];
 			}
-			*del = vmnorm0(neq, y, _C(ewt));
+			*del = vmnorm0(neq, y, _rxC(ewt));
 			for (i = 1; i <= neq; i++) {
-				y[i] = _C(yh)[1][i] + _C(el)[1] * _C(savf)[i];
-				_C(acor)[i] = _C(savf)[i];
+				y[i] = _rxC(yh)[1][i] + _rxC(el)[1] * _rxC(savf)[i];
+				_rxC(acor)[i] = _rxC(savf)[i];
 			}
 		}
 		/* end functional iteration   */
@@ -75,58 +75,58 @@ int correction(struct lsoda_context_t * ctx, double *y, double pnorm, double *de
 		 */ 
 		else {
 			for (i = 1; i <= neq; i++)
-				y[i] = _C(h) * _C(savf)[i] - (_C(yh)[2][i] + _C(acor)[i]);
+				y[i] = _rxC(h) * _rxC(savf)[i] - (_rxC(yh)[2][i] + _rxC(acor)[i]);
 			solsy(ctx, y);
-			*del = vmnorm0(neq, y, _C(ewt));
+			*del = vmnorm0(neq, y, _rxC(ewt));
 			for (i = 1; i <= neq; i++) {
-				_C(acor)[i] += y[i];
-				y[i] = _C(yh)[1][i] + _C(el)[1] * _C(acor)[i];
+				_rxC(acor)[i] += y[i];
+				y[i] = _rxC(yh)[1][i] + _rxC(el)[1] * _rxC(acor)[i];
 			}
 		}		/* end chord method   */
 /*
    Test for convergence.  If *m > 0, an estimate of the convergence
-   rate constant is stored in _C(crate), and this is used in the test.
+   rate constant is stored in _rxC(crate), and this is used in the test.
 
    We first check for a change of iterates that is the size of
    roundoff error.  If this occurs, the iteration has converged, and a
    new rate estimate is not formed.
    In all other cases, force at least two iterations to estimate a
    local Lipschitz constant estimate for Adams method.
-   On convergence, form _C(pdest) = local maximum Lipschitz constant
-   estimate.  _C(pdlast) is the most recent nonzero estimate.
+   On convergence, form _rxC(pdest) = local maximum Lipschitz constant
+   estimate.  _rxC(pdlast) is the most recent nonzero estimate.
 */
 		if (*del <= 100. * pnorm * ETA)
 			break;
-		if (*m != 0 || _C(meth) != 1) {
+		if (*m != 0 || _rxC(meth) != 1) {
 			if (*m != 0) {
 				rm = 1024.0;
 				if (*del <= (1024. * *delp))
 					rm = *del / *delp;
 				rate = fmax(rate, rm);
-				_C(crate) = fmax(0.2 * _C(crate), rm);
+				_rxC(crate) = fmax(0.2 * _rxC(crate), rm);
 			}
-			double conit = 0.5 / (double) (_C(nq) + 2);
-			dcon = *del * fmin(1., 1.5 * _C(crate)) / (_C(tesco)[_C(nq)][2] * conit);
+			double conit = 0.5 / (double) (_rxC(nq) + 2);
+			dcon = *del * fmin(1., 1.5 * _rxC(crate)) / (_rxC(tesco)[_rxC(nq)][2] * conit);
 			if (dcon <= 1.) {
-				_C(pdest) = fmax(_C(pdest), rate / fabs(_C(h) * _C(el)[1]));
-				if (_C(pdest) != 0.)
-					_C(pdlast) = _C(pdest);
+				_rxC(pdest) = fmax(_rxC(pdest), rate / fabs(_rxC(h) * _rxC(el)[1]));
+				if (_rxC(pdest) != 0.)
+					_rxC(pdlast) = _rxC(pdest);
 				break;
 			}
 		}
 /*
    The corrector iteration failed to converge.
-   If _C(miter) != 0 and the Jacobian is out of date, prja is called for
-   the next try.   Otherwise the _C(yh) array is retracted to its values
-   before prediction, and _C(h) is reduced, if possible.  If _C(h) cannot be
+   If _rxC(miter) != 0 and the Jacobian is out of date, prja is called for
+   the next try.   Otherwise the _rxC(yh) array is retracted to its values
+   before prediction, and _rxC(h) is reduced, if possible.  If _rxC(h) cannot be
    reduced or mxncf failures have occured, exit with corflag = 2.
 */
 		(*m)++;
 		if (*m == MAXCOR || (*m >= 2 && *del > 2. * *delp)) {
-			if (_C(miter) == 0 || _C(jcur) == 1) {
+			if (_rxC(miter) == 0 || _rxC(jcur) == 1) {
 				return corfailure(ctx, told);
 			}
-			_C(ipup) = _C(miter);
+			_rxC(ipup) = _rxC(miter);
 /*
    Restart corrector if Jacobian is recomputed.
 */
@@ -134,17 +134,17 @@ int correction(struct lsoda_context_t * ctx, double *y, double pnorm, double *de
 			rate = 0.;
 			*del = 0.;
 			for (i = 1; i <= neq; i++)
-				y[i] = _C(yh)[1][i];
-			(*ctx->function) (_C(tn), y + 1, _C(savf) + 1, ctx->data);
-			_C(nfe)++;
+				y[i] = _rxC(yh)[1][i];
+			(*ctx->function) (_rxC(tn), y + 1, _rxC(savf) + 1, ctx->data);
+			_rxC(nfe)++;
 		}
 /*
    Iterate corrector.
 */
 		else {
 			*delp = *del;
-			(*ctx->function) (_C(tn), y + 1, _C(savf) + 1, ctx->data);
-			_C(nfe)++;
+			(*ctx->function) (_rxC(tn), y + 1, _rxC(savf) + 1, ctx->data);
+			_rxC(nfe)++;
 		}
 	}			/* end while   */
 	return 0;
