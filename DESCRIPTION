@@ -80,7 +80,7 @@ Imports:
     dparser (>= 0.1.8),
     ggplot2,
     inline,
-    lotri (>= 0.4.0),
+    lotri (>= 0.3.0),
     magrittr,
     memoise,
     methods,
