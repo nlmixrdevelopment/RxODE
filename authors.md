@@ -25,7 +25,6 @@
  * Matt Dowle -- forder primary author (version modified by Matthew Fidler to allow different type of threading and exclude grouping)
  * Cleve Moler -- LApack author
  * David Cooley -- Author of fast_factor which was modified and now is used RxODE to quickly create factors for IDs without sorting them like R does
- * Daniel C. Dillon -- Author of stripping utility to reduce size of RxODE/nlmixr executable
  * Drew Schmidt -- Drew Schmidt author of edits for exponential matrix utility taken from R package expm
  * Arun Srinivasan -- forder secondary author (version modified by Matthew Fidler to allow different type of threading, indexing and exclude grouping)
  
