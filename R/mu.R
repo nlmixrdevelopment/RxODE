@@ -269,7 +269,7 @@
   .expr
 }
 
-.muRefHandleSingleThetaMuRef <- function(.we, .wt, .names, .doubleNames, env) {
+.muRefHandleSingleThetaMuRef <- function(.we, .wt, .names, .doubleNames, .extraItems, env) {
   # Here the mu reference is possible
   ## print(.names)
   ## print(.doubleNames)
@@ -383,7 +383,7 @@
                                paste(env$info$theta[.wt], collapse="', '"), "'")))
   } else if (length(.wt) == 1) {
     #print(.extraItems)
-    .muRefHandleSingleThetaMuRef(.we, .wt, .names, .doubleNames, env)
+    .muRefHandleSingleThetaMuRef(.we, .wt, .names, .doubleNames, .extraItems, env)
   } else if (length(.we) == 1){
     .curEta <- .names[.we]
     .wEtaInDf <- which(env$nonMuEtas$eta == .curEta)
