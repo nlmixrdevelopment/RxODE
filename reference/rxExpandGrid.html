@@ -1016,9 +1016,9 @@ type=1L is jacobian expand grid (adds symbols)</p></td>
 <span class='r-in'><span class='co'># \donttest{</span></span>
 <span class='r-in'> <span class='fu'>microbenchmark</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/microbenchmark/man/microbenchmark.html'>microbenchmark</a></span><span class='op'>(</span><span class='fu'>rxExpandGrid</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span>, <span class='fu'>expand.grid.jc</span><span class='op'>(</span><span class='va'>letters</span>, <span class='va'>letters</span><span class='op'>)</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> Unit: microseconds</span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>                              expr min    lq   mean median   uq  max neval</span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>    rxExpandGrid(letters, letters)  18 20.45 21.729  21.50 22.3 48.2   100</span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>  expand.grid.jc(letters, letters)  24 28.55 30.059  29.95 30.9 59.2   100</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>                              expr  min    lq   mean median    uq   max neval</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    rxExpandGrid(letters, letters) 20.3 22.00 23.581   23.4 24.25  56.1   100</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  expand.grid.jc(letters, letters) 25.9 29.85 32.007   31.1 32.60 100.5   100</span>
 <span class='r-in'><span class='co'># }</span></span>
 </pre>
   </div>

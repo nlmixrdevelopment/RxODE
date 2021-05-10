@@ -520,7 +520,7 @@
 <a href="#engine-changes" class="anchor" aria-hidden="true"></a>Engine changes</h2>
 <ul><li>
 <p>Moved many C functions to C++. CRAN OpenMP support requires C++ only when C and C++ are mixed. See:</p>
-<p>https://stackoverflow.com/questions/54056594/cran-acceptable-way-of-linking-to-openmp-some-c-code-called-from-rcpp</p>
+<p><a href="https://stackoverflow.com/questions/54056594/cran-acceptable-way-of-linking-to-openmp-some-c-code-called-from-rcpp" class="external-link uri">https://stackoverflow.com/questions/54056594/cran-acceptable-way-of-linking-to-openmp-some-c-code-called-from-rcpp</a></p>
 </li>
 <li><p>No longer produces C code that create the model variables. Instead, use <code>qs</code> to serialize, compress and encode in base91 and then write the string into the C file. The <code>qs</code> package then decodes all of that into the model variables. This also increases the compilation speed for models in RxODE.</p></li>
 <li><p>Pre-compile RxODE headers once (if cache is enabled), which increases compilation speed for models in RxODE</p></li>
