@@ -148,7 +148,13 @@
      identical(x[[1]], quote(`|`)) ||
      identical(x[[1]], quote(`&`)))
 }
-
+##' Handle the limit for logit/expit types of functions
+##'
+##' @param x This is the parsed expression tree (from R) that has limits
+##' @param env environment where parsing information is saved
+##' @return Nothing; Called for its side effects
+##' @author Matthew Fidler
+##' @noRd
 .rxMuRefHandleLimits <- function(x, env) {
   if (length(x) == 4) {
     # expit(x, 1, 2)
@@ -269,16 +275,61 @@
   .expr
 }
 
+# This function handles the extra information in a theta based mu referenced
+
+##' This handles the case where there is a mu referenced single theta with a reference population eta
+##'
+##' @param .we this represents the item number in `.names` that is the
+##'   mu-referenced population eta
+##'
+##' @param .wt this represents the item number in `.names` that is the
+##'   mu-referenced population theta
+##'
+##' @param .names This is the names of the single item names in the
+##'   additive expression that may be a mu-referenced expression
+##'
+##' @param .doubleNames The double names of the covariate and
+##'   estimated theta for the mu referenced covariate.
+##'
+##' The double names is a list. The elements of this list are the
+##' population parameter estimates for a data-based covariate. The
+##' names of the list are the covariate that the population parameters
+##' are estimating an effect for.
+##'
+##' @param .extraItems This represents the extra items that are in the
+##'   additive expression that may be part of the full additive
+##'   expression
+##'
+##' @param env This is the mu-reference environment where mu reference
+##'   information is saved
+##'
+##' @return Nothing; Called for its side effects and modifications in
+##'   the mu reference environment `env`
+##'
+##' @author Matthew Fidler
+##' @noRd
 .muRefHandleSingleThetaMuRef <- function(.we, .wt, .names, .doubleNames, .extraItems, env) {
   # Here the mu reference is possible
-  ## print(.names)
-  ## print(.doubleNames)
+  #print(.names)
+  #message("double names")
+  #print(.doubleNames)
   if (length(.we) == 1) {
     # Simple theta/eta mu-referencing
     .curEta <- .names[.we]
     .wEtaInDf <- which(env$nonMuEtas$eta == .curEta)
     if (length(.wEtaInDf) > 0) {
+      # This is when the mu referenced eta has already been observed at least once in a prior expression
+      #
+      # Here we will check to see if this should be downgraded to an additive expression
       if (!all(env$nonMuEtas$curEval[.wEtaInDf] == env$.curEval)) {
+        # In this case, there is a specialized expression in more than
+        # one form; for example:
+        #
+        # q1 = exp(tq+eta.q)
+        # q2 = expit(tq+eta.q)
+        #
+        # The mu expression would be an additive expression tq+eta.q
+        #
         # Downgrade to additive expression
         env$nonMuEtas$curEval[.wEtaInDf] <- ""
       }
@@ -287,12 +338,24 @@
       .ce <- env$.curEval
       if (length(.wEtaInDf) > 0) {
         # duplicated ETAs, if everything is not the same then it isn't really mu-referenced
+
+        # The duplicated ETAs can occur for shared etas for 2
+        # different population parameters.  This can make sense for 2
+        # different treatments with a similar between subject
+        # variability that can be pooled, like:
+        #
+        # emaxA = tv.emaxA + eta.emax
+        # emaxB = tv.emaxB + eta.emax
+        #
+        # In this case, the eta.emax is no longer mu-referenced
+        #
         if (!all(env$muRefDataFrame$theta[.wEtaInDf] == .names[.wt]) |
               !all(env$muRefDataFrame$eta[.wEtaInDf] == .curEta)) {
           if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == .ce)) {
             .ce <- ""
           }
           env$nonMuEtas <- rbind(env$nonMuEtas, data.frame(eta=.curEta, curEval=.ce))
+          ## Here we check to see
           env$muRefDataFrame <- env$muRefDataFrame[-.wEtaInDf,, drop = FALSE]
         } else {
           if (!all(env$muRefDataFrame$curEval[.wEtaInDf] == env$.curEval)) {
@@ -302,6 +365,9 @@
         }
       } else {
         env$muRefDataFrame <- rbind(env$muRefDataFrame, data.frame(theta=.names[.wt], eta=.names[.we], curEval=env$.curEval))
+        if (!is.null(.extraItems)) {
+          env$muRefThetaExtra <- rbind(env$muRefThetaExtra, data.frame(theta=.names[.wt], extra=.extraItems))
+        }
       }
     }
   } else if (length(.we) != 0) {
@@ -383,6 +449,7 @@
                                paste(env$info$theta[.wt], collapse="', '"), "'")))
   } else if (length(.wt) == 1) {
     #print(.extraItems)
+    .ord <- order(vapply(.extraItems, nchar, integer(0)))
     .muRefHandleSingleThetaMuRef(.we, .wt, .names, .doubleNames, .extraItems, env)
   } else if (length(.we) == 1){
     .curEta <- .names[.we]
@@ -545,6 +612,7 @@
   .env$err <- NULL
   .env$.expr <- .expr
   .env$muRefDataFrame <- data.frame(eta=character(0), theta=character(0), curEval=character(0))
+  .env$muRefThetaExtra <- data.frame(theta=character(0), extra=character(0))
   .env$muRefCovariateDataFrame <- data.frame(eta=character(0), theta=character(0), curEval=character(0))
   .env$nonMuEtas <- data.frame(popParameter=character(0), covariate=character(0), covariateParameter=character(0))
   return(.env)
