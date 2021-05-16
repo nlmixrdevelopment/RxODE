@@ -42,6 +42,26 @@ rxodeTest({
     expect_error(rxMuRef("a=theta1+theta2*wt+theta3*wt+eta1", lmat))
   })
 
+
+  testEnv <- function(env, ref) {
+    lapply(names(ref), function(n) {
+      expect_equal(get(n, envir=env), ref[[n]])
+    })
+    invisible()
+  }
+
+  listEnv <- function(env){
+    refNames <- c("muRefCovariateDataFrame", "muRefCovariateEmpty", "muRefCurEval", "muRefDataFrame",
+                  "muRefDropParameters", "muRefExtra", "muRefExtraEmpty", "nonMuEtas")
+    setNames(lapply(refNames, function(n){
+      get(n, env)
+    }), refNames)
+  }
+
+  messageEnv <- function(env){
+    message(paste0(deparse(listEnv(env)), collapse="\n"))
+  }
+
   test_that("simple mu referencing", {
 
     lmat <- lotri({
@@ -68,11 +88,20 @@ rxodeTest({
       ## cp ~ add(add.sd)
     }), lmat)
 
-    expect_equal(env$muRefDataFrame, structure(list(theta = c("tka", "tcl", "tv"),
-                                                    eta = c("eta.ka", "eta.cl", "eta.v"),
-                                                    curEval = c("exp", "exp", "")),
-                                               row.names = c(NA, -3L),
-                                               class = "data.frame"))
+    testEnv(env,
+list(muRefCovariateDataFrame = structure(list(theta = character(0),
+    covariate = character(0), covariateParameter = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefCovariateEmpty = c("tka", "tcl", "tv"), muRefCurEval = structure(list(
+        parameter = c("eta.ka", "tka", "eta.cl", "tcl", "eta.v",
+        "tv"), curEval = c("exp", "exp", "exp", "exp", "", ""
+        )), row.names = c(NA, -6L), class = "data.frame"), muRefDataFrame = structure(list(
+        theta = c("tka", "tcl", "tv"), eta = c("eta.ka", "eta.cl",
+        "eta.v"), level = c("id", "id", "id")), row.names = c(NA,
+    -3L), class = "data.frame"), muRefDropParameters = structure(list(
+        parameter = character(0), term = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtra = structure(list(parameter = character(0), extra = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtraEmpty = c("tka", "tcl", "tv"), nonMuEtas = NULL))
+
 
   })
 
@@ -93,10 +122,18 @@ rxodeTest({
       EmaxC <- exp(t.EmaxC + eta.emax)
     }), lmat)
 
-    expect_equal(length(env$muRefDataFrame[,1]), 0L)
-    expect_equal(env$nonMuEtas,
-                 structure(list(eta = "eta.emax", curEval = "exp"),
-                           row.names = c(NA, -1L), class = "data.frame"))
+    testEnv(env,
+list(muRefCovariateDataFrame = structure(list(theta = character(0),
+    covariate = character(0), covariateParameter = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefCovariateEmpty = c("t.EmaxA", "t.EmaxB", "t.EmaxC"),
+    muRefCurEval = structure(list(parameter = c("eta.emax", "t.EmaxA",
+    "t.EmaxB", "t.EmaxC"), curEval = c("exp", "exp", "exp", "exp"
+    )), row.names = c(NA, -4L), class = "data.frame"), muRefDataFrame = structure(list(
+        theta = character(0), eta = character(0), level = character(0)), row.names = integer(0), class = "data.frame"),
+    muRefDropParameters = structure(list(parameter = character(0),
+        term = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtra = structure(list(parameter = character(0), extra = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtraEmpty = c("t.EmaxA", "t.EmaxB", "t.EmaxC"), nonMuEtas = "eta.emax"))
 
     env <- rxMuRef(RxODE({
       EmaxA <- exp(t.EmaxA + eta.emax)
@@ -104,20 +141,37 @@ rxodeTest({
       EmaxC <- t.EmaxC + eta.emax
     }), lmat)
 
-    expect_equal(length(env$muRefDataFrame[,1]), 0L)
-    expect_equal(env$nonMuEtas,
-                 structure(list(eta = "eta.emax", curEval = ""),
-                           row.names = c(NA, -1L), class = "data.frame"))
+    testEnv(env,
+list(muRefCovariateDataFrame = structure(list(theta = character(0),
+    covariate = character(0), covariateParameter = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefCovariateEmpty = c("t.EmaxA", "t.EmaxB", "t.EmaxC"),
+    muRefCurEval = structure(list(parameter = c("eta.emax", "t.EmaxA",
+    "t.EmaxB", "t.EmaxC"), curEval = c("", "exp", "exp", "")), row.names = c(NA,
+    -4L), class = "data.frame"), muRefDataFrame = structure(list(
+        theta = character(0), eta = character(0), level = character(0)), row.names = integer(0), class = "data.frame"),
+    muRefDropParameters = structure(list(parameter = character(0),
+        term = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtra = structure(list(parameter = character(0), extra = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtraEmpty = c("t.EmaxA", "t.EmaxB", "t.EmaxC"), nonMuEtas = "eta.emax"))
 
     env <- rxMuRef(RxODE({
       EmaxB <- t.EmaxB + eta.emax
       EmaxA <- exp(t.EmaxA + eta.emax)
     }), lmat)
 
-    expect_equal(length(env$muRefDataFrame[,1]), 0L)
-    expect_equal(env$nonMuEtas,
-                 structure(list(eta = "eta.emax", curEval = ""),
-                           row.names = c(NA, -1L), class = "data.frame"))
+    testEnv(env,
+list(muRefCovariateDataFrame = structure(list(theta = character(0),
+    covariate = character(0), covariateParameter = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefCovariateEmpty = c("t.EmaxB", "t.EmaxA"), muRefCurEval = structure(list(
+        parameter = c("eta.emax", "t.EmaxB", "t.EmaxA"), curEval = c("",
+        "", "exp")), row.names = c(NA, -3L), class = "data.frame"),
+    muRefDataFrame = structure(list(theta = character(0), eta = character(0),
+        level = character(0)), row.names = integer(0), class = "data.frame"),
+    muRefDropParameters = structure(list(parameter = character(0),
+        term = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtra = structure(list(parameter = character(0), extra = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtraEmpty = c("t.EmaxB", "t.EmaxA"), nonMuEtas = "eta.emax"))
+
 
   })
 
@@ -145,12 +199,20 @@ rxodeTest({
       #cp ~ add(add.sd)
     }), lmat)
 
-    expect_equal(length(env$nonMuEtas[, 1]), 0L)
-    expect_equal(env$muRefDataFrame,
-                 structure(list(theta = c("tka", "tcl", "tv"),
-                                eta = c("eta.ka", "eta.cl", "eta.v"),
-                                curEval = c("exp", "exp", "exp")),
-                           row.names = c(NA, -3L), class = "data.frame"))
+    testEnv(env,
+list(muRefCovariateDataFrame = structure(list(theta = character(0),
+    covariate = character(0), covariateParameter = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefCovariateEmpty = c("tka", "tcl", "tv"), muRefCurEval = structure(list(
+        parameter = c("eta.ka", "tka", "eta.cl", "tcl", "eta.v",
+        "tv"), curEval = c("exp", "exp", "exp", "exp", "exp",
+        "exp")), row.names = c(NA, -6L), class = "data.frame"),
+    muRefDataFrame = structure(list(theta = c("tka", "tcl", "tv"
+    ), eta = c("eta.ka", "eta.cl", "eta.v"), level = c("id",
+    "id", "id")), row.names = c(NA, -3L), class = "data.frame"),
+    muRefDropParameters = structure(list(parameter = character(0),
+        term = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtra = structure(list(parameter = character(0), extra = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtraEmpty = c("tka", "tcl", "tv"), nonMuEtas = NULL))
 
   })
 
@@ -180,11 +242,20 @@ rxodeTest({
       ## cp ~ add(add.sd)
     }), lmat)
 
-    expect_equal(env$nonMuEtas,
-                 structure(list(eta = c("eta.ka", "eta.cl", "eta.v"),
-                                curEval = c("exp", "exp", "exp")),
-                           row.names = c(NA_integer_, -3L), class = "data.frame"))
-    expect_equal(length(env$muRefDataFrame[, 1]), 0L)
+    testEnv(env,
+list(muRefCovariateDataFrame = structure(list(theta = character(0),
+    covariate = character(0), covariateParameter = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefCovariateEmpty = NULL, muRefCurEval = structure(list(
+        parameter = c("eta.ka", "eta.cl", "eta.v"), curEval = c("exp",
+        "exp", "exp")), row.names = c(NA, -3L), class = "data.frame"),
+    muRefDataFrame = structure(list(eta = character(0), theta = character(0),
+        level = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefDropParameters = structure(list(parameter = character(0),
+        term = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtra = structure(list(parameter = c("eta.ka", "eta.cl",
+    "eta.v"), extra = c("0", "0", "0")), row.names = c(NA, -3L
+    ), class = "data.frame"), muRefExtraEmpty = NULL, nonMuEtas = c("eta.ka",
+    "eta.cl", "eta.v")))
 
     env <- rxMuRef(RxODE({
       ka <- tka * exp(eta.ka + 0)
@@ -197,11 +268,20 @@ rxodeTest({
       ## cp ~ add(add.sd)
     }), lmat)
 
-    expect_equal(env$nonMuEtas,
-                 structure(list(eta = c("eta.ka", "eta.cl", "eta.v"),
-                                curEval = c("exp", "exp", "")),
-                           row.names = c(NA_integer_, -3L), class = "data.frame"))
-    expect_equal(length(env$muRefDataFrame[, 1]), 0L)
+    testEnv(env,
+list(muRefCovariateDataFrame = structure(list(theta = character(0),
+    covariate = character(0), covariateParameter = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefCovariateEmpty = "tv", muRefCurEval = structure(list(
+        parameter = c("eta.ka", "eta.cl", "eta.v", "tv"), curEval = c("exp",
+        "exp", "", "")), row.names = c(NA, -4L), class = "data.frame"),
+    muRefDataFrame = structure(list(eta = character(0), theta = character(0),
+        level = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefDropParameters = structure(list(parameter = character(0),
+        term = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtra = structure(list(parameter = c("eta.ka", "eta.cl",
+    "eta.v"), extra = c("0", "0", "0")), row.names = c(NA, -3L
+                                                       ), class = "data.frame"), muRefExtraEmpty = "tv", nonMuEtas = c("eta.ka",
+    "eta.cl", "eta.v")))
 
     env <- rxMuRef(RxODE({
       ka <- tka * exp(eta.ka)
@@ -213,11 +293,19 @@ rxodeTest({
       ## cp ~ add(add.sd)
     }), lmat)
 
-    expect_equal(env$nonMuEtas,
-                 structure(list(eta = c("eta.ka", "eta.cl", "eta.v"),
-                                curEval = c("exp", "exp", "exp")),
-                           row.names = c(NA_integer_, -3L), class = "data.frame"))
-    expect_equal(length(env$muRefDataFrame[, 1]), 0L)
+    testEnv(env,
+list(muRefCovariateDataFrame = structure(list(theta = character(0),
+    covariate = character(0), covariateParameter = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefCovariateEmpty = NULL, muRefCurEval = structure(list(
+        parameter = c("eta.ka", "eta.cl", "eta.v"), curEval = c("exp",
+        "exp", "exp")), row.names = c(NA, -3L), class = "data.frame"),
+    muRefDataFrame = structure(list(eta = character(0), theta = character(0),
+        level = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefDropParameters = structure(list(parameter = character(0),
+        term = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtra = structure(list(parameter = character(0), extra = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtraEmpty = NULL, nonMuEtas = c("eta.ka", "eta.cl",
+    "eta.v")))
 
     env <- rxMuRef(RxODE({
       ka <- tka * exp(eta.ka)
@@ -230,11 +318,19 @@ rxodeTest({
       ## cp ~ add(add.sd)
     }), lmat)
 
-    expect_equal(env$nonMuEtas,
-                 structure(list(eta = c("eta.ka", "eta.cl", "eta.v"),
-                                curEval = c("exp", "exp", "")),
-                           row.names = c(NA_integer_, -3L), class = "data.frame"))
-    expect_equal(length(env$muRefDataFrame[, 1]), 0L)
+    testEnv(env,
+list(muRefCovariateDataFrame = structure(list(theta = character(0),
+    covariate = character(0), covariateParameter = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefCovariateEmpty = NULL, muRefCurEval = structure(list(
+        parameter = c("eta.ka", "eta.cl", "eta.v"), curEval = c("exp",
+        "exp", "")), row.names = c(NA, -3L), class = "data.frame"),
+    muRefDataFrame = structure(list(eta = character(0), theta = character(0),
+        level = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefDropParameters = structure(list(parameter = character(0),
+        term = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtra = structure(list(parameter = character(0), extra = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtraEmpty = NULL, nonMuEtas = c("eta.ka", "eta.cl",
+                                          "eta.v")))
 
   })
 
@@ -275,15 +371,28 @@ rxodeTest({
       ## cp ~ add(add.sd)
     }), lmat)
 
-    expect_equal(env$muRefCovariateDataFrame,
-                 structure(list(popParameter = c("tcl", "tcl", "tv", "tv", "tv", "tvp", "tvp", "tvp"),
-                                covariate = c("age", "sex", "age", "sex", "wt", "age", "sex", "wt"),
-                                covariateParameter = c("cl.age", "cl.sex", "v.age", "v.sex", "v.wt", "vp.age", "vp.sex", "vp.wt")),
-                           row.names = c(NA, -8L),
-                           class = "data.frame"))
+    testEnv(env,
+            list(muRefCovariateDataFrame = structure(list(theta = c("tcl",
+"tcl", "tv", "tv", "tv", "tvp", "tvp", "tvp"), covariate = c("age",
+"sex", "age", "sex", "wt", "age", "sex", "wt"), covariateParameter = c("cl.age",
+"cl.sex", "v.age", "v.sex", "v.wt", "vp.age", "vp.sex", "vp.wt"
+)), row.names = c(NA, -8L), class = "data.frame"), muRefCovariateEmpty = "tka",
+    muRefCurEval = structure(list(parameter = c("eta.ka", "tka",
+    "eta.cl", "tcl", "eta.v", "tv", "tvp"), curEval = c("exp",
+    "exp", "exp", "exp", "exp", "exp", "exp")), row.names = c(NA,
+    -7L), class = "data.frame"), muRefDataFrame = structure(list(
+        theta = c("tka", "tcl", "tv"), eta = c("eta.ka", "eta.cl",
+        "eta.v"), level = c("id", "id", "id")), row.names = c(NA,
+    -3L), class = "data.frame"), muRefDropParameters = structure(list(
+        parameter = character(0), term = character(0)), class = "data.frame", row.names = integer(0)),
+    muRefExtra = structure(list(parameter = c("tcl", "tcl", "tv"
+    ), extra = c("3", "log(wt/70) * cl.wt", "2")), row.names = c(NA,
+    -3L), class = "data.frame"), muRefExtraEmpty = c("tka", "tvp"
+    ), nonMuEtas = NULL))
+
 
     # This one tv is used in 2 covariate references
-    expect_error(rxMuRef(RxODE({
+    env <- rxMuRef(RxODE({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -292,9 +401,13 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       ## cp ~ add(add.sd)
-    }), lmat))
+    }), lmat)
 
-  })
+    #env$nonMuEtas
+
+    #expect_equal(env$nonMuEtas, "eta.v")
+
+ })
 
 
 

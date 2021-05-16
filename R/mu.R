@@ -1,11 +1,3 @@
-## "Cl = exp(t.cl + eta.cl + cov.wt*wt + cov.wt2/70*wt)"
-## "F = expit(t.f + eta.f  + cov.f*wt  + cov.w2/0.5*wt)"
-## "F = probitInv()"
-
-## .rxGetMuRefSumFirst(quote(t.cl+eta.cl+eta.cl2+eta.cl3),theta="t.cl", eta="eta.cl")
-## .rxGetMuRefSumFirst(quote(t.cl + eta.cl + cov.wt*wt + cov.wt2/70*wt), theta=c("t.cl", "cov.wt", "cov.wt2"), "eta.cl")
-## .rxGetMuRefSumFirst(quote(t.cl + eta.cl + cov.wt*wt + cov.wt2/70*wt), theta=c("t.cl", "cov.wt", "cov.wt2"), "eta.cl")
-
 ##' Determine if expression x is "clean"
 ##'
 ##' Clean means that it is free from calculated variables (lhs), and state.
@@ -307,7 +299,7 @@
     # as not having covariates.  Perhaps a warning should be
     # issued for this condition
     .covariate <- names(.doubleNames)
-    .covariateParameter <- setNames(unlist(.doubleNames), NULL)
+    .covariateParameter <- setNames(unlist(.doubleNames), NUsLL)
     env$muRefDropParameters <- rbind(env$muRefDropParameters,
                                      data.frame(parameter=.names[.wt], term=paste0(.covariate, "*", .covariateParameter)))
     .muRefDowngradeEvalToAdditive(.we, .wt, .names, env)
@@ -328,8 +320,7 @@
         # Nothing in common, assume that there are no mu referenced covariates from now on
         env$muRefDropParameters <- rbind(env$muRefDropParameters,
                                          data.frame(parameter=.names[.wt],
-                                                    term=with(env$muRefCovariateDataFrame[.w, ],
-                                                              paste0(covariate, "*", covariateParameter))))
+                                                    term=c(.mult, .multPrior)))
 
         env$muRefCovariateEmpty <- c(env$muRefCovariateEmpty, .names[.wt])
         env$muRefCovariateDataFrame <- env$muRefCovariateDataFrame[-.w,, drop = FALSE]
@@ -364,23 +355,22 @@
 ##' @return Nothing, called for the side effects
 ##' @author Matthew Fidler
 ##' @noRd
-.muRefHandleSingleThetaExtraOnly <- function(.we, .wt, .names, .doubleNames, .extraItems, env, eta=FALSE) {
+.muRefHandleSingleThetaExtraOnly <- function(.we, .wt, .names, .doubleNames, .extraItems, env, eta=FALSE)  {
   .wcur <- .wt
   if (eta) .wcur <- .we
   .w <- which(env$muRefExtra$parameter == .names[.wcur])
-  .w0 <- which(env$muRefExtra == .names[.wcur])
+  .w0 <- which(env$muRefExtraEmpty == .names[.wcur])
   if (length(.extraItems) == 0) {
     # here mu referenced covariates are not present.
     if (length(.w0) == 0) {
-      env$muRefExtra <- c(env$muRefExtra, .names[.wcur])
+      env$muRefExtraEmpty <- c(env$muRefExtraEmpty, .names[.wcur])
     }
     if (length(.w) != 0) {
       # Previously, this was thought to have mu referenced
       # variables, could be an error in coding, perhaps a warning
       # should be issued?
-      env$muRefDropParameters <- rbind(env$muRefDropParameters,
-                                       data.frame(parameter=.names[.wcur],
-                                                  term=.extraItems))
+      .extraDrop <- data.frame(parameter=.names[.wcur], term=env$muRefExtra$extra[.w])
+      env$muRefDropParameters <- rbind(env$muRefDropParameters, .extraDrop)
       env$muRefExtra <- env$muRefExtra[-.w, ]
       .muRefDowngradeEvalToAdditive(.we, .wt, .names, env)
     }
@@ -402,9 +392,9 @@
         # Nothing in common, assume that there are no mu referenced covariates from now on
         env$muRefDropParameters <- rbind(env$muRefDropParameters,
                                          data.frame(parameter=.names[.wcur],
-                                                    term=.extraItems))
+                                                    term=c(.extraItems, .extraItemsPrior)))
 
-        env$muRefExtra <- c(env$muRefExtra, .names[.wcur])
+        env$muRefExtraEmpty <- c(env$muRefExtraEmpty, .names[.wcur])
         env$muRefExtra <- env$muRefExtra[-.w,, drop = FALSE]
         .muRefDowngradeEvalToAdditive(.we, .wt, .names, env)
       } else {
@@ -431,6 +421,30 @@
     .doubleNames <- .doubleNames[names(.doubleNames) != ""]
     .muRefHandleSingleThetaCovOnly(.we, .wt, .names, .doubleNames, .extraItems, env)
     .muRefHandleSingleThetaExtraOnly(.we, .wt, .names, .doubleNames, .extraItems, env)
+    .wmu <- which(env$muRefDataFrame$theta == .names[.wt] &
+                    env$muRefDataFrame$level == "id")
+    if (length(.wmu) == 1 && length(.we) == 0L) {
+      .curEta <- env$muRefDataFrame$eta[.wmu]
+      .muRefSetNonMuEta(.curEta, env)
+      .muRefSetCurEval(.curEta, env, set="")
+    }
+  }
+}
+
+##' This sets the non mu etas
+##'
+##' @param .curEta The eta to set as a non-mu eta
+##' @param env mu ref environtment
+##' @return Nothing, called for its side effects
+##' @author Matthew Fidler
+##' @noRd
+.muRefSetNonMuEta <- function(.curEta, env){
+  if (!any(env$nonMuEtas == .curEta)) {
+    env$nonMuEtas <- c(env$nonMuEtas, .curEta)
+    .wEtaInDf <- which(env$muRefDataFrame$eta == .curEta)
+    if (length(.wEtaInDf) > 0) {
+      env$muRefDataFrame <- env$muRefDataFrame[-.wEtaInDf,, drop = FALSE]
+    }
   }
 }
 
@@ -560,14 +574,15 @@
   } else if (length(.wt) == 1) {
     #print(.extraItems)
     if (!is.null(.extraItems)) {
-      .ord <- order(vapply(.extraItems, nchar, integer(0))).muRefHandleSingleThetaExtraOnly <- function(.we, .wt, .names, .doubleNames, .extraItems, env, eta=FALSE)
+      .ord <- order(vapply(.extraItems, nchar, integer(1)))
+      .extraItems <- .extraItems[.ord]
     }
     .muRefHandleSingleThetaMuRef(.we, .wt, .names, .doubleNames, .extraItems, env)
   } else if (length(.we) == 1){
     .curEta <- .names[.we]
     .muRefSetCurEval(.curEta, env)
     .muRefSetNonMuEta(.curEta, env)
-    .muRefHandleSingleThetaExtra(.we, .wt, .names, .doubleNames, .extraItems, env, eta=TRUE)
+    .muRefHandleSingleThetaExtraOnly(.we, .wt, .names, .doubleNames, .extraItems, env, eta=TRUE)
   }
   invisible()
 }
@@ -659,13 +674,19 @@
   .curEval <- env$.curEval
   .blankEval <- ""
   if (inherits(set, "character")) {
-    .curEval <- .blankEval <- set
+    if (length(.w) == 0L) {
+      env$muRefCurEval <- rbind(env$muRefCurEval, data.frame(parameter=parameter, curEval=set))
+    } else {
+      env$muRefCurEval$curEval[.w] <- set
+    }
+  } else {
+    if (length(.w) == 0L) {
+      env$muRefCurEval <- rbind(env$muRefCurEval, data.frame(parameter=parameter, curEval=.curEval))
+    } else if (env$muRefCurEval$curEval[.w] != env$.curEval) {
+      env$muRefCurEval$curEval[.w] <- .blankEval
+    }
   }
-  if (length(.w) == 0) {
-    env$muRefCurEval <- rbind(env$muRefCurEval, data.frame(parameter=parameter, curEval=.curEval))
-  } else if (env$muRefCurEval$curEval[.w] != .curEval) {
-    env$muRefCurEval$curEval[.w] <- .blankEval
-  }
+
 }
 
 
