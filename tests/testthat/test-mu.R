@@ -403,6 +403,22 @@ list(muRefCovariateDataFrame = structure(list(theta = character(0),
       ## cp ~ add(add.sd)
     }), lmat)
 
+    testEnv(env, list(muRefCovariateDataFrame = structure(list(theta = c("tcl",
+"tcl"), covariate = c("age", "sex"), covariateParameter = c("cl.age",
+"cl.sex")), row.names = 1:2, class = "data.frame"), muRefCovariateEmpty = c("tka",
+"tv"), muRefCurEval = structure(list(parameter = c("eta.ka",
+"tka", "eta.cl", "tcl", "eta.v", "tv"), curEval = c("exp", "exp",
+"exp", "exp", "", "")), row.names = c(NA, -6L), class = "data.frame"),
+    muRefDataFrame = structure(list(theta = c("tka", "tcl"),
+        eta = c("eta.ka", "eta.cl"), level = c("id", "id")), row.names = 1:2, class = "data.frame"),
+    muRefDropParameters = structure(list(parameter = c("tv",
+    "tv", "tv", "tv", "tv", "tv", "tv"), term = c("age*vp.age",
+    "sex*vp.sex", "wt*vp.wt", "age*v.age", "sex*v.sex", "wt*v.wt",
+    "2")), row.names = c(NA, -7L), class = "data.frame"), muRefExtra = structure(list(
+        parameter = c("tcl", "tcl"), extra = c("3", "log(wt/70) * cl.wt"
+        )), row.names = 1:2, class = "data.frame"), muRefExtraEmpty = c("tka",
+    "tv"), nonMuEtas = "eta.v"))
+
     #env$nonMuEtas
 
     #expect_equal(env$nonMuEtas, "eta.v")
