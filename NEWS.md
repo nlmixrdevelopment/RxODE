@@ -1,3 +1,8 @@
+# RxODE 1.1.0
+
+* Always calculate "nolhs" for using numeric differences when the
+  inner problem has numeric difficulties in solving in nlmixr.
+
 # RxODE 1.0.9
 
 * At the request of CRAN, stripping the debugging symbols for the CRAN

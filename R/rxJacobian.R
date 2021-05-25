@@ -918,14 +918,14 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   }
   pred.opt <- NULL
   inner <- .toRx(.s$..inner, "compiling inner model...")
-  if (any(.eventEta == 1L) && !is.null(inner)) {
+  if (!is.null(inner)) {
     if (sum.prod) {
-      .malert("stabilizing round off errors in events FD model...")
+      .malert("stabilizing round off errors in FD model...")
       .s$..pred.nolhs <- rxSumProdModel(.s$..pred.nolhs)
       .msuccess("done")
     }
     if (optExpression) {
-      .s$..pred.nolhs <- rxOptExpr(.s$..pred.nolhs, "events FD model")
+      .s$..pred.nolhs <- rxOptExpr(.s$..pred.nolhs, "FD model")
     }
     .s$..pred.nolhs <- paste(c(
 
