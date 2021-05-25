@@ -1794,6 +1794,15 @@ void linCmtPar2(double *v, double *k,
 		double *Af, double *Bf,
 		double *alpha, double *beta,
 		double *t12alpha, double *t12beta){
+  if (*k21 == 0 || *k12 == 0) {
+    linCmtPar1(v, k, vss, cl, A, Af, alpha, t12alpha);
+    *vp = 1;
+    *q = 0;
+    *beta = 0;
+    *B = 0;
+    *Bf = 0;
+    *t12beta = 0;
+  } else {
     *vp = (*v)*(*k12)/(*k21);
     *vss = (*v)+(*vp);
     *cl = (*v)*(*k);
@@ -1819,48 +1828,58 @@ void linCmtPar3(double *v, double *k10,
 		double *Af, double *Bf, double *Cf,
 		double *alpha, double *beta, double *gamma,
 		double *t12alpha, double *t12beta, double *t12gamma) {
-  double a0 = (*k10) * (*k21) * (*k31);
-  double a1 = ((*k10) * (*k31)) + ((*k21) * (*k31)) + ((*k21) * (*k13)) + ((*k10) * (*k21)) + ((*k31) * (*k12));
-  double a2 = (*k10) + (*k12) + (*k13) + (*k21) + (*k31);
-  double p   = a1 - (a2 * a2 / 3.0);
-  double qq   = (2.0 * a2 * a2 * a2 / 27.0) - (a1 * a2 / 3.0) + a0;
-  double r1  = sqrt(-(p * p * p)/27.0);
-  double phi = acos((-qq/2)/r1)/3.0;
-  double r2  = 2.0 * exp(log(r1)/3.0);
-  *alpha = -(cos(phi) * r2 - a2/3.0);
-  *beta = -(cos(phi + 2.0 * M_PI/3.0) * r2 - a2/3.0);
-  *gamma = -(cos(phi + 4.0 * M_PI/3.0) * r2 - a2/3.0);
-  double a;
-  if ((*alpha) < (*beta)) {
-    a      = *beta;
-    *beta  = *alpha;
-    *alpha = a;
-  } // now alpha >= beta
-  if ((*beta) < (*gamma)) {
-    a      = *beta;
-    *beta  = *gamma;
-    *gamma = a;
-  } // now beta >= gamma
-  if ((*alpha) < (*beta)) {
-    a      = *alpha;
-    *alpha = *beta;
-    *beta  = a;
-  } // now alpha >= beta >= gamma
-  *A = ((*k21) - (*alpha)) * ((*k31) - (*alpha)) / ((*alpha) - (*beta)) / ((*alpha) - (*gamma))/(*v);
-  *B = ((*k21) - (*beta)) * ((*k31) - (*beta)) / ((*beta) - (*alpha)) / ((*beta) - (*gamma))/(*v);
-  *C = ((*k21) - (*gamma)) * ((*k31) - (*gamma)) / ((*gamma) - (*beta)) / ((*gamma) - (*alpha))/(*v);
-  *vp  = (*v) * (*k12)/(*k21);
-  *vp2 = (*v) * (*k13)/(*k31);
-  *vss = (*v) + (*vp) + (*vp2);
-  *cl  = (*v) * (*k10);
-  *q   = (*v) * (*k12);
-  *q2  = (*v) * (*k13);
-  *Af  = (*A) * (*v);
-  *Bf  = (*B) * (*v);
-  *Cf  = (*C) * (*v);
-  *t12alpha = M_LN2/(*alpha);
-  *t12beta  = M_LN2/(*beta);
-  *t12gamma = M_LN2/(*gamma);
+  if (*k31 == 0 || *k13 == 0) {
+    linCmtPar2(v, k10, k12, k21, vp, vss, cl, q, A, B, Af, Bf, alpha, beta, t12alpha, t12beta);
+    *vp2 = 1;
+    *q2 = 0;
+    *gamma = 0;
+    *C = 0;
+    *Cf = 0;
+    *t12gamma = 0;
+  } else {
+    double a0 = (*k10) * (*k21) * (*k31);
+    double a1 = ((*k10) * (*k31)) + ((*k21) * (*k31)) + ((*k21) * (*k13)) + ((*k10) * (*k21)) + ((*k31) * (*k12));
+    double a2 = (*k10) + (*k12) + (*k13) + (*k21) + (*k31);
+    double p   = a1 - (a2 * a2 / 3.0);
+    double qq   = (2.0 * a2 * a2 * a2 / 27.0) - (a1 * a2 / 3.0) + a0;
+    double r1  = sqrt(-(p * p * p)/27.0);
+    double phi = acos((-qq/2)/r1)/3.0;
+    double r2  = 2.0 * exp(log(r1)/3.0);
+    *alpha = -(cos(phi) * r2 - a2/3.0);
+    *beta = -(cos(phi + 2.0 * M_PI/3.0) * r2 - a2/3.0);
+    *gamma = -(cos(phi + 4.0 * M_PI/3.0) * r2 - a2/3.0);
+    double a;
+    if ((*alpha) < (*beta)) {
+      a      = *beta;
+      *beta  = *alpha;
+      *alpha = a;
+    } // now alpha >= beta
+    if ((*beta) < (*gamma)) {
+      a      = *beta;
+      *beta  = *gamma;
+      *gamma = a;
+    } // now beta >= gamma
+    if ((*alpha) < (*beta)) {
+      a      = *alpha;
+      *alpha = *beta;
+      *beta  = a;
+    } // now alpha >= beta >= gamma
+    *A = ((*k21) - (*alpha)) * ((*k31) - (*alpha)) / ((*alpha) - (*beta)) / ((*alpha) - (*gamma))/(*v);
+    *B = ((*k21) - (*beta)) * ((*k31) - (*beta)) / ((*beta) - (*alpha)) / ((*beta) - (*gamma))/(*v);
+    *C = ((*k21) - (*gamma)) * ((*k31) - (*gamma)) / ((*gamma) - (*beta)) / ((*gamma) - (*alpha))/(*v);
+    *vp  = (*v) * (*k12)/(*k21);
+    *vp2 = (*v) * (*k13)/(*k31);
+    *vss = (*v) + (*vp) + (*vp2);
+    *cl  = (*v) * (*k10);
+    *q   = (*v) * (*k12);
+    *q2  = (*v) * (*k13);
+    *Af  = (*A) * (*v);
+    *Bf  = (*B) * (*v);
+    *Cf  = (*C) * (*v);
+    *t12alpha = M_LN2/(*alpha);
+    *t12beta  = M_LN2/(*beta);
+    *t12gamma = M_LN2/(*gamma);
+  }
 }
 
 SEXP toReal(SEXP in){
