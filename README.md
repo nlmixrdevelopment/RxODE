@@ -169,7 +169,7 @@ To load `RxODE` package and compile the model:
 
 ```r
 library(RxODE)
-#> RxODE 1.0.6 using 4 threads (see ?getRxThreads)
+#> RxODE 1.1.0 using 4 threads (see ?getRxThreads)
 
 mod1 <-RxODE({
     C2 = centr/V2;
@@ -305,6 +305,18 @@ in the output matrix x.
 
 ```r
 x <- mod1$solve(theta, ev, inits);
+```
+
+character(0)
+character(0)
+character(0)
+character(0)
+character(0)
+character(0)
+character(0)
+character(0)
+
+```r
 knitr::kable(head(x))
 ```
 
@@ -325,6 +337,14 @@ You can also solve this and create a RxODE data frame:
 
 ```r
 x <- mod1 %>% rxSolve(theta, ev, inits);
+#> character(0)
+#> character(0)
+#> character(0)
+#> character(0)
+#> character(0)
+#> character(0)
+#> character(0)
+#> character(0)
 x
 #> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
 #> ── Parameters (x$params): ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────

@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: RxODE 1.0.6\n"
+"Project-Id-Version: RxODE 1.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-19 16:49-0500\n"
+"POT-Creation-Date: 2021-05-26 10:39-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -106,7 +106,7 @@ msgstr ""
 msgid "'omega' needs to be a matrix or lotri matrix"
 msgstr ""
 
-#: cvPost.cpp:773 cvPost.cpp:814 rxData.cpp:2848
+#: cvPost.cpp:773 cvPost.cpp:814 rxData.cpp:2840
 #, c-format
 msgid ""
 "provided multi-subject data (n=%d) trying to simulate a different number of "
@@ -197,7 +197,7 @@ msgstr ""
 msgid "no dense output available for %uth component"
 msgstr ""
 
-#: et.cpp:142 rxData.cpp:5308
+#: et.cpp:142 rxData.cpp:5164
 #, c-format
 msgid "partial match of '%s' to '%s'"
 msgstr ""
@@ -776,7 +776,11 @@ msgstr ""
 msgid "censoring missing 'DV' values do not make sense"
 msgstr ""
 
-#: etTran.cpp:1590 etTran.cpp:1612
+#: etTran.cpp:1590
+msgid "no rows in event table or input data"
+msgstr ""
+
+#: etTran.cpp:1612
 msgid "empty data"
 msgstr ""
 
@@ -916,7 +920,7 @@ msgstr ""
 
 #: intdy.c:55
 #, c-format
-msgid "intdy -- t = %g illegal. t not in interval tcur - _C(hu) to tcur\n"
+msgid "intdy -- t = %g illegal. t not in interval tcur - _rxC(hu) to tcur\n"
 msgstr ""
 
 #: lincmt.c:39 lincmt.c:46
@@ -927,23 +931,23 @@ msgstr ""
 msgid "could not find an end to the infusion"
 msgstr ""
 
-#: lincmt.c:199
+#: lincmt.c:200
 msgid "solve data is not loaded"
 msgstr ""
 
-#: lincmt.c:1875
+#: lincmt.c:1879
 msgid "not an integer/real"
 msgstr ""
 
-#: lincmt.c:1893 lincmt.c:2003 lincmt.c:2175
+#: lincmt.c:1897 lincmt.c:2007 lincmt.c:2179
 msgid "The dimensions of the parameters must match"
 msgstr ""
 
-#: lincmt.c:2390
+#: lincmt.c:2394
 msgid "'ncmt' needs to be 1-3"
 msgstr ""
 
-#: lincmt.c:2393
+#: lincmt.c:2397
 msgid "'inp' needs to be list/data frame"
 msgstr ""
 
@@ -995,11 +999,11 @@ msgstr ""
 
 #: lsoda.c:768
 #, c-format
-msgid "lsoda -- warning..internal t = %g and _C(h) = %g are\n"
+msgid "lsoda -- warning..internal t = %g and _rxC(h) = %g are\n"
 msgstr ""
 
 #: lsoda.c:769
-msgid "         such that in the machine, t + _C(h) = t on the next step\n"
+msgid "         such that in the machine, t + _rxC(h) = t on the next step\n"
 msgstr ""
 
 #: lsoda.c:770
@@ -1025,7 +1029,7 @@ msgstr ""
 
 #: lsoda.c:808
 #, c-format
-msgid "at t = %g, tentative step size _C(h) = %g, step _C(nst) = %d\n"
+msgid "at t = %g, tentative step size _rxC(h) = %g, step _rxC(nst) = %d\n"
 msgstr ""
 
 #: par_solve.cpp:2729
@@ -1042,12 +1046,12 @@ msgid ""
 "with 'NA'"
 msgstr ""
 
-#: par_solve.cpp:2812
+#: par_solve.cpp:2807
 #, c-format
 msgid "one or more covariates were all 'NA' for subject 'id=%d'"
 msgstr ""
 
-#: par_solve.cpp:3246
+#: par_solve.cpp:3230
 #, c-format
 msgid "dose to compartment %d ignored (not in system; 'id=%d')"
 msgstr ""
@@ -1057,7 +1061,7 @@ msgid " with first order absorption\n"
 msgstr ""
 
 #: prja.c:42
-msgid "[prja] _C(miter) != 2\n"
+msgid "[prja] _rxC(miter) != 2\n"
 msgstr ""
 
 #: rxData.cpp:296
@@ -1166,7 +1170,7 @@ msgstr ""
 msgid "'thetaMat' must be a named matrix"
 msgstr ""
 
-#: rxData.cpp:1492 rxData.cpp:2876
+#: rxData.cpp:1492 rxData.cpp:2868
 msgid "'thetaMat' must be symmetric"
 msgstr ""
 
@@ -1205,184 +1209,180 @@ msgstr ""
 msgid "ran out of memory during 'updateSolveEnvPost'"
 msgstr ""
 
-#: rxData.cpp:2408
+#: rxData.cpp:2399
 msgid "No additional parameters were specified, returning original object"
 msgstr ""
 
-#: rxData.cpp:2487
+#: rxData.cpp:2478
 msgid "can not update object"
 msgstr ""
 
-#: rxData.cpp:2534
+#: rxData.cpp:2525
 msgid "'from' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2542
+#: rxData.cpp:2533
 msgid "'to' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2552
+#: rxData.cpp:2543
 msgid "'by' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2560
+#: rxData.cpp:2551
 msgid "'length.out' must be of length 1"
 msgstr ""
 
-#: rxData.cpp:2566
+#: rxData.cpp:2557
 msgid "cannot use both 'by' and 'length.out' for RxODE simulations"
 msgstr ""
 
-#: rxData.cpp:2663
+#: rxData.cpp:2654
 msgid "RxODE only supports 500 factors"
 msgstr ""
 
-#: rxData.cpp:2805
+#: rxData.cpp:2797
 msgid ""
 "when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a "
 "'data.frame'/'matrix'."
 msgstr ""
 
-#: rxData.cpp:2928 rxData.cpp:3066 rxData.cpp:3075
+#: rxData.cpp:2920 rxData.cpp:2943 rxData.cpp:2952
 msgid ""
 "if parameters are not named, they must match the order and size of the "
 "parameters in the model"
 msgstr ""
 
-#: rxData.cpp:3054
-msgid "matrix parameters with 'iCov' 'data.frame' is not supported"
-msgstr ""
-
-#: rxData.cpp:3153
+#: rxData.cpp:3030
 msgid "can not allocate enough memory to load 'evid'"
 msgstr ""
 
-#: rxData.cpp:3197
+#: rxData.cpp:3074
 msgid "nothing to solve"
 msgstr ""
 
-#: rxData.cpp:3251
+#: rxData.cpp:3128
 msgid "can not allocate memory for the covariates"
 msgstr ""
 
-#: rxData.cpp:3338
+#: rxData.cpp:3215
 msgid "data must be ordered by 'ID' and 'TIME' variables"
 msgstr ""
 
-#: rxData.cpp:3408
+#: rxData.cpp:3285
 msgid "cannot allocate enough memory to sort input parameters"
 msgstr ""
 
-#: rxData.cpp:3538
+#: rxData.cpp:3416
 msgid "'resample' must be NULL or a character vector"
 msgstr ""
 
-#: rxData.cpp:3667
+#: rxData.cpp:3525
 msgid "nPopPar != 1 but parameters are specified as a NumericVector"
 msgstr ""
 
-#: rxData.cpp:3778
+#: rxData.cpp:3636
 msgid "Something is wrong"
 msgstr ""
 
-#: rxData.cpp:3841
+#: rxData.cpp:3699
 msgid "aborted solve"
 msgstr ""
 
-#: rxData.cpp:3865
+#: rxData.cpp:3723
 #, c-format
 msgid ""
 "exited from at least one while after %d iterations, (increase with "
 "`rxSolve(..., maxwhile=#)`)"
 msgstr ""
 
-#: rxData.cpp:4208
+#: rxData.cpp:4066
 msgid "zero 'thetaMat' specified, no uncertainty in fixed effects"
 msgstr ""
 
-#: rxData.cpp:4211
+#: rxData.cpp:4069
 msgid "zero 'omega', no variability from random-effects"
 msgstr ""
 
-#: rxData.cpp:4214
+#: rxData.cpp:4072
 msgid "zero 'sigma', no unexplained variability"
 msgstr ""
 
-#: rxData.cpp:4232
+#: rxData.cpp:4090
 msgid ""
 "dropped key column, returning data.frame instead of special solved data.frame"
 msgstr ""
 
-#: rxData.cpp:4428
+#: rxData.cpp:4285
 msgid "control list not setup correctly"
 msgstr ""
 
-#: rxData.cpp:4491
+#: rxData.cpp:4348
 msgid "cannot solve without event information"
 msgstr ""
 
-#: rxData.cpp:4501
+#: rxData.cpp:4358
 msgid "cannot update this object"
 msgstr ""
 
-#: rxData.cpp:4557
+#: rxData.cpp:4414
 msgid "cannot load RxODE dlls for this model"
 msgstr ""
 
-#: rxData.cpp:4611
+#: rxData.cpp:4467
 msgid ""
 "thread safe method, but results may depend on system/load, using 1 core (can "
 "change with `cores=`)"
 msgstr ""
 
-#: rxData.cpp:4622 rxData.cpp:4639
+#: rxData.cpp:4478 rxData.cpp:4495
 msgid "not thread safe method, using 1 core"
 msgstr ""
 
-#: rxData.cpp:4631
+#: rxData.cpp:4487
 msgid "thread safe method, but results may depend on system/load"
 msgstr ""
 
-#: rxData.cpp:4695
+#: rxData.cpp:4551
 msgid "'infSSstep' needs to be positive"
 msgstr ""
 
-#: rxData.cpp:4743
+#: rxData.cpp:4599
 msgid "assumed transit compartment model since 'podo' is in the model"
 msgstr ""
 
-#: rxData.cpp:4779
+#: rxData.cpp:4635
 msgid "unknown covariate interpolation specified"
 msgstr ""
 
-#: rxData.cpp:4870
+#: rxData.cpp:4726
 #, c-format
 msgid ""
 "number of parameters (%d) solved by RxODE for multi-subject data needs to be "
 "a multiple of the number of subjects (%d)"
 msgstr ""
 
-#: rxData.cpp:4988
+#: rxData.cpp:4844
 msgid "could not allocate enough memory for solving"
 msgstr ""
 
-#: rxData.cpp:5381
+#: rxData.cpp:5237
 msgid "cannot update nonexistent parameters"
 msgstr ""
 
-#: rxData.cpp:5636
+#: rxData.cpp:5492
 msgid "Can not figure out the RxODE object"
 msgstr ""
 
-#: rxData.cpp:5741 rxData.cpp:5784
+#: rxData.cpp:5597 rxData.cpp:5640
 msgid "can not figure out the DLL for this object"
 msgstr ""
 
-#: rxData.cpp:5972
+#: rxData.cpp:5828
 msgid "package-based models cannot be unloaded"
 msgstr ""
 
-#: rxData.cpp:6019
+#: rxData.cpp:5875
 msgid "package-based models cannot be deleted"
 msgstr ""
 

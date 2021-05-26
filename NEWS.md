@@ -1,7 +1,9 @@
 # RxODE 1.1.0
 
 * Always calculate "nolhs" for using numeric differences when the
-  inner problem has numeric difficulties in solving in nlmixr.
+  inner problem has numeric difficulties in solving in 
+  
+* Updated the parser C code grammar using latest dparser CRAN package 
 
 # RxODE 1.0.9
 

@@ -2685,6 +2685,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   RObject sigma= rxControl[Rxc_sigma];
   Nullable<NumericVector> sigmaDf= asNNv(rxControl[Rxc_sigmaDf], "sigmaDf");
   bool sigmaIsChol= asBool(rxControl[Rxc_sigmaIsChol], "sigmaIsChol");
+
   op->isChol = (int)(sigmaIsChol);
   SEXP tmp = rxControl[Rxc_linDiff];
   LogicalVector linLV;
@@ -4668,6 +4669,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       } else {
 	_rxModels.remove(".sigma");
       }
+    } else if (Rf_isMatrix(rxControl[Rxc_sigma])) {
+      rxSolveDat->sigmaN= as<CharacterVector>((as<List>((as<NumericMatrix>(rxControl[Rxc_sigma])).attr("dimnames")))[1]);
+      _rxModels[".sigma"] = rxControl[Rxc_sigma];
     }
     if (_rxModels.exists(".omega")){
       if (Rf_isMatrix(_rxModels[".omega"])) {
@@ -4677,6 +4681,9 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
       }
     } else if (_rxModels.exists(".omegaN")) {
       rxSolveDat->omegaN = as<CharacterVector>(_rxModels[".omegaN"]);
+    } else if (Rf_isMatrix(rxControl[Rxc_omega])) {
+      _rxModels[".omega"] = rxControl[Rxc_omega];
+      rxSolveDat->omegaN= as<CharacterVector>((as<List>((as<NumericMatrix>(rxControl[Rxc_omega])).attr("dimnames")))[1]);
     }
 #ifdef rxSolveT
     RSprintf("Time8: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
