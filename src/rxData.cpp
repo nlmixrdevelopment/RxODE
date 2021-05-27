@@ -1689,20 +1689,19 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 		     bool simSubjects=true){
   rx_solve* rx = getRxSolve_();
   NumericVector par;
+  CharacterVector parN;
   if (params.isNull()){
-    rxSolveFree();
-    stop(_("requires 'params'"));
   } else {
     par = NumericVector(params);
     if (!par.hasAttribute("names")){
       rxSolveFree();
       stop(_("'params' must be a named vector"));
     }
+    parN = CharacterVector(par.attr("names"));
   }
   NumericMatrix thetaM;
   CharacterVector thetaN;
   bool simTheta = false;
-  CharacterVector parN = CharacterVector(par.attr("names"));
   IntegerVector thetaPar(parN.size());
   int i, j, k;
   rxSimTheta(thetaN, parN, thetaPar, thetaM, simTheta,
@@ -2792,7 +2791,10 @@ static inline void rxSolve_simulate(const RObject &obj,
   op->ncoresRV = nCoresRV;
   rx->nevid9 = 0;
 
-  if (!thetaMat.isNull() || !rxIsNull(omega) || !rxIsNull(sigma)){
+  if (didNesting && !rxIsNum(rxSolveDat->par1)) {
+    rxSolveFree();
+    stop(_("when simulating with nesting the parameters cannot be a 'data.frame'/'matrix'."));
+  } else if (!thetaMat.isNull() || !rxIsNull(omega) || !rxIsNull(sigma)){
     // Simulated Variable3
     bool cbindPar1 = false;
     if (!rxIsNum(rxSolveDat->par1)){
