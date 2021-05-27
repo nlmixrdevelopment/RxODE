@@ -13,8 +13,8 @@
 ##'
 ##' set.seed(32)
 ##'
-##' nSub = 100
-##' nStud = 10
+##' nSub  <-  100
+##' nStud  <-  10
 ##'
 ##' #define theta
 ##' theta <- c(lka=log(0.5), # log ka
@@ -49,11 +49,11 @@ rxCbindStudyIndividual <- function(studyParameters, individualParameters)  {
       stop("'studyParameters' must be matrix with named columns", call.=FALSE)
     }
     .dimnames <- .dimnames[[2]]
-    if (length(.dimnames) != dim(studyParameters)[2]) {
-      stop("'studyParameters' column names do not match the dimensions of the matrix", call.=FALSE)
+    if (is.null(.dimnames)) {
+      stop("'studyParameters' must be matrix with named columns", call.=FALSE)
     }
   } else if (!inherits(studyParameters, "data.frame")) {
     stop("'studyParameters' needs to be either a data frame or a matrix", call.=FALSE)
   }
-  .Call(`_krxCbindStudyIndividual`, studyParameters, individualParameters)
+  .Call(`_rxCbindStudyIndividual`, studyParameters, individualParameters)
 }

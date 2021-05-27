@@ -70,7 +70,7 @@ List cbindThetaOmegaL(List& inputParameters, List& individualParameters) {
       NumericVector cur(tot);
       NumericVector curIn = as<NumericVector>(inputParameters[i]);
       for (int j=0; j < nstud; j++) {
-	std::fill_n(&cur[0] + j*nsub, nsub, inputParameters[j]);
+	std::fill_n(&cur[0] + j*nsub, nsub, curIn[j]);
       }
       ret[i] = cur;
     }
@@ -93,7 +93,7 @@ List cbindThetaOmega(RObject inputParameters, List& individualParameters) {
     NumericMatrix ip = as<NumericMatrix>(inputParameters);
     return cbindThetaOmegaNM(ip, individualParameters);
   } else if (TYPEOF(inputParameters) == VECSXP) {
-     List ip = as<List>(ip);
+     List ip = as<List>(inputParameters);
      return cbindThetaOmegaL(ip, individualParameters);
   } else {
     stop(_("unexpected parameter object"));
