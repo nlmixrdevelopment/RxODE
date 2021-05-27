@@ -37,8 +37,7 @@ parameter in the ODE system; the names must correspond to the
 parameter identifiers used in the ODE specification;}
 
 \item{iCov}{A data frame of individual non-time varying covariates
-to combine with the \code{params} to form a parameter
-data.frame.}
+to combine with the \code{events} dataset by merge.}
 
 \item{keep}{Columns to keep from either the input dataset or the
 \code{iCov} dataset.  With the \code{iCov} dataset, the column

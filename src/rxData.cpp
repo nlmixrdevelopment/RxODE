@@ -31,6 +31,8 @@ void resetSolveLinB();
 using namespace Rcpp;
 using namespace arma;
 
+#include "cbindThetaOmega.h"
+
 extern "C" uint64_t dtwiddle(const void *p, int i);
 extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
 extern "C" void RSprintf(const char *format, ...);
@@ -2792,9 +2794,14 @@ static inline void rxSolve_simulate(const RObject &obj,
 
   if (!thetaMat.isNull() || !rxIsNull(omega) || !rxIsNull(sigma)){
     // Simulated Variable3
+    bool cbindPar1 = false;
     if (!rxIsNum(rxSolveDat->par1)){
-      rxSolveFree();
-      stop(_("when specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a 'data.frame'/'matrix'."));
+      if (!thetaMat.isNull()) {
+	rxSolveFree();
+	stop(_("when specifying 'thetaMat' the parameters cannot be a 'data.frame'/'matrix'."));
+      } else {
+	cbindPar1 = true;
+      }
     }
     unsigned int nSub0 = 0;
     int curObs = 0;
@@ -2869,26 +2876,33 @@ static inline void rxSolve_simulate(const RObject &obj,
 	}
       }
     }
-    List lst = rxSimThetaOmega(as<Nullable<NumericVector>>(rxSolveDat->par1),
-			       omega,
-			       omegaDf,
-			       asNv(rxControl[Rxc_omegaLower], "omegaLower"),
-			       asNv(rxControl[Rxc_omegaUpper], "omegaUpper"),
-			       omegaIsChol,
-			       asStr(rxControl[Rxc_omegaSeparation], "omegaSeparation"),
-			       asInt(rxControl[Rxc_omegaXform], "omegaXform"),
-			       nSub0, thetaMat,
-			       asNv(rxControl[Rxc_thetaLower], "thetaLower"),
-			       asNv(rxControl[Rxc_thetaUpper], "thetaUpper"),
-			       thetaDf, thetaIsChol, nStud,
-			       sigma,
-			       asNv(rxControl[Rxc_sigmaLower], "sigmaLower"),
-			       asNv(rxControl[Rxc_sigmaUpper], "sigmaUpper"),
-			       sigmaDf, sigmaIsChol,
-			       asStr(rxControl[Rxc_sigmaSeparation], "sigmaSeparation"),
-			       asInt(rxControl[Rxc_sigmaXform], "sigmaXform"),
-			       nCoresRV, curObs,
-			       dfSub, dfObs, simSubjects);
+    Nullable<NumericVector> params0 = R_NilValue;
+    if (!cbindPar1) {
+      params0 = as<Nullable<NumericVector>>(rxSolveDat->par1);
+    }
+    List lst = rxSimThetaOmega(params0,
+			    omega,
+			    omegaDf,
+			    asNv(rxControl[Rxc_omegaLower], "omegaLower"),
+			    asNv(rxControl[Rxc_omegaUpper], "omegaUpper"),
+			    omegaIsChol,
+			    asStr(rxControl[Rxc_omegaSeparation], "omegaSeparation"),
+			    asInt(rxControl[Rxc_omegaXform], "omegaXform"),
+			    nSub0, thetaMat,
+			    asNv(rxControl[Rxc_thetaLower], "thetaLower"),
+			    asNv(rxControl[Rxc_thetaUpper], "thetaUpper"),
+			    thetaDf, thetaIsChol, nStud,
+			    sigma,
+			    asNv(rxControl[Rxc_sigmaLower], "sigmaLower"),
+			    asNv(rxControl[Rxc_sigmaUpper], "sigmaUpper"),
+			    sigmaDf, sigmaIsChol,
+			    asStr(rxControl[Rxc_sigmaSeparation], "sigmaSeparation"),
+			    asInt(rxControl[Rxc_sigmaXform], "sigmaXform"),
+			    nCoresRV, curObs,
+			    dfSub, dfObs, simSubjects);
+    if (cbindPar1) {
+      lst = cbindThetaOmega(rxSolveDat->par1, lst);
+    }
     rxSolveDat->warnIdSort = false;
     rxSolveDat->par1 =  as<RObject>(lst);
     rxSolveDat->usePar1=true;
@@ -4665,7 +4679,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     // .sigma could be reassigned in an update, so check outside simulation function.
     if (_rxModels.exists(".sigma")){
       if (Rf_isMatrix(_rxModels[".sigma"])) {
-	rxSolveDat->sigmaN= as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
+	rxSolveDat->sigmaN=  as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
       } else {
 	_rxModels.remove(".sigma");
       }
