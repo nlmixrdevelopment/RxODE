@@ -2791,10 +2791,7 @@ static inline void rxSolve_simulate(const RObject &obj,
   op->ncoresRV = nCoresRV;
   rx->nevid9 = 0;
 
-  if (didNesting && !rxIsNum(rxSolveDat->par1)) {
-    rxSolveFree();
-    stop(_("when simulating with nesting the parameters cannot be a 'data.frame'/'matrix'."));
-  } else if (!thetaMat.isNull() || !rxIsNull(omega) || !rxIsNull(sigma)){
+  if (!thetaMat.isNull() || !rxIsNull(omega) || !rxIsNull(sigma)){
     // Simulated Variable3
     bool cbindPar1 = false;
     if (!rxIsNum(rxSolveDat->par1)){
