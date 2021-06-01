@@ -36,6 +36,8 @@ jobs:
           install.packages("usethis", type="source")
           install.packages("symengine", type="source")
           remotes::install_github("nlmixrdevelopment/dparser-R")
+          remotes::install_github("hadley/xml2")
+          remotes::install_github("davidgohel/rvg")
           remotes::install_cran("covr")
         shell: Rscript {0}
 
