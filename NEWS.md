@@ -1,10 +1,15 @@
 # RxODE 1.1.0
 
 * Always calculate "nolhs" for using numeric differences when the
-  inner problem has numeric difficulties in solving in 
+  inner problem. This allows the inner problem to fallback to a finite
+  difference approximation to the focei objective function.
   
 * Updated the parser C code grammar using latest dparser CRAN package 
 
+* Added a new cbind function that is used to mix data frame input with
+  simulated individual parameters and residual parameters,
+  `rxCbindStudyIndividual()`.
+  
 # RxODE 1.0.9
 
 * At the request of CRAN, stripping the debugging symbols for the CRAN
