@@ -4476,37 +4476,45 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	switch (thread) {
 	case 2:
 	  // Thread safe, but possibly not reproducible
-	  warning(_("thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)"));
-	  op->cores = 1;
-	  rxSolveDat->throttle = false;
+	  //warning(_("thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)"));
+	  //op->cores = 1;
+	  //rxSolveDat->throttle = false;
+	  op->cores = getRxThreads(INT_MAX, false);
+	  rxSolveDat->throttle = true;
+	  op->doesRandom = 1;
 	  break;
 	case 1:
 	  // Thread safe, and reproducible
 	  op->cores = getRxThreads(INT_MAX, false);
 	  rxSolveDat->throttle = true;
+	  op->doesRandom = 0;
 	  break;
 	case 0:
 	  // Not thread safe.
 	  warning(_("not thread safe method, using 1 core"));
 	  op->cores = 1;
 	  rxSolveDat->throttle = false;
+	  op->doesRandom = 0;
 	  break;
 	}
       } else {
 	switch (thread) {
 	case 2:
 	  // Thread safe, but possibly not reproducible
-	  if (op->cores > 1) warning(_("thread safe method, but results may depend on system/load"));
+	  if (op->cores > 1) warning(_("thread safe method, results depend on number of cores used"));
+	  op->doesRandom = 1;
 	  break;
 	case 1:
 	  // Thread safe, and reproducible
 	  rxSolveDat->throttle = true;
+	  op->doesRandom = 0;
 	  break;
 	case 0:
 	  // Not thread safe.
 	  warning(_("not thread safe method, using 1 core"));
 	  op->cores = 1;
 	  rxSolveDat->throttle = false;
+	  op->doesRandom = 0;
 	  break;
 	}
       }

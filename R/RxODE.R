@@ -434,7 +434,11 @@ RxODE <- # nolint
       })
     }))
     .extraC(extraC)
-    .env$compile()
+    .cmp <- try(.env$compile(), silent=TRUE)
+    if (inherits(.cmp, "try-error")) {
+      rxClean()
+      .env$compile()
+    }
     .env$get.modelVars <- eval(bquote(function() {
       with(.(.env), {
         .ret <- .mv[c("params", "state", "lhs")]
