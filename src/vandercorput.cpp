@@ -69,7 +69,7 @@ NumericVector rxnormV_(double mean, double sd, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-    for (int thread = 0; thread < ncores; {
+    for (int thread = 0; thread < ncores; thread++) {
       for (int i = 0; i < n2; ++i){
 	if ((i + thread) % ncores != 0) continue;
 	A[i] = d(eng);
