@@ -25,6 +25,9 @@
   rules, the split avoids race conditions altering the outcome of the
   simulation.  Now the simulations depend only on the number of cores
   used, and the initial seed.
+  
+* When compiling and loading a file, if the compile and loading fails
+  RxODE will now try to clear the cache.
 
 
 # RxODE 1.0.9
