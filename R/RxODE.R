@@ -436,6 +436,7 @@ RxODE <- # nolint
     .extraC(extraC)
     .cmp <- try(.env$compile(), silent=TRUE)
     if (inherits(.cmp, "try-error")) {
+      message("Compile failed, try cleaning the cache and recompiling")
       rxClean()
       .env$compile()
     }
