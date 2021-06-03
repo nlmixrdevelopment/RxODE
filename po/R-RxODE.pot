@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: RxODE 1.0.6\n"
-"POT-Creation-Date: 2021-03-19 16:49\n"
+"Project-Id-Version: RxODE 1.1.0\n"
+"POT-Creation-Date: 2021-05-26 10:39\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -250,6 +250,9 @@ msgstr ""
 msgid "error optimizing expression, try 'optExpression=FALSE'"
 msgstr ""
 
+msgid "'iCov' in a pipline is no longer supported"
+msgstr ""
+
 msgid "unknown arguments in 'rxParams'"
 msgstr ""
 
@@ -283,18 +286,6 @@ msgstr ""
 msgid "================================================================================"
 msgstr ""
 
-msgid "RxODE compiled with Rcpp '"
-msgstr ""
-
-msgid "' but Rcpp '"
-msgstr ""
-
-msgid "Rcpp"
-msgstr ""
-
-msgid "' is loaded\nRecompile RxODE with the new version of Rcpp"
-msgstr ""
-
 msgid "RxODE compiled with dparser '"
 msgstr ""
 
@@ -305,18 +296,6 @@ msgid "dparser"
 msgstr ""
 
 msgid "' is loaded\nRecompile RxODE with the this version of dparser"
-msgstr ""
-
-msgid "RxODE compiled with checkmate '"
-msgstr ""
-
-msgid "' but checkmate '"
-msgstr ""
-
-msgid "checkmate"
-msgstr ""
-
-msgid "' is loaded\nRecompile RxODE with the this version of checkmate"
 msgstr ""
 
 msgid "RxODE compiled with PreciseSums '"
@@ -412,21 +391,6 @@ msgstr ""
 msgid "covariates can no longer be specified by 'covs' include them in the event dataset"
 msgstr ""
 
-msgid "'theta' cannot be a data.frame"
-msgstr ""
-
-msgid "'theta' can only have 1 row"
-msgstr ""
-
-msgid "'eta' cannot be a data.frame"
-msgstr ""
-
-msgid "'eta' can only have 1 row"
-msgstr ""
-
-msgid "cannot specify 'params' and 'theta'/'eta' at the same time"
-msgstr ""
-
 msgid "events can be pipeline or solving arguments not both"
 msgstr ""
 
@@ -451,10 +415,46 @@ msgstr ""
 msgid "'iCov' has information contained in parameters/event data\nduplicate columns: '%s'"
 msgstr ""
 
-msgid "'nSub' does not match the number of subjects in 'iCov'"
+msgid "'theta' cannot be a data.frame"
 msgstr ""
 
-msgid "'nSub'*'nStud' does not match the number of subjects in 'iCov'"
+msgid "'theta' can only have 1 row"
+msgstr ""
+
+msgid "name specification for 'theta' is ignored"
+msgstr ""
+
+msgid "'eta' cannot be a data.frame"
+msgstr ""
+
+msgid "'eta' can only have 1 row"
+msgstr ""
+
+msgid "name specification for 'eta' is ignored"
+msgstr ""
+
+msgid "cannot specify 'params' and 'theta'/'eta' at the same time"
+msgstr ""
+
+msgid "Cannot detect an event data frame to merge 'iCov'"
+msgstr ""
+
+msgid "to use 'iCov' you must have an id in your event table"
+msgstr ""
+
+msgid "'iCov' and 'id' mismatch"
+msgstr ""
+
+msgid "iCov has duplicate IDs, cannot continue"
+msgstr ""
+
+msgid "combining iCov and events dropped some event information"
+msgstr ""
+
+msgid "combining iCov and events dropped some iCov information"
+msgstr ""
+
+msgid "'iCov' must be an input dataset"
 msgstr ""
 
 msgid "name argument must be a length-one character vector"

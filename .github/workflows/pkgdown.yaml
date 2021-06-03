@@ -36,6 +36,10 @@ jobs:
           install.packages("usethis", type="source")
           install.packages("symengine", type="source")
           remotes::install_github("nlmixrdevelopment/lotri")
+          install.packages("systemfonts", type="source")
+          install.packages("textshaping", type="source")
+          install.packages("ragg", type="source")
+          remotes::install_github("nlmixrdevelopment/dparser-R")
           remotes::install_cran("covr")
         shell: Rscript {0}
 

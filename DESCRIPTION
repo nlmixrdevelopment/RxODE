@@ -1,5 +1,5 @@
 Package: RxODE
-Version: 1.0.9.1
+Version: 1.1.0
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Matthew L.","Fidler",

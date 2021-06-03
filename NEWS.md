@@ -1,3 +1,31 @@
+# RxODE 1.1.0
+
+* Always calculate "nolhs" for using numeric differences when the
+  inner problem. This allows the inner problem to fallback to a finite
+  difference approximation to the focei objective function.
+
+* Updated the parser C code grammar using latest dparser CRAN package
+
+* Added a new cbind function that is used to mix data frame input with
+  simulated individual parameters and residual parameters,
+  `rxCbindStudyIndividual()`.
+
+* When random numbers are generated during ode solving, split the
+  simulation by the number of parallel threads simulating.
+
+  This way the thread generates the same numbers regardless of the
+  different amount of time needed to solve the systems. Before, the
+  results may have been different based on race conditions, and the
+  parallel solving was limited to 1 core when any simulations
+  generated random numbers. Now the results depend only on the number
+  of threads used in the simulation.
+
+* Also split the simulations of random numbers by the number of seeds;
+  For simulation methods that are complex and can contain rejection
+  rules, the split avoids race conditions altering the outcome of the
+  simulation.  Now the simulations depend only on the number of cores
+  used, and the initial seed.
+  
 # RxODE 1.0.9
 
 * At the request of CRAN, stripping the debugging symbols for the CRAN
