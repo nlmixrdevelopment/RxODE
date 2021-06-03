@@ -434,12 +434,7 @@ RxODE <- # nolint
       })
     }))
     .extraC(extraC)
-    .cmp <- try(.env$compile(), silent=TRUE)
-    if (inherits(.cmp, "try-error")) {
-      message("Compile failed, try cleaning the cache and recompiling")
-      rxClean()
-      .env$compile()
-    }
+    .env$compile()
     .env$get.modelVars <- eval(bquote(function() {
       with(.(.env), {
         .ret <- .mv[c("params", "state", "lhs")]
