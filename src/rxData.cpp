@@ -1689,20 +1689,19 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 		     bool simSubjects=true){
   rx_solve* rx = getRxSolve_();
   NumericVector par;
+  CharacterVector parN;
   if (params.isNull()){
-    rxSolveFree();
-    stop(_("requires 'params'"));
   } else {
     par = NumericVector(params);
     if (!par.hasAttribute("names")){
       rxSolveFree();
       stop(_("'params' must be a named vector"));
     }
+    parN = CharacterVector(par.attr("names"));
   }
   NumericMatrix thetaM;
   CharacterVector thetaN;
   bool simTheta = false;
-  CharacterVector parN = CharacterVector(par.attr("names"));
   IntegerVector thetaPar(parN.size());
   int i, j, k;
   rxSimTheta(thetaN, parN, thetaPar, thetaM, simTheta,
