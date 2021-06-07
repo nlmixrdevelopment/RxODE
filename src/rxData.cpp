@@ -4476,8 +4476,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	switch (thread) {
 	case 2:
 	  // Thread safe, but possibly not reproducible
-	  warning(_("thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)"));
-	  op->cores = 1;
+	  if (op->cores > 1) {
+	    op->stiff = method = 4;
+	    warning(_("results depend on the number of cores used"));
+	  }
 	  rxSolveDat->throttle = false;
 	  break;
 	case 1:
@@ -4496,7 +4498,10 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	switch (thread) {
 	case 2:
 	  // Thread safe, but possibly not reproducible
-	  if (op->cores > 1) warning(_("thread safe method, but results may depend on system/load"));
+	  if (op->cores > 1) {
+	    op->stiff = method = 4;
+	    warning(_("results depend on the number of cores used"));
+	  }
 	  break;
 	case 1:
 	  // Thread safe, and reproducible
@@ -4927,7 +4932,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 #endif // rxSolveT
     rxSolve_normalizeParms(object, rxControl, specParams, extraArgs,
 			   pars, ev1, inits, rxSolveDat);
-    if (op->stiff == 2) { // liblsoda
+    if (op->stiff == 2 || op->stiff == 4) { // liblsoda
       // Order by the number of times per subject
       sortIds(rx, 1);
     }

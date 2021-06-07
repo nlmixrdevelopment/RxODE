@@ -2011,6 +2011,78 @@ extern "C" void ind_liblsoda(rx_solve *rx, int solveid,
 
 extern "C" int getRxThreads(const int64_t n, const bool throttle);
 
+extern "C" void par_liblsodaR(rx_solve *rx) {
+  rx_solving_options *op = &op_global;
+#ifdef _OPENMP
+  int cores = op->cores;
+#else
+  int cores = 1;
+#endif
+  int nsub = rx->nsub, nsim = rx->nsim;
+  int displayProgress = (op->nDisplayProgress <= nsim*nsub);
+  clock_t t0 = clock();
+  /* double *yp0=(double*) malloc((op->neq)*nsim*nsub*sizeof(double)); */
+  struct lsoda_opt_t opt = {0};
+  opt.ixpr = 0; // No extra printing...
+  // Unlike traditional lsoda, these are vectors.
+  opt.rtol = op->rtol2;
+  opt.atol = op->atol2;
+  opt.itask = 1;
+  opt.mxstep = op->mxstep;
+  opt.mxhnil = op->mxhnil;
+  opt.mxordn = op->MXORDN;
+  opt.mxords = op->MXORDS;
+  opt.h0 = op->H0;
+  opt.hmax = op->hmax2;
+  opt.hmin = op->HMIN;
+  opt.hmxi = op->hmxi;
+  int curTick=0;
+  int cur=0;
+  // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
+  // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
+  // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
+  int abort = 0;
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(cores)
+#endif
+  for (int thread=0; thread < cores; thread++) {
+    for (int solveid = thread; solveid < nsim*nsub; solveid+=cores){
+      if (abort == 0){
+	ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis);
+	if (displayProgress && thread == 0) {
+#pragma omp critical
+	  cur++;
+#ifdef _OPENMP
+	  if (omp_get_thread_num() == 0) // only in master thread!
+#endif
+	    {
+	      curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
+	      if (abort == 0){
+		if (checkInterrupt()) abort =1;
+	      }
+	    }
+	}
+      }
+    }
+  }
+  if (abort == 1){
+    op->abort = 1;
+    /* yp0 = NULL; */
+    par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
+  } else {
+    if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
+  }
+  if (displayProgress) {
+    int doIt = isProgSupported();
+    if (doIt == -1){
+    } else if (isRstudio() || doIt == 0){
+      Rprintf("\n");
+    } else {
+      RSprintf("\r                                                                                \r");
+    }
+  }
+}
+
 extern "C" void par_liblsoda(rx_solve *rx){
   rx_solving_options *op = &op_global;
 #ifdef _OPENMP
@@ -2531,6 +2603,9 @@ extern "C" void par_solve(rx_solve *rx){
       break;
     case 2:
       par_liblsoda(rx);
+      break;
+    case 4:
+      par_liblsodaR(rx);
       break;
     case 1:
       // lsoda

@@ -3,13 +3,24 @@
 * Always calculate "nolhs" for using numeric differences when the
   inner problem. This allows the inner problem to fallback to a finite
   difference approximation to the focei objective function.
-  
-* Updated the parser C code grammar using latest dparser CRAN package 
+
+* Updated the parser C code grammar using latest dparser CRAN package
 
 * Added a new cbind function that is used to mix data frame input with
   simulated individual parameters and residual parameters,
   `rxCbindStudyIndividual()`.
-  
+
+* Now data frame input can be mixed with simulating from omega and
+  sigma matrices (though not yet in nested simulations)
+
+* Race conditions when simulating random numbers is solved by chunking
+  each simulation into groups that will always be performed per each
+  thread.  This way the simulation is now reproducible regardless of
+  load.  Because of this simulations with random numbers generated
+  inside of it are now threaded by default (though a warning is
+  produced about the simulation only be reproducible when run with the
+  same number of threads)
+
 # RxODE 1.0.9
 
 * At the request of CRAN, stripping the debugging symbols for the CRAN

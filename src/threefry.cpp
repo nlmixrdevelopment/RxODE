@@ -67,31 +67,37 @@ SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-    for (int i = 0; i < n*d; ++i){
-      A[i] = snorm(eng);
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n*d; i += ncores) {
+	A[i] = snorm(eng);
+      }
     }
     if (d == 1){
       double sd = ch(0, 0);
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-      for (int i = 0; i < n; i++){
-	A[i] = A[i]*sd+mu(0);
+      for (int thread = 0; thread < ncores; ++thread) {
+	for (int i = thread; i < n; i+=ncores) {
+	  A[i] = A[i]*sd+mu(0);
+	}
       }
     } else {
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-      for(int ir = 0; ir < n; ++ir){
-	for(int ic = d; ic--;){
-	  acc = 0.0;
-	  for (int ii = 0; ii <= ic; ++ii){
-	    acc += A.at(ir,ii) * ch.at(ii,ic);
+      for (int thread = 0; thread < ncores; ++thread) {
+	for(int ir = thread; ir < n; ir += ncores) {
+	  for(int ic = d; ic--;) {
+	    acc = 0.0;
+	    for (int ii = 0; ii <= ic; ++ii) {
+	      acc += A.at(ir,ii) * ch.at(ii,ic);
+	    }
+	    work.at(ic) = acc;
 	  }
-	  work.at(ic) = acc;
+	  work += mu;
+	  A(arma::span(ir), arma::span::all) = work;
 	}
-	work += mu;
-	A(arma::span(ir), arma::span::all) = work;
       }
 #ifdef _OPENMP
     }
@@ -496,12 +502,15 @@ rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u,
   {
 #pragma omp for schedule(static)
 #endif
-  for (int j = 0; j < d; ++j){
-    w[j] = lnNpr(lt[j], ut[j]);
-    pl[j] = exp(-0.5*lt[j]*lt[j] - w[j])*M_1_SQRT_2PI;
-    pu[j] = exp(-0.5*ut[j]*ut[j] - w[j])*M_1_SQRT_2PI;
-    P[j] = pl[j] - pu[j];
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int j = thread; j < d; j += ncores) {
+	w[j] = lnNpr(lt[j], ut[j]);
+	pl[j] = exp(-0.5*lt[j]*lt[j] - w[j])*M_1_SQRT_2PI;
+	pu[j] = exp(-0.5*ut[j]*ut[j] - w[j])*M_1_SQRT_2PI;
+	P[j] = pl[j] - pu[j];
+      }
+
+    }
   arma::vec dfdx = -mu(span(0, d-2)) + trans(trans(P) * L(span(0, d-1), span(0, d-2)));
   arma::vec dfdm = mu - x + P;
   arma::vec grad(dfdx.size()+dfdm.size()-1);
@@ -511,12 +520,14 @@ rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u,
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int j = 0; j < d; ++j){
-    if (!R_FINITE(lt[j])){
-      lt[j] = 0;
-    }
-    if (!R_FINITE(ut[j])){
-      ut[j] = 0;
+  for (int thread = 0; thread < ncores; ++thread) {
+    for (int j = thread; j < d; j += ncores){
+      if (!R_FINITE(lt[j])){
+	lt[j] = 0;
+      }
+      if (!R_FINITE(ut[j])){
+	ut[j] = 0;
+      }
     }
   }
   arma::vec dP = -(P % P) + lt % pl - ut % pu; // dPdm
@@ -612,9 +623,11 @@ double psy(arma::vec x,arma::mat L,arma::vec l, arma::mat u, arma::vec mu,
   {
 #pragma omp for schedule(static)
 #endif
-  for (int j = 0; j < d; ++j){
-    p+= lnNpr(l[j], u[j]) + 0.5*mu[j]*mu[j]-x[j]*mu[j];
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int j = thread; j < d; j += ncores){
+	p+= lnNpr(l[j], u[j]) + 0.5*mu[j]*mu[j]-x[j]*mu[j];
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -796,9 +809,11 @@ IntegerVector rxbinom_(int n0, double prob, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; thread++) {
+      for (int i = thread; i < n2; i += ncores){
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -834,9 +849,11 @@ NumericVector rxcauchy_(double location, double scale, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i+= ncores){
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -874,9 +891,11 @@ NumericVector rxchisq_(double df, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores){
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -913,9 +932,11 @@ NumericVector rxexp_(double rate, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores){
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -951,9 +972,11 @@ NumericVector rxf_(double df1, double df2, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores){
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -990,9 +1013,11 @@ NumericVector rxgamma_(double shape, double rate, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores){
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -1033,10 +1058,12 @@ NumericVector rxbeta_(double shape1, double shape2, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    double x = d1(_eng);
-    retD[i] =  x/(x+d2(_eng));
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores){
+	double x = d1(_eng);
+	retD[i] =  x/(x+d2(_eng));
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -1072,9 +1099,11 @@ IntegerVector rxgeom_(double prob, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores){
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -1111,9 +1140,11 @@ NumericVector rxnorm_(double mean, double sd, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores) {
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -1149,9 +1180,11 @@ IntegerVector rxpois_(double lambda, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores) {
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -1187,9 +1220,11 @@ NumericVector rxt__(double df, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores) {
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -1225,9 +1260,11 @@ NumericVector rxunif_(double low, double hi, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores) {
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
@@ -1264,9 +1301,11 @@ NumericVector rxweibull_(double shape, double scale, int n, int ncores){
 #ifdef _OPENMP
 #pragma omp for schedule(static)
 #endif
-  for (int i = 0; i < n2; ++i){
-    retD[i] = d(_eng);
-  }
+    for (int thread = 0; thread < ncores; ++thread) {
+      for (int i = thread; i < n2; i += ncores){
+	retD[i] = d(_eng);
+      }
+    }
 #ifdef _OPENMP
   }
 #endif
