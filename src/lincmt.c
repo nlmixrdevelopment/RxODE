@@ -195,15 +195,14 @@ double _getParCov(unsigned int id, rx_solve *rx, int parNo, int idx0){
 
 double rxunif(rx_solving_options_ind* ind, double low, double hi);
 
-int _update_par_ptr_in = 0;
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
   if (rx == NULL) Rf_errorcall(R_NilValue, _("solve data is not loaded"));
-  if (_update_par_ptr_in) return;
-  _update_par_ptr_in = 1;
+  rx_solving_options_ind *ind, *indSample;
+  ind = &(rx->subjects[id]);
+  if (ind->_update_par_ptr_in) return;
+  ind->_update_par_ptr_in = 1;
   if (ISNA(t)){
     // functional lag, rate, duration, mtime
-    rx_solving_options_ind *ind, *indSample;
-    ind = &(rx->subjects[id]);
     rx_solving_options *op = rx->op;
     // Update all covariate parameters
     int k, idxSample;
@@ -233,8 +232,6 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
       }
     }
   } else {
-    rx_solving_options_ind *ind, *indSample;
-    ind = &(rx->subjects[id]);
     rx_solving_options *op = rx->op;
     // Update all covariate parameters
     int k, idxSample;
@@ -275,7 +272,7 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
       }
     }
   }
-  _update_par_ptr_in = 0;
+  ind->_update_par_ptr_in = 0;
 }
 
 /* void doSort(rx_solving_options_ind *ind); */
