@@ -16,10 +16,16 @@
 * Race conditions when simulating random numbers is solved by chunking
   each simulation into groups that will always be performed per each
   thread.  This way the simulation is now reproducible regardless of
-  load.  Because of this simulations with random numbers generated
+  load.  Because of the chunking, simulations with random numbers generated
   inside of it are now threaded by default (though a warning is
   produced about the simulation only be reproducible when run with the
   same number of threads)
+
+* Simulations were double checked and made sure to use the engine
+  reserved for each core run in parallel; Some of the random
+  generators were not taking random numbers from the correct engine,
+  which was corrected.  Therefore, simulations from this version are
+  expected to be different (in parallel) than previous versions.
 
 # RxODE 1.0.9
 

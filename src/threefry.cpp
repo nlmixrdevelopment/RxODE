@@ -4,9 +4,7 @@
 #include <RcppArmadillo.h>
 #include "../inst/include/RxODE.h"
 #include <threefry.h>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include "seed.h"
 #include <R.h>
 #include "checkmate.h"
 #ifdef ENABLE_NLS
@@ -49,16 +47,18 @@ SEXP rxRmvn_(NumericMatrix A_, arma::rowvec mu, arma::mat sigma,
   if (d != (int)sigma.n_rows) stop("length(mu) != ncol(sigma)");
   if (d != (int)A_.ncol()) stop("length(mu) != ncol(A)");
 
-  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
-  uint32_t seed = static_cast<uint32_t>(seedD);
-  seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
+  uint32_t seed = getRxSeed1(ncores);
 #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
 #endif
     arma::mat A(A_.begin(), A_.nrow(), A_.ncol(), false, true);
     sitmo::threefry eng;
+#ifdef _OPENMP
+    eng.seed(seed+omp_get_thread_num());
+#else
     eng.seed(seed);
+#endif
 
     std::normal_distribution<> snorm(0.0, 1.0);
 
@@ -127,25 +127,44 @@ void rxRmvn2_(arma::mat& A, arma::rowvec mu, arma::mat sigma,
   if (d != (int)sigma.n_rows) stop("length(mu) != ncol(sigma)");
   if (d != (int)A.n_cols) stop("length(mu) != ncol(A)");
 
-  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
-  uint32_t seed = static_cast<uint32_t>(seedD);
-  seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
+  uint32_t seed = getRxSeed1(ncores);
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+  {
+#endif
+
   sitmo::threefry eng;
-  eng.seed(seed);
+
+#ifdef _OPENMP
+    eng.seed(seed+omp_get_thread_num());
+#else
+    eng.seed(seed);
+#endif
 
   std::normal_distribution<> snorm(0.0, 1.0);
 
   double acc;
   arma::rowvec work(d);
-  for (int i = 0; i < n*d; ++i){
-    A[i] = snorm(eng);
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for (int thread = 0; thread < ncores; ++thread) {
+    for (int i = thread; i < n*d; i += ncores){
+      A[i] = snorm(eng);
+    }
   }
   if (d == 1){
     double sd = ch(0, 0);
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
     for (int i = 0; i < n; i++){
       A[i] = A[i]*sd+mu(0);
     }
   } else {
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
     for(int ir = 0; ir < n; ++ir){
       for(int ic = d; ic--;){
 	acc = 0.0;
@@ -158,6 +177,9 @@ void rxRmvn2_(arma::mat& A, arma::rowvec mu, arma::mat sigma,
       A(arma::span(ir), arma::span::all) = work;
     }
   }
+#ifdef _OPENMP
+  }
+#endif
 }
 
 
@@ -167,7 +189,7 @@ double ntail(double l, double u, sitmo::threefry& eng){
   // from the standard multivariate normal distribution,
   // truncated over the region [l,u], where l>0 and
   // l and u are column vectors;
-  // uses acceptance-rejection from Rayleigh distr;
+  //  uses acceptance-rejection from Rayleigh distr;
   // method due to Marsaglia (1964);
   std::uniform_real_distribution<> unif(0.0, 1.0);
   double c=l*l/2.0;
@@ -309,8 +331,7 @@ rx_mvnrnd mvnrnd(int n, arma::mat& L, arma::vec& l,
 List rxMvnrnd(int n, arma::mat& L, arma::vec& l,
 	      arma::vec& u, arma::vec mu,
 	      double a=0.4, double tol = 2.05){
-  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
-  uint32_t seed = static_cast<uint32_t>(seedD);
+  uint32_t seed = getRxSeed1(1);
   sitmo::threefry eng;
   eng.seed(seed);
   rx_mvnrnd retI = mvnrnd(n, L, l, u, mu, eng,
@@ -727,29 +748,39 @@ void rxMvrandn__(arma::mat& A,
       A.each_row() += mu;
     }
   } else {
-    double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
-    uint32_t seed = static_cast<uint32_t>(seedD);
-    seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
-    sitmo::threefry eng;
-    eng.seed(seed);
+    uint32_t seed = getRxSeed1(ncores);
 
-    arma::vec low = lower-trans(mu);
-    arma::vec up = upper-trans(mu);
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+    {
+#endif
 
-    if (d == 1){
-      double sd = sqrt(sigma(0,0));
-      double l=low(0)/sd;
-      double u=up(0)/sd;
-      for (int i = 0; i < n; ++i) {
-	A[i] = sd*trandn(l, u, eng, a, tol)+mu(0);
+      sitmo::threefry eng;
+      eng.seed(seed+omp_get_thread_num());
+
+      arma::vec low = lower-trans(mu);
+      arma::vec up = upper-trans(mu);
+
+      if (d == 1){
+	double sd = sqrt(sigma(0,0));
+	double l=low(0)/sd;
+	double u=up(0)/sd;
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+	for (int i = 0; i < n; ++i) {
+	  A[i] = sd*trandn(l, u, eng, a, tol)+mu(0);
+	}
+      } else {
+	arma::mat ret = mvrandn(low, up, sigma, n, eng, a, tol,
+				nlTol, nlMaxiter, ncores);
+	ret.each_row() += mu;
+	std::copy(ret.begin(), ret.end(), A.begin());
       }
-    } else {
-      arma::mat ret = mvrandn(low, up, sigma, n, eng, a, tol,
-			      nlTol, nlMaxiter, ncores);
-      ret.each_row() += mu;
-      std::copy(ret.begin(), ret.end(), A.begin());
     }
+#ifdef _OPENMP
   }
+#endif
 }
 
 //[[Rcpp::export]]
@@ -762,16 +793,19 @@ arma::mat rxMvrandn_(NumericMatrix A_,
   return A;
 }
 
+std::vector<sitmo::threefry> _eng;
 
-sitmo::threefry _eng;
-
-void seedEngV(uint32_t seed);
+void seedEngV(uint32_t seed, int ncores);
 extern "C" void seedEng(int ncores){
-  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
-  uint32_t seed = static_cast<uint32_t>(seedD);
-  seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
-  _eng.seed(seed);
-  seedEngV(seed);
+  uint32_t seed = getRxSeed1(ncores);
+  _eng.clear();
+  for (int i= 0; i < ncores; i++) {
+    sitmo::threefry eng0;
+    eng0.seed(seed + i);
+    _eng.push_back(eng0);
+  }
+  seed = getRxSeed1(ncores);
+  seedEngV(seed, ncores);
 }
 
 //[[Rcpp::export]]
@@ -783,13 +817,13 @@ RObject rxSeedEng(int ncores = 1){
 extern "C" int rxbinom(rx_solving_options_ind* ind, int n, double prob){
   if (!ind->inLhs) return 0;
   std::binomial_distribution<int> d(n, prob);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 extern "C" int ribinom(rx_solving_options_ind* ind, int id, int n, double prob){
   if (ind->isIni == 1) {
     std::binomial_distribution<int> d(n, prob);
-    ind->simIni[id] = (double) d(_eng);
+    ind->simIni[id] = (double) d(_eng[omp_get_thread_num()]);
   }
   return (int)ind->simIni[id];
 }
@@ -811,7 +845,7 @@ IntegerVector rxbinom_(int n0, double prob, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; thread++) {
       for (int i = thread; i < n2; i += ncores){
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -823,13 +857,13 @@ IntegerVector rxbinom_(int n0, double prob, int n, int ncores){
 extern "C" double rxcauchy(rx_solving_options_ind* ind, double location, double scale){
   if (!ind->inLhs) return 0;
   std::cauchy_distribution<double> d(location, scale);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 extern "C" double ricauchy(rx_solving_options_ind* ind, int id, double location, double scale){
   if (ind->isIni == 1) {
     std::cauchy_distribution<double> d(location, scale);
-    ind->simIni[id] = d(_eng);
+    ind->simIni[id] = d(_eng[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -851,7 +885,7 @@ NumericVector rxcauchy_(double location, double scale, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i+= ncores){
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -864,14 +898,14 @@ extern "C" double rxchisq(rx_solving_options_ind* ind, double df){
   if (!ind->inLhs) return 0;
   // Non central not supported in C++11
   std::chi_squared_distribution<double> d(df);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 extern "C" double richisq(rx_solving_options_ind* ind, int id, double df){
   if (ind->isIni == 1) {
     // Non central not supported in C++11
     std::chi_squared_distribution<double> d(df);
-    ind->simIni[id] = d(_eng);
+    ind->simIni[id] = d(_eng[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -893,7 +927,7 @@ NumericVector rxchisq_(double df, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores){
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -905,14 +939,14 @@ NumericVector rxchisq_(double df, int n, int ncores){
 extern "C" double rxexp(rx_solving_options_ind* ind, double rate){
   if (!ind->inLhs) return 0;
   std::exponential_distribution<double> d(rate);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 
 extern "C" double riexp(rx_solving_options_ind* ind, int id, double rate){
   if (ind->isIni) {
     std::exponential_distribution<double> d(rate);
-    ind->simIni[id] = d(_eng);
+    ind->simIni[id] = d(_eng[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -934,7 +968,7 @@ NumericVector rxexp_(double rate, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores){
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -946,13 +980,13 @@ NumericVector rxexp_(double rate, int n, int ncores){
 extern "C" double rxf(rx_solving_options_ind* ind, double df1, double df2){
   if (!ind->inLhs) return 0;
   std::fisher_f_distribution<double> d(df1, df2);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 extern "C" double rif(rx_solving_options_ind* ind, int id, double df1, double df2){
   if (ind->isIni) {
     std::fisher_f_distribution<double> d(df1, df2);
-    ind->simIni[id] =  d(_eng);
+    ind->simIni[id] =  d(_eng[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -974,7 +1008,7 @@ NumericVector rxf_(double df1, double df2, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores){
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -987,13 +1021,13 @@ extern "C" double rxgamma(rx_solving_options_ind* ind, double shape, double rate
   // R uses rate; C++ uses scale
   if (!ind->inLhs) return 0;
   std::gamma_distribution<double> d(shape, 1.0/rate);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 extern "C" double rigamma(rx_solving_options_ind* ind, int id, double shape, double rate) {
   if (ind->isIni) {
     std::gamma_distribution<double> d(shape, 1.0/rate);
-    ind->simIni[id] =  d(_eng);
+    ind->simIni[id] =  d(_eng[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -1015,7 +1049,7 @@ NumericVector rxgamma_(double shape, double rate, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores){
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -1060,8 +1094,8 @@ NumericVector rxbeta_(double shape1, double shape2, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores){
-	double x = d1(_eng);
-	retD[i] =  x/(x+d2(_eng));
+	double x = d1(_eng[omp_get_thread_num()]);
+	retD[i] =  x/(x+d2(_eng[omp_get_thread_num()]));
       }
     }
 #ifdef _OPENMP
@@ -1073,13 +1107,13 @@ NumericVector rxbeta_(double shape1, double shape2, int n, int ncores){
 extern "C" int rxgeom(rx_solving_options_ind* ind, double prob){
   if (!ind->inLhs) return 0;
   std::geometric_distribution<int> d(prob);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 extern "C" int rigeom(rx_solving_options_ind* ind, int id, double prob){
   if (ind->isIni) {
     std::geometric_distribution<int> d(prob);
-    ind->simIni[id] = (double)d(_eng);
+    ind->simIni[id] = (double)d(_eng[omp_get_thread_num()]);
   }
   return (int)ind->simIni[id];
 }
@@ -1101,7 +1135,7 @@ IntegerVector rxgeom_(double prob, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores){
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -1114,13 +1148,13 @@ IntegerVector rxgeom_(double prob, int n, int ncores){
 extern "C" double rxnorm(rx_solving_options_ind* ind, double mean, double sd){
   if (!ind->inLhs) return 0.0;
   std::normal_distribution<double> d(mean, sd);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 extern "C" double rinorm(rx_solving_options_ind* ind, int id, double mean, double sd) {
   if (ind->isIni) {
     std::normal_distribution<double> d(mean, sd);
-    ind->simIni[id] = d(_eng);
+    ind->simIni[id] = d(_eng[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -1142,7 +1176,7 @@ NumericVector rxnorm_(double mean, double sd, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores) {
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -1154,13 +1188,13 @@ NumericVector rxnorm_(double mean, double sd, int n, int ncores){
 extern "C" int rxpois( rx_solving_options_ind* ind, double lambda){
   if (!ind->inLhs) return 0.0;
   std::poisson_distribution<int> d(lambda);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 extern "C" int ripois(rx_solving_options_ind* ind, int id, double lambda){
   if (ind->isIni == 1){
     std::poisson_distribution<int> d(lambda);
-    ind->simIni[id] = d(_eng);
+    ind->simIni[id] = d(_eng[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -1182,7 +1216,7 @@ IntegerVector rxpois_(double lambda, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores) {
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -1194,13 +1228,13 @@ IntegerVector rxpois_(double lambda, int n, int ncores){
 extern "C" double rxt_(rx_solving_options_ind* ind, double df){
   if (!ind->inLhs) return 0.0;
   std::student_t_distribution<double> d(df);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 extern "C" double rit_(rx_solving_options_ind* ind, int id, double df){
   if (ind->isIni == 1){
     std::student_t_distribution<double> d(df);
-    ind->simIni[id] =  d(_eng);
+    ind->simIni[id] =  d(_eng[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -1222,7 +1256,7 @@ NumericVector rxt__(double df, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores) {
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -1234,13 +1268,13 @@ NumericVector rxt__(double df, int n, int ncores){
 extern "C" double rxunif(rx_solving_options_ind* ind, double low, double hi){
   if (!ind->inLhs) return 0.0;
   std::uniform_real_distribution<double> d(low, hi);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 extern "C" double riunif(rx_solving_options_ind* ind, int id, double low, double hi){
   if (ind->isIni == 1) {
     std::uniform_real_distribution<double> d(low, hi);
-    ind->simIni[id] = d(_eng);
+    ind->simIni[id] = d(_eng[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -1262,7 +1296,7 @@ NumericVector rxunif_(double low, double hi, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores) {
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -1274,14 +1308,14 @@ NumericVector rxunif_(double low, double hi, int n, int ncores){
 extern "C" double rxweibull(rx_solving_options_ind* ind, double shape, double scale){
   if (!ind->inLhs) return 0.0;
   std::weibull_distribution<double> d(shape, scale);
-  return d(_eng);
+  return d(_eng[omp_get_thread_num()]);
 }
 
 
 extern "C" double riweibull(rx_solving_options_ind* ind, int id, double shape, double scale){
   if (ind->isIni) {
     std::weibull_distribution<double> d(shape, scale);
-    ind->simIni[id] = d(_eng);
+    ind->simIni[id] = d(_eng[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -1303,7 +1337,7 @@ NumericVector rxweibull_(double shape, double scale, int n, int ncores){
 #endif
     for (int thread = 0; thread < ncores; ++thread) {
       for (int i = thread; i < n2; i += ncores){
-	retD[i] = d(_eng);
+	retD[i] = d(_eng[omp_get_thread_num()]);
       }
     }
 #ifdef _OPENMP
@@ -1612,7 +1646,7 @@ static inline NumericVector rpp_h(int n, double& lambda, double& t0i, double &tm
   double t0 = t0i;
   NumericVector ret(n);
   for (int i = 0; i < n; ++i){
-    t0  += d(_eng);
+    t0  += d(_eng[omp_get_thread_num()]);
     if (t0 >= tmax){
       while (i < n){
 	ret[i++] = tmax;
@@ -1661,8 +1695,8 @@ NumericVector rpp_(SEXP nS, SEXP lambdaS, SEXP gammaS, SEXP probS, SEXP t0S, SEX
 	std::exponential_distribution<double> rexp(lambda);
 	double ttest;
 	while (cur != n){
-	  ttest = t0 + rexp(_eng);
-	  if (runif(_eng) < gamma*pow(ttest/tmax , gamma-1.0)){
+	  ttest = t0 + rexp(_eng[omp_get_thread_num()]);
+	  if (runif(_eng[omp_get_thread_num()]) < gamma*pow(ttest/tmax , gamma-1.0)){
 	    if (ttest >= tmax){
 	      // Reached the maxumim event, fill with max.
 	      while (cur != n){

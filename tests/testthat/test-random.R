@@ -11,6 +11,7 @@ rxodeTest(
     }
 
     test_that("rnorm", {
+
       set.seed(1024)
 
       rx <- RxODE({
@@ -20,7 +21,7 @@ rxodeTest(
         d / dt(x0) <- 0
       })
 
-      ev <- et(1, id = 1:30000)
+      ev <- et(1, id = 1:70000)
 
       f <- warn1(rxSolve(rx, ev, c(a = 3, b = 5, c = 2), cores = 2))
 

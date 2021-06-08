@@ -4,9 +4,7 @@
 #include <RcppArmadillo.h>
 #include "../inst/include/RxODE.h"
 #include <vandercorput.h>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include "seed.h"
 #include <R.h>
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -18,21 +16,26 @@
 using namespace Rcpp;
 using namespace arma;
 
-sitmo::vandercorput _engV;
-void seedEngV(uint32_t seed){
-  _engV.seed(seed);
+std::vector<sitmo::vandercorput> _engV;
+void seedEngV(uint32_t seed, int ncores){
+  _engV.clear();  
+  for (int i= 0; i < ncores; i++) {
+    sitmo::vandercorput eng0;
+    eng0.seed(seed + i);
+    _engV.push_back(eng0);
+  }
 }
 
 extern "C" double rxnormV(rx_solving_options_ind* ind, double mean, double sd){
   if (!ind->inLhs) return 0;
   std::normal_distribution<double> d(mean, sd);
-  return d(_engV);
+  return d(_engV[omp_get_thread_num()]);
 }
 
 extern "C" double rinormV(rx_solving_options_ind* ind, int id, double mean, double sd){
   if (ind->isIni == 1) {
     std::normal_distribution<double> d(mean, sd);
-    ind->simIni[id] = d(_engV);
+    ind->simIni[id] = d(_engV[omp_get_thread_num()]);
   }
   return ind->simIni[id];
 }
@@ -43,7 +46,7 @@ arma::mat rxrandnV(unsigned int nrow, unsigned int ncol){
   std::normal_distribution<double> d(0.0, 1.0);
   for (int j = nrow; j--;) {
     for (int i = ncol; i--;) {
-      ret(j,i) = d(_engV);
+      ret(j,i) = d(_engV[omp_get_thread_num()]);
     }
   }
   return ret;
@@ -54,10 +57,7 @@ arma::mat rxrandnV(unsigned int nrow, unsigned int ncol){
 NumericVector rxnormV_(double mean, double sd, int n, int ncores){
   NumericVector ret(n);
   int n2 = ret.size();
-  double seedD = runif(1, 1.0, std::numeric_limits<uint32_t>::max())[0];
-  uint32_t seed = static_cast<uint32_t>(seedD);
-  seed = min2(seed, std::numeric_limits<uint32_t>::max() - ncores - 1);
-  sitmo::vandercorput eng;
+  uint32_t seed = getRxSeed1(ncores);
   double *A  = ret.begin();
   std::normal_distribution<double> d(mean, sd);
   #ifdef _OPENMP
@@ -65,6 +65,7 @@ NumericVector rxnormV_(double mean, double sd, int n, int ncores){
   {
     seed += omp_get_thread_num();
 #endif
+    sitmo::vandercorput eng;
     eng.seed(seed);
 #ifdef _OPENMP
 #pragma omp for schedule(static)
