@@ -91,7 +91,7 @@
 
 # RxODE 1.0.5
 
-* Maintainance release -- use `std::floor` and cast variables to
+* Maintenance release -- use `std::floor` and cast variables to
   `double` for internal C functions.  This should allow a successful
   compile on Solaris CRAN.
 
