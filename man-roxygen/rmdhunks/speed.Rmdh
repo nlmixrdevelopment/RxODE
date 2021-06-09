@@ -167,6 +167,7 @@ mod1 <- RxODE(model = ode1)
   sigma <- 0.2
 #Sample from the multivariate normal
   set.seed(98176247)
+  rxSetSeed(98176247)
   library(MASS)
   mv <-
     mvrnorm(nsub, rep(0, dim(omega)[1]), omega) # Sample from covariance matrix

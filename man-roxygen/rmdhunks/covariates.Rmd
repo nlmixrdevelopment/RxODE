@@ -31,6 +31,7 @@ ev <- et(amount.units="mg", time.units="hours") %>%
     et(id=1:4);
 
 set.seed(10)
+rxSetSeed(10)
 ## Now use iCov to simulate a 4-id sample
 r1 <- solve(mod3, ev,
             # Create individual covariate data-frame

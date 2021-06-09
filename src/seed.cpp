@@ -23,11 +23,23 @@ extern "C" SEXP _rxSetSeed(SEXP intIn) {
     Rf_errorcall(R_NilValue, _("'seed' must be an integer of length 1."));
   }
   if (type == REALSXP) {
-    rxSeed = (uint32_t)(REAL(intIn)[0]);
-    useRxSeed = true;
+    double in = REAL(intIn)[0];
+    if (in < 0) {
+      rxSeed = 0;
+      useRxSeed = false;
+    } else {
+      rxSeed = (uint32_t)(in);
+      useRxSeed = true;
+    }
   } else if (type == INTSXP) {
-    rxSeed = (uint32_t)(REAL(intIn)[0]);
-    useRxSeed = true;
+    int in = REAL(intIn)[0];
+    if (in < 0) {
+      rxSeed = 0;
+      useRxSeed = false;
+    } else {
+      rxSeed = (uint32_t)(in);
+      useRxSeed = true;
+    }
   } else {
     Rf_errorcall(R_NilValue, _("'seed' must be an integer of length 1."));
   }

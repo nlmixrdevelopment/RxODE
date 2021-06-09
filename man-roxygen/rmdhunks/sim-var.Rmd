@@ -15,6 +15,7 @@ can set create an RxODE model describing this system below:
 library(RxODE)
 
 set.seed(32)
+rxSetSeed(32)
 
 mod <- RxODE({
   eff(0) = 1
