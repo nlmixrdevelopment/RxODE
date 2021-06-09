@@ -53,8 +53,8 @@ rxodeTest({
 
     s <-do.call(rxSolve, lst)
 
-    expect_equal(subset(lst[[3]], time == 0 & CMT == 2, c("dv")),
-                 subset(s, time == 0 & CMT == 2, c("dv")))
+    expect_equal(subset(lst[[3]], time == 0 & CMT == 2, "dv"),
+                 subset(s, time == 0 & CMT == 2, "dv"))
 
 
   })
