@@ -26,11 +26,17 @@
   generators were not taking random numbers from the correct engine,
   which was corrected.  Therefore, simulations from this version are
   expected to be different (in parallel) than previous versions.
-  
+
 * Added function `rxSetSeed()` to set the internal RxODE seed instead
   of grabbing it from a uniform random number tied to the original R
   seed.  This will avoid the possibility of [duplicate
   seeds](https://tinyurl.com/m62v3kv9) and is the best practice.
+
+* Updating parameter pointers is done once per ID and locked based on
+  ID to remove the recursion in #399, but still have the correct
+  behavior see #430
+
+* Parsing updated to retain "param()" in normalized model, #432.
 
 # RxODE 1.0.9
 
