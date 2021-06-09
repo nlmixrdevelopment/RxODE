@@ -8,7 +8,7 @@
 #include "../inst/include/RxODE.h"
 
 #include "tran.h"
-#include "threefry.h"
+#include "rxthreefry.h"
 #include "cbindThetaOmega.h"
 #include "seed.h"
 

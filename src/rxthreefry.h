@@ -1,5 +1,5 @@
-#ifndef __THREEFRY_H__
-#define __THREEFRY_H__
+#ifndef __RXTHREEFRY_H__
+#define __RXTHREEFRY_H__
 
 #if defined(__cplusplus)
 extern "C" {

@@ -28,7 +28,7 @@ extern "C" {
 // OpenMP is excellent for parallelizing existing loops where the iterations are independent;
 // OpenMP is used by part of the R core, therefore support will come for all platforms at some time in the future.
 // Since these are independent, we will just use Open MP.
-#include "omp.h"
+#include "rxomp.h"
 
 #ifdef ENABLE_NLS
 #include <libintl.h>

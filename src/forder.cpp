@@ -17,7 +17,7 @@
 #define _(String) (String)
 #endif
 
-#include "omp.h"
+#include "rxomp.h"
 
 // Much of this comes from data.table, with references to where it came from
 
