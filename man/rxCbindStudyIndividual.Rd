@@ -26,8 +26,8 @@ lognCv <- function(x){log((x/100)^2+1)}
 
 set.seed(32)
 
-nSub = 100
-nStud = 10
+nSub  <-  100
+nStud  <-  10
 
 #define theta
 theta <- c(lka=log(0.5), # log ka
@@ -43,8 +43,8 @@ thetaMat <- lotri(lCl ~ lognCv(5),
 
 nev <- nSub*nStud
 
-ev1 <- data.frame(id=1:nev, COV1=rnorm(nev,50,30),COV2=rnorm(nev,75,10),
-                 COV3=sample(c(1.0,2.0),nev,replace=TRUE))
+ev1 <- data.frame(COV1=rnorm(nev,50,30),COV2=rnorm(nev,75,10),
+                  COV3=sample(c(1.0,2.0),nev,replace=TRUE))
 
 
 tmat <-rxRmvn(nStud, theta[dimnames(thetaMat)[[1]]], thetaMat)

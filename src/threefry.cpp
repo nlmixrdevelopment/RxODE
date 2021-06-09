@@ -796,7 +796,7 @@ arma::mat rxMvrandn_(NumericMatrix A_,
 std::vector<sitmo::threefry> _eng;
 
 void seedEngV(uint32_t seed, int ncores);
-extern "C" void seedEng(int ncores){
+extern "C" void seedEng(int ncores) {
   uint32_t seed = getRxSeed1(ncores);
   _eng.clear();
   for (int i= 0; i < ncores; i++) {
@@ -1679,6 +1679,7 @@ NumericVector rpp_(SEXP nS, SEXP lambdaS, SEXP gammaS, SEXP probS, SEXP t0S, SEX
   int n = asInt(nS, "n");
   bool randomOrder = asBool(randomOrderS, "randomOrder");
   double tmax = asDouble(tmaxS, "tmax");
+  seedEng(1);
   if (Rf_isNull(probS)) {
     if (Rf_isNull(gammaS)){
       // Homogenous case
