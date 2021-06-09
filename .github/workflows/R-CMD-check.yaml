@@ -116,6 +116,7 @@ jobs:
         run: |
           install.packages('remotes')
           remotes::install_github("nlmixrdevelopment/dparser-R")
+          remotes::install_cran("stringi")
         shell: Rscript {0}
 
       - name: Install dependencies
