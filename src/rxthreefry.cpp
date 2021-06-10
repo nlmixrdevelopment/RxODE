@@ -4,7 +4,7 @@
 #include <RcppArmadillo.h>
 #include "../inst/include/RxODE.h"
 #include <threefry.h>
-#includ "rxomp.h"
+#include "rxomp.h"
 #include "seed.h"
 #include <R.h>
 #include "checkmate.h"
