@@ -38,6 +38,8 @@
 
 * Parsing updated to retain "param()" in normalized model, #432.
 
+* Handle edge case of interpolation at first index correctly, fixes #433
+
 # RxODE 1.0.9
 
 * At the request of CRAN, stripping the debugging symbols for the CRAN

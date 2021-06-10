@@ -1,9 +1,10 @@
 rxodeTest({
 
   test_that("CMT translation matches input", {
-    skip_if(!file.exists("test-433.qs"))
 
-    lst <- qs::qread("test-433.qs")
+    skip_if(!file.exists(test_path("433.qs")))
+
+    lst <- qs::qread(test_path("433.qs"))
 
     rx <- RxODE({
       cmt(parent)
