@@ -1,6 +1,8 @@
 rxodeTest({
+
   test_that("CMT translation matches input", {
     skip_if(!file.exists("test-433.qs"))
+
     lst <- qs::qread("test-433.qs")
 
     rx <- RxODE({
@@ -10,25 +12,18 @@ rxodeTest({
       d/dt(parent) = -exp(ETA[2] + THETA[2]) * parent
       d/dt(m1) = -exp(ETA[3] + THETA[3]) * m1 + 1 * exp(ETA[2] +
                                                           THETA[2]) * parent/(1 + exp(-(ETA[4] + THETA[4])))
-      rx_yj_ ~ 2 * (1 - (CMT == 2)) * (CMT == 1) + 2 * (CMT ==
-                                                          2)
-      rx_lambda_ ~ 1 * (1 - (CMT == 2)) * (CMT == 1) + 1 * (CMT ==
-                                                              2)
-      rx_hi_ ~ 1 * (1 - (CMT == 2)) * (CMT == 1) + 1 * (CMT ==
-                                                          2)
+      rx_yj_ ~ 2 * (1 - (CMT == 2)) * (CMT == 1) +
+        2 * (CMT == 2)
+      rx_lambda_ ~ 1 * (1 - (CMT == 2)) * (CMT == 1) + 1 * (CMT == 2)
+      rx_hi_ ~ 1 * (1 - (CMT == 2)) * (CMT == 1) + 1 * (CMT == 2)
       rx_low_ ~ 0
       rx_pred_ = (m1 * (CMT == 2) + parent * (1 - (CMT == 2)) *
-                    (CMT == 1)) * (CMT == 2) + (m1 * (CMT == 2) + parent *
-                                                  (1 - (CMT == 2)) * (CMT == 1)) * (1 - (CMT == 2)) * (CMT ==
-                                                                                                         1)
-      rx_r_ = (Rx_pow_di(((m1 * (CMT == 2) + parent * (1 - (CMT ==
-                                                              2)) * (CMT == 1)) * (CMT == 2) + (m1 * (CMT == 2) + parent *
-                                                                                                  (1 - (CMT == 2)) * (CMT == 1)) * (1 - (CMT == 2)) * (CMT ==
-                                                                                                                                                         1)), 2) * Rx_pow_di(THETA[8], 2) + Rx_pow_di(THETA[7],
-                                                                                                                                                                                                      2)) * (CMT == 2) + (Rx_pow_di(((m1 * (CMT == 2) + parent *
-                                                                                                                                                                                                                                        (1 - (CMT == 2)) * (CMT == 1)) * (CMT == 1)), 2) * Rx_pow_di(THETA[6],
-                                                                                                                                                                                                                                                                                                     2) + Rx_pow_di(THETA[5], 2)) * (1 - (CMT == 2)) * (CMT ==
-                                                                                                                                                                                                                                                                                                                                                          1)
+                    (CMT == 1)) * (CMT == 2) + (m1 * (CMT == 2) +
+                                                  parent * (1 - (CMT == 2)) * (CMT == 1)) * (1 - (CMT == 2)) * (CMT == 1)
+      rx_r_ = (Rx_pow_di(((m1 * (CMT == 2) + parent * (1 - (CMT == 2)) * (CMT == 1)) * (CMT == 2) + (m1 * (CMT == 2) + parent *
+         (1 - (CMT == 2)) * (CMT == 1)) * (1 - (CMT == 2)) * (CMT == 1)), 2) * Rx_pow_di(THETA[8], 2) +
+         Rx_pow_di(THETA[7], 2)) * (CMT == 2) + (Rx_pow_di(((m1 * (CMT == 2) + parent * (1 - (CMT == 2)) * (CMT == 1)) * (CMT == 1)), 2) *
+         Rx_pow_di(THETA[6], 2) + Rx_pow_di(THETA[5], 2)) * (1 - (CMT == 2)) * (CMT == 1)
       parent_0 = THETA[1]
       log_k_parent = THETA[2]
       log_k_m1 = THETA[3]
@@ -51,7 +46,7 @@ rxodeTest({
 
     lst <- c(list(rx), lst)
 
-    s <-do.call(rxSolve, lst)
+    s <- do.call(rxSolve, lst)
 
     expect_equal(subset(lst[[3]], time == 0 & CMT == 2, "dv"),
                  subset(s, time == 0 & CMT == 2, "dv"))

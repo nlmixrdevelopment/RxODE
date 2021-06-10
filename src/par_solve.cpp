@@ -2921,8 +2921,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	    }
 	  }
 	}
-        
-        jj  = 0 ;
+        jj  = 0;
 	int solveId=csim*nsub+csub;
 	if (doDose || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)) {
           // sim.id
