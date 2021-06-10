@@ -4,6 +4,7 @@
 #include <RcppArmadillo.h>
 #include "../inst/include/RxODE.h"
 #include <vandercorput.h>
+#include "rxomp.h"
 #include "seed.h"
 #include <R.h>
 #ifdef ENABLE_NLS
