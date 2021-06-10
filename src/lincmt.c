@@ -195,13 +195,13 @@ double _getParCov(unsigned int id, rx_solve *rx, int parNo, int idx0){
 
 double rxunif(rx_solving_options_ind* ind, double low, double hi);
 
-void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
+void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx) {
   if (rx == NULL) Rf_errorcall(R_NilValue, _("solve data is not loaded"));
   rx_solving_options_ind *ind, *indSample;
   ind = &(rx->subjects[id]);
   if (ind->_update_par_ptr_in) return;
   ind->_update_par_ptr_in = 1;
-  if (ISNA(t)){
+  if (ISNA(t)) {
     // functional lag, rate, duration, mtime
     rx_solving_options *op = rx->op;
     // Update all covariate parameters
@@ -253,11 +253,12 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
 	  double *par_ptr = ind->par_ptr;
 	  double *all_times = indSample->all_times;
 	  double *y = indSample->cov_ptr + indSample->n_all_times*k;
-	  if (idxSample > 0 && idxSample < indSample->n_all_times && t == all_times[idx]){
+	  if (idxSample == 0 && fabs(t- all_times[idxSample]) < DOUBLE_EPS) {
+	    par_ptr[op->par_cov[k]-1] = y[0];
+	    ind->cacheME=0;
+	  } else if (idxSample > 0 && idxSample < indSample->n_all_times && fabs(t- all_times[idxSample]) < DOUBLE_EPS) {
 	    par_ptr[op->par_cov[k]-1] = getValue(idxSample, y, indSample);
-	    if (idxSample == 0){
-	      ind->cacheME=0;
-	    } else if (getValue(idxSample, y, indSample) != getValue(idxSample-1, y, indSample)) {
+	    if (getValue(idxSample, y, indSample) != getValue(idxSample-1, y, indSample)) {
 	      ind->cacheME=0;
 	    }
 	  } else {
