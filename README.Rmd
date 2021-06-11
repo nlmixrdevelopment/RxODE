@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 [![R build status](https://github.com/nlmixrdevelopment/RxODE/workflows/R-CMD-check/badge.svg)](https://github.com/nlmixrdevelopment/RxODE/actions)
 [![codecov.io](https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg)](https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
-[![CRAN checks](https://cranchecks.info/badges/summary/RxODE)](https://cran.r-project.org/web/checks/check_results_RxODE.html)
+[![CRAN checks](https://cranchecks.info/badges/worst/RxODE)](https://cran.r-project.org/web/checks/check_results_RxODE.html)
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/RxODE)](https://cran.r-project.org/package=RxODE)
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/RxODE)](https://cran.r-project.org/package=RxODE)
 [![CodeFactor](https://www.codefactor.io/repository/github/nlmixrdevelopment/rxode/badge)](https://www.codefactor.io/repository/github/nlmixrdevelopment/rxode)

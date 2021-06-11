@@ -18,7 +18,7 @@ output:
 [![R build status](https://github.com/nlmixrdevelopment/RxODE/workflows/R-CMD-check/badge.svg)](https://github.com/nlmixrdevelopment/RxODE/actions)
 [![codecov.io](https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg)](https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
-[![CRAN checks](https://cranchecks.info/badges/summary/RxODE)](https://cran.r-project.org/web/checks/check_results_RxODE.html)
+[![CRAN checks](https://cranchecks.info/badges/worst/RxODE)](https://cran.r-project.org/web/checks/check_results_RxODE.html)
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/RxODE)](https://cran.r-project.org/package=RxODE)
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/RxODE)](https://cran.r-project.org/package=RxODE)
 [![CodeFactor](https://www.codefactor.io/repository/github/nlmixrdevelopment/rxode/badge)](https://www.codefactor.io/repository/github/nlmixrdevelopment/rxode)
@@ -170,6 +170,7 @@ To load `RxODE` package and compile the model:
 ```r
 library(RxODE)
 #> RxODE 1.1.0 using 4 threads (see ?getRxThreads)
+#>   no cache: create with `rxCreateCache()`
 
 mod1 <-RxODE({
     C2 = centr/V2;
@@ -305,18 +306,6 @@ in the output matrix x.
 
 ```r
 x <- mod1$solve(theta, ev, inits);
-```
-
-character(0)
-character(0)
-character(0)
-character(0)
-character(0)
-character(0)
-character(0)
-character(0)
-
-```r
 knitr::kable(head(x))
 ```
 
@@ -337,23 +326,15 @@ You can also solve this and create a RxODE data frame:
 
 ```r
 x <- mod1 %>% rxSolve(theta, ev, inits);
-#> character(0)
-#> character(0)
-#> character(0)
-#> character(0)
-#> character(0)
-#> character(0)
-#> character(0)
-#> character(0)
 x
-#> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
-#> ── Parameters (x$params): ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+#> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+#> ── Parameters (x$params): ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #>      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 #>  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
-#> ── Initial Conditions (x$inits): ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+#> ── Initial Conditions (x$inits): ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #> depot centr  peri   eff 
 #>     0     0     0     1 
-#> ── First part of data (object): ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+#> ── First part of data (object): ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #> # A tibble: 241 x 7
 #>    time    C2    C3  depot centr  peri   eff
 #>     [h] <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>
@@ -364,7 +345,7 @@ x
 #> 5     4  44.5 5.98   3085. 1789. 1776.  1.23
 #> 6     5  36.5 7.18   2299. 1467. 2132.  1.21
 #> # … with 235 more rows
-#> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+#> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
 ```
 
 This returns a modified data frame.  You can see the compartment
