@@ -30,7 +30,7 @@ jobs:
 
       - name: Install packages from cran (source)
         run: |
-          install.packages('curl', type="source")
+          utils::install.packages('curl', type="source")
           install.packages('remotes')
           remotes::install_github("nlmixrdevelopment/dparser-R")
           remotes::install_cran("stringi")
