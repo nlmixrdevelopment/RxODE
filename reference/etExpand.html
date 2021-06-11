@@ -72,9 +72,6 @@
 
 
 
-<!-- dependencies from examples -->
-
-
   
 
   
@@ -97,7 +94,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -296,7 +293,7 @@
     <p>Expand additional doses</p>
     </div>
 
-    <pre class="usage"><span class='fu'>etExpand</span><span class='op'>(</span><span class='va'>et</span><span class='op'>)</span></pre>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>etExpand</span><span class='op'>(</span><span class='va'>et</span><span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -315,53 +312,53 @@
     <p>Matthew Fidler</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='r-in'><span class='va'>ev</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>amt<span class='op'>=</span><span class='fl'>3</span>,ii<span class='op'>=</span><span class='fl'>24</span>,until<span class='op'>=</span><span class='fl'>240</span><span class='op'>)</span>;</span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='va'>ev</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span>amt<span class='op'>=</span><span class='fl'>3</span>,ii<span class='op'>=</span><span class='fl'>24</span>,until<span class='op'>=</span><span class='fl'>240</span><span class='op'>)</span>;</span>
 <span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>ev</span><span class='op'>)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> ─────────────────────────── <span style='font-weight: bold;'>EventTable with 1 records</span><span> ──────────────────────────</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> ─────────────────────────── <span style='font-weight: bold;'>EventTable with 1 records</span> ──────────────────────────</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>    1 dosing records (see $<span style='color: #0000BB;'>get.dosing</span><span>(); add with </span><span style='color: #0000BB;'>add.dosing</span><span> or </span><span style='color: #0000BB;'>et</span><span>)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>    0 observation times (see $<span style='color: #0000BB;'>get.sampling</span><span>(); add with </span><span style='color: #0000BB;'>add.sampling</span><span> or </span><span style='color: #0000BB;'>et</span><span>)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>    multiple doses in `addl` columns, expand with $<span style='color: #0000BB;'>expand</span><span>(); or </span><span style='color: #0000BB;'>etExpand</span><span>()</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> ── <span style='font-weight: bold;'>First part of :</span><span> ─────────────────────────────────────────────────────────────</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    1 dosing records (see $<span style='color: #0000BB;'>get.dosing</span>(); add with <span style='color: #0000BB;'>add.dosing</span> or <span style='color: #0000BB;'>et</span>)</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    0 observation times (see $<span style='color: #0000BB;'>get.sampling</span>(); add with <span style='color: #0000BB;'>add.sampling</span> or <span style='color: #0000BB;'>et</span>)</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    multiple doses in `addl` columns, expand with $<span style='color: #0000BB;'>expand</span>(); or <span style='color: #0000BB;'>etExpand</span>()</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> ── <span style='font-weight: bold;'>First part of :</span> ─────────────────────────────────────────────────────────────</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #949494;'># A tibble: 1 x 5</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>    time   amt    ii  addl evid        </span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>   <span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;int&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;evid&gt;</span><span>      </span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'>1</span><span>     0     3    24    10 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   <span style='color: #949494; font-style: italic;'>&lt;dbl&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;dbl&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;dbl&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;int&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;evid&gt;</span>      </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'>1</span>     0     3    24    10 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
 <span class='r-in'><span class='fu'>etExpand</span><span class='op'>(</span><span class='va'>ev</span><span class='op'>)</span> <span class='co'># expands event table, but doesn't modify it</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> ────────────────────────── <span style='font-weight: bold;'>EventTable with 11 records</span><span> ──────────────────────────</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> ────────────────────────── <span style='font-weight: bold;'>EventTable with 11 records</span> ──────────────────────────</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>    11 dosing records (see $<span style='color: #0000BB;'>get.dosing</span><span>(); add with </span><span style='color: #0000BB;'>add.dosing</span><span> or </span><span style='color: #0000BB;'>et</span><span>)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>    0 observation times (see $<span style='color: #0000BB;'>get.sampling</span><span>(); add with </span><span style='color: #0000BB;'>add.sampling</span><span> or </span><span style='color: #0000BB;'>et</span><span>)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> ── <span style='font-weight: bold;'>First part of :</span><span> ─────────────────────────────────────────────────────────────</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    11 dosing records (see $<span style='color: #0000BB;'>get.dosing</span>(); add with <span style='color: #0000BB;'>add.dosing</span> or <span style='color: #0000BB;'>et</span>)</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    0 observation times (see $<span style='color: #0000BB;'>get.sampling</span>(); add with <span style='color: #0000BB;'>add.sampling</span> or <span style='color: #0000BB;'>et</span>)</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> ── <span style='font-weight: bold;'>First part of :</span> ─────────────────────────────────────────────────────────────</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #949494;'># A tibble: 11 x 4</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>     time   amt    ii evid        </span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>    <span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;evid&gt;</span><span>      </span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 1</span><span>     0     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 2</span><span>    24     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 3</span><span>    48     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 4</span><span>    72     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 5</span><span>    96     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 6</span><span>   120     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 7</span><span>   144     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 8</span><span>   168     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 9</span><span>   192     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'>10</span><span>   216     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'>11</span><span>   240     3     0 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    <span style='color: #949494; font-style: italic;'>&lt;dbl&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;dbl&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;dbl&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;evid&gt;</span>      </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 1</span>     0     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 2</span>    24     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 3</span>    48     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 4</span>    72     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 5</span>    96     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 6</span>   120     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 7</span>   144     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 8</span>   168     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'> 9</span>   192     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'>10</span>   216     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'>11</span>   240     3     0 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>ev</span><span class='op'>)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> ─────────────────────────── <span style='font-weight: bold;'>EventTable with 1 records</span><span> ──────────────────────────</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> ─────────────────────────── <span style='font-weight: bold;'>EventTable with 1 records</span> ──────────────────────────</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>    1 dosing records (see $<span style='color: #0000BB;'>get.dosing</span><span>(); add with </span><span style='color: #0000BB;'>add.dosing</span><span> or </span><span style='color: #0000BB;'>et</span><span>)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>    0 observation times (see $<span style='color: #0000BB;'>get.sampling</span><span>(); add with </span><span style='color: #0000BB;'>add.sampling</span><span> or </span><span style='color: #0000BB;'>et</span><span>)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>    multiple doses in `addl` columns, expand with $<span style='color: #0000BB;'>expand</span><span>(); or </span><span style='color: #0000BB;'>etExpand</span><span>()</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> ── <span style='font-weight: bold;'>First part of :</span><span> ─────────────────────────────────────────────────────────────</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    1 dosing records (see $<span style='color: #0000BB;'>get.dosing</span>(); add with <span style='color: #0000BB;'>add.dosing</span> or <span style='color: #0000BB;'>et</span>)</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    0 observation times (see $<span style='color: #0000BB;'>get.sampling</span>(); add with <span style='color: #0000BB;'>add.sampling</span> or <span style='color: #0000BB;'>et</span>)</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>    multiple doses in `addl` columns, expand with $<span style='color: #0000BB;'>expand</span>(); or <span style='color: #0000BB;'>etExpand</span>()</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> ── <span style='font-weight: bold;'>First part of :</span> ─────────────────────────────────────────────────────────────</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #949494;'># A tibble: 1 x 5</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>    time   amt    ii  addl evid        </span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>   <span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;int&gt;</span><span> </span><span style='color: #949494;font-style: italic;'>&lt;evid&gt;</span><span>      </span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'>1</span><span>     0     3    24    10 </span><span style='color: #0000BB;font-weight: bold;'>1</span><span>:</span><span style='color: #BBBB00;'>Dose (Add)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   <span style='color: #949494; font-style: italic;'>&lt;dbl&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;dbl&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;dbl&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;int&gt;</span> <span style='color: #949494; font-style: italic;'>&lt;evid&gt;</span>      </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> <span style='color: #BCBCBC;'>1</span>     0     3    24    10 <span style='color: #0000BB; font-weight: bold;'>1</span>:<span style='color: #BBBB00;'>Dose (Add)</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='va'>ev</span><span class='op'>$</span><span class='fu'>expand</span><span class='op'>(</span><span class='op'>)</span> <span class='co'>## Expands the current event table and saves it in ev</span></span>
-</pre>
+</code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

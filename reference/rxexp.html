@@ -77,9 +77,6 @@ engine threefry and then run the code." />
 
 
 
-<!-- dependencies from examples -->
-
-
   
 
   
@@ -102,7 +99,7 @@ engine threefry and then run the code." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -306,7 +303,7 @@ one random deviate from the uniform distribution to seed the
 engine <code>threefry</code> and then run the code.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxexp</span><span class='op'>(</span><span class='va'>rate</span>, n <span class='op'>=</span> <span class='fl'>1L</span>, ncores <span class='op'>=</span> <span class='fl'>1L</span><span class='op'>)</span></pre>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>rxexp</span><span class='op'>(</span><span class='va'>rate</span>, n <span class='op'>=</span> <span class='fl'>1L</span>, ncores <span class='op'>=</span> <span class='fl'>1L</span><span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -337,29 +334,29 @@ uses the vandercorput generator</p></td>
 call to random number generated may have identical seeds.  As the number of
 random number generator calls are increased the probability that the
 birthday problem will increase.</p>
-<p>The key to avoid this problem is to run all simulations in the
+<p>The key to avoid this problem is to either run all simulations in the
 <code>RxODE</code> environment once (therefore one seed or series of seeds
-for the whole simulation) or to pre-generate all random variables
-used for the simulation.</p>
+for the whole simulation), pre-generate all random variables
+used for the simulation, or seed the RxODE engine with <code><a href='rxSetSeed.html'>rxSetSeed()</a></code></p>
 <p>Also care should be made that the computer you will be running on
 can run the same number of cores as you are running so they can
 reproduce your results.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='r-in'></span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'></span>
 <span class='r-in'><span class='co'># \donttest{</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'>## Use threefry engine</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='fu'>rxexp</span><span class='op'>(</span><span class='fl'>0.5</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxexp you have to explicitly state n</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 1.2164841 3.2828818 1.2790278 1.8846400 1.2053313 0.5857564 1.0877237</span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>  [8] 1.4411947 4.3561569 5.0754112</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 0.7911182 0.1320259 1.9459855 1.6859092 3.0038971 0.6588802 5.1950923</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [8] 0.4717652 2.4560537 4.3125862</span>
 <span class='r-in'><span class='fu'>rxexp</span><span class='op'>(</span><span class='fl'>5</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 0.19650450 0.45052345 0.06357945 0.16839705 0.18576101 0.60594572</span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7] 0.19554140 0.13587079 0.01587433 0.27427605</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 0.16551084 0.05501044 0.40177014 0.11993665 0.00607623 0.04766682</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7] 0.13083510 0.12146419 0.07913545 0.36836599</span>
 <span class='r-in'></span>
 <span class='r-in'><span class='fu'>rxexp</span><span class='op'>(</span><span class='fl'>1</span><span class='op'>)</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 3.648396</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 2.68157</span>
 <span class='r-in'></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'>## This example uses `rxexp` directly in the model</span></span>
@@ -372,11 +369,10 @@ reproduce your results.</p>
 <span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span></span>
-<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)</span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'># }</span></span>
 <span class='r-in'></span>
-</pre>
+</code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

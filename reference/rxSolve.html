@@ -75,7 +75,6 @@ some-times optional params and inits." />
 
 
 
-
   
 
   
@@ -98,7 +97,7 @@ some-times optional params and inits." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -300,7 +299,7 @@ model, the first are the required <code>object</code>, and <code>events</code> w
 some-times optional <code>params</code> and <code>inits</code>.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxSolve</span><span class='op'>(</span>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>rxSolve</span><span class='op'>(</span>
   <span class='va'>object</span>,
   params <span class='op'>=</span> <span class='cn'>NULL</span>,
   events <span class='op'>=</span> <span class='cn'>NULL</span>,
@@ -446,7 +445,7 @@ some-times optional <code>params</code> and <code>inits</code>.</p>
 <span class='co'># S3 method for rxEt</span>
 <span class='fu'><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>a</span>, <span class='va'>b</span>, <span class='va'>...</span><span class='op'>)</span>
 
-<span class='fu'>rxControl</span><span class='op'>(</span><span class='va'>...</span>, params <span class='op'>=</span> <span class='cn'>NULL</span>, events <span class='op'>=</span> <span class='cn'>NULL</span>, inits <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
+<span class='fu'>rxControl</span><span class='op'>(</span><span class='va'>...</span>, params <span class='op'>=</span> <span class='cn'>NULL</span>, events <span class='op'>=</span> <span class='cn'>NULL</span>, inits <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -698,7 +697,7 @@ data as an RxODE event table.</p></td>
     <tr>
       <th>stiff</th>
       <td><p>a logical (<code>TRUE</code> by default) indicating whether
-the ODE system is stiff or not.</p><pre>For stiff ODE systems (`stiff = TRUE`), `RxODE` uses the
+the ODE system is stiff or not.</p><pre><code>For stiff ODE systems (`stiff = TRUE`), `RxODE` uses the
 LSODA (Livermore Solver for Ordinary Differential Equations)
 Fortran package, which implements an automatic method switching
 for stiff and non-stiff problems along the integration
@@ -710,7 +709,7 @@ Dormand and Prince as implemented in C by Hairer and Wanner
 (1993).
 
 If stiff is not specified, the `method` argument is used instead.
-</pre></td>
+</code></pre></td>
     </tr>
     <tr>
       <th>theta</th>
@@ -984,8 +983,7 @@ isn't any observations in the event table. By default this is 200.</p></td>
     <tr>
       <th>iCov</th>
       <td><p>A data frame of individual non-time varying covariates
-to combine with the <code>params</code> to form a parameter
-data.frame.</p></td>
+to combine with the <code>events</code> dataset by merge.</p></td>
     </tr>
     <tr>
       <th>keep</th>

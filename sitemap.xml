@@ -280,6 +280,9 @@
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxCat.html</loc>
   </url>
   <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxCbindStudyIndividual.html</loc>
+  </url>
+  <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxChain.html</loc>
   </url>
   <url>
@@ -449,6 +452,9 @@
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxSetProgressBar.html</loc>
+  </url>
+  <url>
+    <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxSetSeed.html</loc>
   </url>
   <url>
     <loc>https://nlmixrdevelopment.github.io/RxODE/reference/rxSetSilentErr.html</loc>

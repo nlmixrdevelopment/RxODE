@@ -73,9 +73,6 @@ given a (hardcoded) PK/PD model." />
 
 
 
-<!-- dependencies from examples -->
-
-
   
 
   
@@ -98,7 +95,7 @@ given a (hardcoded) PK/PD model." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -298,7 +295,7 @@ given a (hardcoded) PK/PD model." />
 given a (hardcoded) PK/PD model.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>genShinyApp.template</span><span class='op'>(</span>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>genShinyApp.template</span><span class='op'>(</span>
   appDir <span class='op'>=</span> <span class='st'>"shinyExample"</span>,
   verbose <span class='op'>=</span> <span class='cn'>TRUE</span>,
   ODE.config <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span>ode <span class='op'>=</span> <span class='st'>"model"</span>, params <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span>KA <span class='op'>=</span> <span class='fl'>0.294</span><span class='op'>)</span>, inits <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span>eff <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span>, method <span class='op'>=</span>
@@ -307,7 +304,7 @@ given a (hardcoded) PK/PD model.</p>
 
 <span class='fu'>write.template.server</span><span class='op'>(</span><span class='va'>appDir</span><span class='op'>)</span>
 
-<span class='fu'>write.template.ui</span><span class='op'>(</span><span class='va'>appDir</span>, <span class='va'>statevars</span><span class='op'>)</span></pre>
+<span class='fu'>write.template.ui</span><span class='op'>(</span><span class='va'>appDir</span>, <span class='va'>statevars</span><span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -335,14 +332,14 @@ a set of parameters and initial values are defined.  Then
 the appropriate R scripts for the shiny's user interface <code>ui.R</code>
 and the server logic <code>server.R</code> are created in the
 directory <code>appDir</code>.</p>
-<p>The function evaluates the following PK/PD model by default:</p><pre>
+<p>The function evaluates the following PK/PD model by default:</p><pre class='sourceCode r'><code>
     <span class='va'>C2</span> <span class='op'>=</span> <span class='va'>centr</span><span class='op'>/</span><span class='va'>V2</span>;
     <span class='va'>C3</span> <span class='op'>=</span> <span class='va'>peri</span><span class='op'>/</span><span class='va'>V3</span>;
     <span class='va'>d</span><span class='op'>/</span><span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span><span class='op'>(</span><span class='va'>depot</span><span class='op'>)</span> <span class='op'>=</span><span class='op'>-</span><span class='va'>KA</span><span class='op'>*</span><span class='va'>depot</span>;
     <span class='va'>d</span><span class='op'>/</span><span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span><span class='op'>(</span><span class='va'>centr</span><span class='op'>)</span> <span class='op'>=</span> <span class='va'>KA</span><span class='op'>*</span><span class='va'>depot</span> <span class='op'>-</span> <span class='va'>CL</span><span class='op'>*</span><span class='va'>C2</span> <span class='op'>-</span> <span class='va'>Q</span><span class='op'>*</span><span class='va'>C2</span> <span class='op'>+</span> <span class='va'>Q</span><span class='op'>*</span><span class='va'>C3</span>;
     <span class='va'>d</span><span class='op'>/</span><span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span><span class='op'>(</span><span class='va'>peri</span><span class='op'>)</span>  <span class='op'>=</span>                    <span class='va'>Q</span><span class='op'>*</span><span class='va'>C2</span> <span class='op'>-</span> <span class='va'>Q</span><span class='op'>*</span><span class='va'>C3</span>;
     <span class='va'>d</span><span class='op'>/</span><span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span><span class='op'>(</span><span class='va'>eff</span><span class='op'>)</span>  <span class='op'>=</span> <span class='va'>Kin</span> <span class='op'>-</span> <span class='va'>Kout</span><span class='op'>*</span><span class='op'>(</span><span class='fl'>1</span><span class='op'>-</span><span class='va'>C2</span><span class='op'>/</span><span class='op'>(</span><span class='va'>EC50</span><span class='op'>+</span><span class='va'>C2</span><span class='op'>)</span><span class='op'>)</span><span class='op'>*</span><span class='va'>eff</span>;
-</pre>
+</code></pre>
 
 <p>This can be changed by the <code>ODE.config</code> parameter.</p>
 <p>To launch the shiny app, simply issue the <code>runApp(appDir)</code>
@@ -364,7 +361,7 @@ their specific <code>RxODE</code> models.</p>
     <div class='dont-index'><p><code><a href='RxODE.html'>RxODE()</a></code>,<code><a href='eventTable.html'>eventTable()</a></code>, and the package <span class="pkg">shiny</span> (<a href='https://shiny.rstudio.com'>https://shiny.rstudio.com</a>).</p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='r-in'><span class='co'># \donttest{</span></span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='co'># \donttest{</span></span>
 <span class='r-in'><span class='co'># create the shiny app example (template)</span></span>
 <span class='r-in'><span class='fu'>genShinyApp.template</span><span class='op'>(</span>appDir <span class='op'>=</span> <span class='st'>"myapp"</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
@@ -390,6 +387,39 @@ their specific <code>RxODE</code> models.</p>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> depot centr  pari   eff </span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>     0     0     0     1 </span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>2 arguments not used by format '</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       #</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       # Dosing regimen template generated by RxODE::genShinyApp.template()</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       #</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       debug = TRUE</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       #wd = sprintf("%%s/../", getwd())</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       #setwd(wd)</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       # Server inputs: Dose, dosing regimen, dosing frequency,</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       # dosing cycle definition, number of dosing cycles</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       library(shiny)</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       library(RxODE)</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       # read objects from "rx_shiny_data.rda" in the  AppDir folder,</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       # objects include, mod1, params, inits, method, atol, rtol.]</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       load("./rx_shiny_data.rda")</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       if (!rxDynLoad(mod1)) mod1 &lt;- RxODE(mod1, modName="mod1")</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       # Define server logic</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>       shinyServer(function(input, output) {</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>         get.cp &lt;- reactive({</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>           ds &lt;- input$Dose</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>           reg &lt;- switch(input$regimen, "QD"=1, "BID"=2)</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>           cyc &lt;- switch(input$cycle,</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>               "continous"=c(7,0),</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>               "1wkon 1wkoff"=c(7,7),</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>               "2wkon 1wkoff"=c(14,7),</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>               "3wkon 1wkoff"=c(21,7)</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>           )</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span>           cyc &lt;- re [... truncated]</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> Shiny files (ui.R, server.R) plus R data saved.</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> To launch the Shiny app, type the following two R commands:</span>
@@ -402,7 +432,7 @@ their specific <code>RxODE</code> models.</p>
 <span class='r-in'><span class='co'># runApp("myapp") # Won't launch in environments without browsers</span></span>
 <span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/unlink.html'>unlink</a></span><span class='op'>(</span><span class='st'>"myapp"</span>, recursive<span class='op'>=</span><span class='cn'>TRUE</span>, force<span class='op'>=</span><span class='cn'>TRUE</span><span class='op'>)</span> <span class='co'># remove myapp</span></span>
 <span class='r-in'><span class='co'># }</span></span>
-</pre>
+</code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

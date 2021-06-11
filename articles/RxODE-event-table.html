@@ -42,7 +42,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Easy RxODE Event Tables</h1>
             
-            <h4 data-toc-skip class="date">2021-05-10</h4>
+            <h4 data-toc-skip class="date">2021-06-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-event-table.Rmd" class="external-link"><code>vignettes/RxODE-event-table.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-event-table.Rmd</code></div>
@@ -251,7 +251,7 @@
 <p>To create an RxODE event table you may use the code <code><a href="../reference/eventTable.html">eventTable()</a></code>, <code><a href="../reference/et.html">et()</a></code>, or even create your own data frame with the right event information contained in it. This is closely related to the <a href="RxODE-event-types.html">types of events that RxODE supports</a>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.9 using 1 threads (see ?getRxThreads)
+<pre><code>#&gt; RxODE 1.1.0 using 1 threads (see ?getRxThreads)
 #&gt;   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-quantities/units/" class="external-link">units</a></span><span class="op">)</span></code></pre></div>
@@ -518,22 +518,23 @@
 #&gt;    multiple doses in `addl` columns, expand with x$expand(); or etExpand(x)
 #&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 804 x 6
-#&gt;       id      time   amt    ii  addl evid         
-#&gt;    &lt;int&gt;       [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;evid&gt;       
-#&gt;  1     1 0.0000000    NA    NA    NA 0:Observation
-#&gt;  2     1 0.0000000 10000    12     6 1:Dose (Add) 
-#&gt;  3     1 0.2412060    NA    NA    NA 0:Observation
-#&gt;  4     1 0.4824121    NA    NA    NA 0:Observation
-#&gt;  5     1 0.7236181    NA    NA    NA 0:Observation
-#&gt;  6     1 0.9648241    NA    NA    NA 0:Observation
-#&gt;  7     1 1.2060302    NA    NA    NA 0:Observation
-#&gt;  8     1 1.4472362    NA    NA    NA 0:Observation
-#&gt;  9     1 1.6884422    NA    NA    NA 0:Observation
-#&gt; 10     1 1.9296482    NA    NA    NA 0:Observation
+#&gt;       id  time   amt    ii  addl evid         
+#&gt;    &lt;int&gt;   [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;evid&gt;       
+#&gt;  1     1 0        NA    NA    NA 0:Observation
+#&gt;  2     1 0     10000    12     6 1:Dose (Add) 
+#&gt;  3     1 0.241    NA    NA    NA 0:Observation
+#&gt;  4     1 0.482    NA    NA    NA 0:Observation
+#&gt;  5     1 0.724    NA    NA    NA 0:Observation
+#&gt;  6     1 0.965    NA    NA    NA 0:Observation
+#&gt;  7     1 1.21     NA    NA    NA 0:Observation
+#&gt;  8     1 1.45     NA    NA    NA 0:Observation
+#&gt;  9     1 1.69     NA    NA    NA 0:Observation
+#&gt; 10     1 1.93     NA    NA    NA 0:Observation
 #&gt; # ... with 794 more rows</code></pre>
 <p>You can see in the following simulation there are 4 individuals that are solved for:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<span class="fu"><a href="../reference/rxSetSeed.html">rxSetSeed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/symengine/man/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>,
       params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>KA<span class="op">=</span><span class="fl">0.294</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>,
                         <span class="fl">18.6</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
@@ -549,6 +550,7 @@
 <p>In this example, you start with a dosing time with a 6 hour dosing window:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<span class="fu"><a href="../reference/rxSetSeed.html">rxSetSeed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">6</span><span class="op">)</span><span class="op">)</span>, amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">2</span>, <span class="va">days</span><span class="op">)</span>,
      ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># loading doses</span>
@@ -561,24 +563,24 @@
 #&gt;    0 observation times (see x$get.sampling(); add with add.sampling or et)
 #&gt; -- First part of x: ------------------------------------------------------------
 #&gt; # A tibble: 16 x 6
-#&gt;       id   low       time  high   amt evid        
-#&gt;    &lt;int&gt;   [h]        [h]   [h] &lt;dbl&gt; &lt;evid&gt;      
-#&gt;  1     1     0  5.4888363     6 10000 1:Dose (Add)
-#&gt;  2     1    12 16.9826858    18 10000 1:Dose (Add)
-#&gt;  3     1    24 25.7168372    30 10000 1:Dose (Add)
-#&gt;  4     1    36 41.6224525    42 10000 1:Dose (Add)
-#&gt;  5     2     0  4.3146735     6 10000 1:Dose (Add)
-#&gt;  6     2    12 14.7464507    18 10000 1:Dose (Add)
-#&gt;  7     2    24 28.2303887    30 10000 1:Dose (Add)
-#&gt;  8     2    36 39.9419537    42 10000 1:Dose (Add)
-#&gt;  9     3     0  0.8079996     6 10000 1:Dose (Add)
-#&gt; 10     3    12 16.4195299    18 10000 1:Dose (Add)
-#&gt; 11     3    24 27.1145757    30 10000 1:Dose (Add)
-#&gt; 12     3    36 39.8504731    42 10000 1:Dose (Add)
-#&gt; 13     4     0  4.9826858     6 10000 1:Dose (Add)
-#&gt; 14     4    12 13.7168372    18 10000 1:Dose (Add)
-#&gt; 15     4    24 29.6224525    30 10000 1:Dose (Add)
-#&gt; 16     4    36 41.4888363    42 10000 1:Dose (Add)</code></pre>
+#&gt;       id   low   time  high   amt evid        
+#&gt;    &lt;int&gt;   [h]    [h]   [h] &lt;dbl&gt; &lt;evid&gt;      
+#&gt;  1     1     0  5.49      6 10000 1:Dose (Add)
+#&gt;  2     1    12 17.0      18 10000 1:Dose (Add)
+#&gt;  3     1    24 25.7      30 10000 1:Dose (Add)
+#&gt;  4     1    36 41.6      42 10000 1:Dose (Add)
+#&gt;  5     2     0  4.31      6 10000 1:Dose (Add)
+#&gt;  6     2    12 14.7      18 10000 1:Dose (Add)
+#&gt;  7     2    24 28.2      30 10000 1:Dose (Add)
+#&gt;  8     2    36 39.9      42 10000 1:Dose (Add)
+#&gt;  9     3     0  0.808     6 10000 1:Dose (Add)
+#&gt; 10     3    12 16.4      18 10000 1:Dose (Add)
+#&gt; 11     3    24 27.1      30 10000 1:Dose (Add)
+#&gt; 12     3    36 39.9      42 10000 1:Dose (Add)
+#&gt; 13     4     0  4.98      6 10000 1:Dose (Add)
+#&gt; 14     4    12 13.7      18 10000 1:Dose (Add)
+#&gt; 15     4    24 29.6      30 10000 1:Dose (Add)
+#&gt; 16     4    36 41.5      42 10000 1:Dose (Add)</code></pre>
 <p>You can clearly see different dosing times in the following simulation:</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="va">ev</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">48</span>,length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>
@@ -593,6 +595,7 @@
 <p>Of course in reality the dosing interval may only be 2 hours:</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<span class="fu"><a href="../reference/rxSetSeed.html">rxSetSeed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span>, amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">2</span>, <span class="va">days</span><span class="op">)</span>,
      ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># loading doses</span>
@@ -608,7 +611,8 @@
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 <p>The same sort of thing can be specified with sampling times. To specify the sampling times in terms of a sampling window, you can create a list of the sampling times. Each sampling time will be a two element ordered numeric vector.</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="../reference/rxSetSeed.html">rxSetSeed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>time<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span>, amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">2</span>, <span class="va">days</span><span class="op">)</span>,
      ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># loading doses</span>

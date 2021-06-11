@@ -42,7 +42,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Weight Based Dosing in RxODE</h1>
             
-            <h4 data-toc-skip class="date">2021-05-10</h4>
+            <h4 data-toc-skip class="date">2021-06-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-wt.Rmd" class="external-link"><code>vignettes/RxODE-wt.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-wt.Rmd</code></div>
@@ -250,7 +250,7 @@
 <a href="#creating-a-2-compartment-model-in-rxode" class="anchor" aria-hidden="true"></a>Creating a 2-compartment model in RxODE</h1>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixrdevelopment.github.io/RxODE/">RxODE</a></span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.0.9 using 1 threads (see ?getRxThreads)
+<pre><code>#&gt; RxODE 1.1.0 using 1 threads (see ?getRxThreads)
 #&gt;   no cache: create with `rxCreateCache()`</code></pre>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## Note the time covariate is not included in the simulation</span>
@@ -272,6 +272,7 @@
 <p>This simulation correlates age, sex, and weight. Since we will be using weight based dosing, this needs to be simulated first</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
+<span class="fu"><a href="../reference/rxSetSeed.html">rxSetSeed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; 
 #&gt; Attaching package: 'dplyr'</code></pre>
@@ -362,18 +363,18 @@
 <pre><code>#&gt; ______________________________ Solved RxODE object _____________________________
 #&gt; -- Parameters ($params): -------------------------------------------------------
 #&gt; # A tibble: 30 x 5
-#&gt;    id     eta.cl  eta.v1   eta.q  eta.v2
-#&gt;    &lt;fct&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-#&gt;  1 1      0.563   0.580   0.0360 -0.246 
-#&gt;  2 2      0.0341  0.406  -0.139  -0.481 
-#&gt;  3 3     -0.447   0.0952 -0.185  -0.249 
-#&gt;  4 4     -0.988   0.248  -0.131  -0.449 
-#&gt;  5 5      0.144  -1.14    0.106   0.360 
-#&gt;  6 6     -0.689   0.407  -0.193  -0.200 
-#&gt;  7 7     -0.426  -0.706  -0.190  -0.234 
-#&gt;  8 8     -0.212   0.728   0.335   0.0665
-#&gt;  9 9      0.0884 -0.934   0.337   0.154 
-#&gt; 10 10    -0.557   1.29    0.0163 -0.140 
+#&gt;    id     eta.cl  eta.v1    eta.q  eta.v2
+#&gt;    &lt;fct&gt;   &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;
+#&gt;  1 1     -0.437   0.775  -0.0174  -0.245 
+#&gt;  2 2     -0.0282  0.284   0.294    0.0732
+#&gt;  3 3      0.421   0.118  -0.210    0.0272
+#&gt;  4 4     -0.489  -0.338   0.181   -0.299 
+#&gt;  5 5      0.907   0.369  -0.00218 -0.0916
+#&gt;  6 6      0.664   0.0865 -0.0508   0.143 
+#&gt;  7 7     -0.390  -0.466  -0.196   -0.314 
+#&gt;  8 8     -0.390   0.0103 -0.0412   0.613 
+#&gt;  9 9     -0.632  -0.569   0.146   -0.198 
+#&gt; 10 10    -0.392   1.90   -0.0942  -0.181 
 #&gt; # ... with 20 more rows
 #&gt; -- Initial Conditions ($inits): ------------------------------------------------
 #&gt; centr  peri 
@@ -384,15 +385,14 @@
 #&gt;   &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
 #&gt; 1     1     1     1  296. 0      0        1  49.4    83
 #&gt; 2     1     0    NA   NA  0      0        1  49.4    83
-#&gt; 3     1     0    NA   NA  0.246  2.32     1  49.4    83
-#&gt; 4     1     0    NA   NA  0.516 19.6      1  49.4    83
-#&gt; 5     1     0    NA   NA  0.729 23.2      1  49.4    83
-#&gt; 6     1     0    NA   NA  0.921 21.1      1  49.4    83
+#&gt; 3     1     0    NA   NA  0.246 12.6      1  49.4    83
+#&gt; 4     1     0    NA   NA  0.516 22.0      1  49.4    83
+#&gt; 5     1     0    NA   NA  0.729 17.5      1  49.4    83
+#&gt; 6     1     0    NA   NA  0.921  3.46     1  49.4    83
 #&gt; # ... with 894 more rows
 #&gt; ________________________________________________________________________________</code></pre>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data</span>, log<span class="op">=</span><span class="st">"y"</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning in self$trans$transform(x): NaNs produced</code></pre>
 <pre><code>#&gt; Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
 <p><img src="RxODE-wt_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 </div>

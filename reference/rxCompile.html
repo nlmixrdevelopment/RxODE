@@ -73,7 +73,6 @@ files." />
 
 
 
-
   
 
   
@@ -96,7 +95,7 @@ files." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -296,7 +295,7 @@ files." />
 files.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxCompile</span><span class='op'>(</span>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>rxCompile</span><span class='op'>(</span>
   <span class='va'>model</span>,
   <span class='va'>dir</span>,
   <span class='va'>prefix</span>,
@@ -332,7 +331,7 @@ files.</p>
 <span class='fu'>rxCompile</span><span class='op'>(</span><span class='va'>model</span>, <span class='va'>...</span><span class='op'>)</span>
 
 <span class='co'># S3 method for RxODE</span>
-<span class='fu'>rxCompile</span><span class='op'>(</span><span class='va'>model</span>, <span class='va'>...</span><span class='op'>)</span></pre>
+<span class='fu'>rxCompile</span><span class='op'>(</span><span class='va'>model</span>, <span class='va'>...</span><span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -354,7 +353,7 @@ details, see the sections &#8220;Details&#8221; and
     <tr>
       <th>dir</th>
       <td><p>This is the model directory where the C file will be
-stored for compiling.</p><pre>If unspecified, the C code is stored in a temporary directory,
+stored for compiling.</p><pre><code>If unspecified, the C code is stored in a temporary directory,
 then the model is compiled and moved to the current directory.
 Afterwards the C code is removed.
 
@@ -362,7 +361,7 @@ If specified, the C code is stored in the specified directory
 and then compiled in that directory.  The C code is not removed
 after the DLL is created in the same directory.  This can be
 useful to debug the c-code outputs.
-</pre></td>
+</code></pre></td>
     </tr>
     <tr>
       <th>prefix</th>

@@ -72,7 +72,6 @@
 
 
 
-
   
 
   
@@ -95,7 +94,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -294,7 +293,7 @@
     <p>Clear/Set pipeline</p>
     </div>
 
-    <pre class="usage"><span class='fu'><a href='dot-clearPipe.html'>.clearPipe</a></span><span class='op'>(</span>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>.clearPipe</span><span class='op'>(</span>
   rx <span class='op'>=</span> <span class='cn'>NULL</span>,
   inits <span class='op'>=</span> <span class='cn'>NULL</span>,
   events <span class='op'>=</span> <span class='cn'>NULL</span>,
@@ -308,7 +307,7 @@
   dfSub <span class='op'>=</span> <span class='cn'>NULL</span>,
   nSub <span class='op'>=</span> <span class='cn'>NULL</span>,
   nStud <span class='op'>=</span> <span class='cn'>NULL</span>
-<span class='op'>)</span></pre>
+<span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -339,8 +338,7 @@ parameter identifiers used in the ODE specification;</p></td>
     <tr>
       <th>iCov</th>
       <td><p>A data frame of individual non-time varying covariates
-to combine with the <code>params</code> to form a parameter
-data.frame.</p></td>
+to combine with the <code>events</code> dataset by merge.</p></td>
     </tr>
     <tr>
       <th>keep</th>

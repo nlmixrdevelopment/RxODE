@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Respect suppress messages — rxSuppressMsg • RxODE</title>
+<title>Set the parallel seed for RxODE random number generation — rxSetSeed • RxODE</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -52,10 +52,12 @@
 
 
 
-<meta property="og:title" content="Respect suppress messages — rxSuppressMsg" />
-<meta property="og:description" content="This turns on the silent REprintf in C when suppressMessages() is
-turned on. This makes the REprintf act like messages in R,
-they can be suppressed with suppressMessages()" />
+<meta property="og:title" content="Set the parallel seed for RxODE random number generation — rxSetSeed" />
+<meta property="og:description" content="This sets the seed for the RxODE parallel random number generation.
+If set, then whenever a seed is set for the threefry or
+vandercorput simulation engine, it will use this seed, increment
+for the number of seeds and continue with the sequence the next
+time the random number generator is called." />
 <meta property="og:image" content="https://nlmixrdevelopment.github.io/RxODE/logo.png" />
 
 
@@ -286,47 +288,107 @@ they can be suppressed with suppressMessages()" />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Respect suppress messages</h1>
-    <small class="dont-index">Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/R/rxode-options.R'><code>R/rxode-options.R</code></a></small>
-    <div class="hidden name"><code>rxSuppressMsg.Rd</code></div>
+    <h1>Set the parallel seed for RxODE random number generation</h1>
+    <small class="dont-index">Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/R/utils.R'><code>R/utils.R</code></a></small>
+    <div class="hidden name"><code>rxSetSeed.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This turns on the silent REprintf in C when <code><a href='https://rdrr.io/r/base/message.html'>suppressMessages()</a></code> is
-turned on. This makes the <code>REprintf</code> act like <code>messages</code> in R,
-they can be suppressed with <code><a href='https://rdrr.io/r/base/message.html'>suppressMessages()</a></code></p>
+    <p>This sets the seed for the RxODE parallel random number generation.
+If set, then whenever a seed is set for the threefry or
+vandercorput simulation engine, it will use this seed, increment
+for the number of seeds and continue with the sequence the next
+time the random number generator is called.</p>
     </div>
 
-    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>rxSuppressMsg</span><span class='op'>(</span><span class='op'>)</span></code></pre></div>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>rxSetSeed</span><span class='op'>(</span><span class='va'>seed</span><span class='op'>)</span></code></pre></div>
 
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>seed</th>
+      <td><p>An integer that represents the RxODE parallel and
+internal random number generator seed.  When positive, use this
+seed for random number generation and increment and reseed any
+parallel or new engines that are being called. When negative,
+turn off the RxODE seed and generate a seed from the R's uniform
+random number generator.  Best practice is to set this seed.</p></td>
+    </tr>
+    </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Nothing</p>
+    <p>Nothing, called for its side effects</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>In contrast, when this is not called, the time that the
+vandercorput or threefry simulation engines are seeded it comes
+from a uniform random number generated from the standard R random
+seed.  This may cause a duplicate seed based on the R seed state.
+This means that there could be correlations between simulations
+that do not exist This will avoid the birthday problem picking
+exactly the same seed using the seed state of the R random number
+generator.  The more times the seed is called, the more likely this
+becomes.</p>
+    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
+
+    <p>JD Cook. (2016). Random number generator seed mistakes.
+<a href='https://tinyurl.com/m62v3kv9'>https://tinyurl.com/m62v3kv9</a></p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
     <p>Matthew Fidler</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'></span>
-<span class='r-in'><span class='co'># rxSupressMsg() is called with RxODE()</span></span>
+<span class='r-in'><span class='fu'>rxSetSeed</span><span class='op'>(</span><span class='fl'>42</span><span class='op'>)</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='co'># Note the errors are output to the console</span></span>
+<span class='r-in'><span class='co'># seed with generator 42</span></span>
+<span class='r-in'><span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 0.2229005</span>
 <span class='r-in'></span>
-<span class='r-in'><span class='kw'><a href='https://rdrr.io/r/base/try.html'>try</a></span><span class='op'>(</span><span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='st'>"d/dt(matt)=/3"</span><span class='op'>)</span>,silent<span class='op'>=</span><span class='cn'>TRUE</span><span class='op'>)</span></span>
-<span class='r-msg co'><span class='r-pr'>#&gt;</span>  </span>
+<span class='r-in'><span class='co'># Use R's random number generator</span></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 1.793606</span>
 <span class='r-in'></span>
-<span class='r-in'><span class='co'># When using suppressMessages, the output is suppressed</span></span>
+<span class='r-in'><span class='fu'>rxSetSeed</span><span class='op'>(</span><span class='fl'>42</span><span class='op'>)</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/message.html'>suppressMessages</a></span><span class='op'>(</span><span class='kw'><a href='https://rdrr.io/r/base/try.html'>try</a></span><span class='op'>(</span><span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='st'>"d/dt(matt)=/3"</span><span class='op'>)</span>,silent<span class='op'>=</span><span class='cn'>TRUE</span><span class='op'>)</span><span class='op'>)</span></span>
+<span class='r-in'><span class='co'># reproduces the same number</span></span>
+<span class='r-in'><span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 0.2229005</span>
 <span class='r-in'></span>
-<span class='r-in'><span class='co'># In RxODE, we use REprintf so that interrupted threads do not crash R</span></span>
-<span class='r-in'><span class='co'># if there is a user interrupt. This isn't captured by R's messages, but</span></span>
-<span class='r-in'><span class='co'># This interface allows the `suppressMessages()` to suppress the C printing</span></span>
-<span class='r-in'><span class='co'># as well</span></span>
+<span class='r-in'><span class='co'># But R's random number is not the same</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='co'># If you  want to suppress messages from RxODE in other packages, you can use</span></span>
-<span class='r-in'><span class='co'># this function</span></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 0.04863385</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'># If we reset this to use the R's seed</span></span>
+<span class='r-in'><span class='co'># (internally RxODE uses a uniform random number to span seeds)</span></span>
+<span class='r-in'><span class='co'># This can lead to duplicate sequences and seeds</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'>rxSetSeed</span><span class='op'>(</span><span class='op'>-</span><span class='fl'>1</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'># Now set seed works for both.</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'># This is not recommended, but illustrates the different types of</span></span>
+<span class='r-in'><span class='co'># seeds that can be generated.</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span><span class='op'>(</span><span class='fl'>42</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] -0.6306035</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] -0.5646982</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span><span class='op'>(</span><span class='fl'>42</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='rxnormV.html'>rxnorm</a></span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] -0.6306035</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] -0.5646982</span>
+<span class='r-in'></span>
 </code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

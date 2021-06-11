@@ -71,7 +71,6 @@
 
 
 
-
   
 
   
@@ -94,7 +93,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -288,9 +287,23 @@
       <small>Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
+    <div id="rxode-110" class="section level1">
+<h1 class="page-header" data-toc-text="1.1.0">
+<a href="#rxode-110" class="anchor" aria-hidden="true"></a>RxODE 1.1.0<small> Unreleased </small></h1>
+<ul><li><p>Always calculate “nolhs” for using numeric differences when the inner problem. This allows the inner problem to fallback to a finite difference approximation to the focei objective function.</p></li>
+<li><p>Updated the parser C code grammar using latest dparser CRAN package</p></li>
+<li><p>Added a new cbind function that is used to mix data frame input with simulated individual parameters and residual parameters, <code><a href="../reference/rxCbindStudyIndividual.html">rxCbindStudyIndividual()</a></code>.</p></li>
+<li><p>Now data frame input can be mixed with simulating from omega and sigma matrices (though not yet in nested simulations)</p></li>
+<li><p>Race conditions when simulating random numbers is solved by chunking each simulation into groups that will always be performed per each thread. This way the simulation is now reproducible regardless of load. Because of the chunking, simulations with random numbers generated inside of it are now threaded by default (though a warning is produced about the simulation only be reproducible when run with the same number of threads)</p></li>
+<li><p>Simulations were double checked and made sure to use the engine reserved for each core run in parallel; Some of the random generators were not taking random numbers from the correct engine, which was corrected. Therefore, simulations from this version are expected to be different (in parallel) than previous versions.</p></li>
+<li><p>Added function <code><a href="../reference/rxSetSeed.html">rxSetSeed()</a></code> to set the internal RxODE seed instead of grabbing it from a uniform random number tied to the original R seed. This will avoid the possibility of <a href="https://tinyurl.com/m62v3kv9" class="external-link">duplicate seeds</a> and is the best practice.</p></li>
+<li><p>Updating parameter pointers is done once per ID and locked based on ID to remove the recursion in <a href='https://github.com/nlmixrdevelopment/RxODE/issues/399'>#399</a>, but still have the correct behavior see <a href='https://github.com/nlmixrdevelopment/RxODE/issues/430'>#430</a></p></li>
+<li><p>Parsing updated to retain “param()” in normalized model, <a href='https://github.com/nlmixrdevelopment/RxODE/issues/432'>#432</a>.</p></li>
+<li><p>Handle edge case of interpolation at first index correctly, fixes <a href='https://github.com/nlmixrdevelopment/RxODE/issues/433'>#433</a></p></li>
+</ul></div>
     <div id="rxode-109" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.9">
-<a href="#rxode-109" class="anchor" aria-hidden="true"></a>RxODE 1.0.9<small> Unreleased </small></h1>
+<a href="#rxode-109" class="anchor" aria-hidden="true"></a>RxODE 1.0.9<small> 2021-05-11 </small></h1>
 <ul><li><p>At the request of CRAN, stripping the debugging symbols for the CRAN release is no longer performed. This means a larger binary size for RxODE in this release.</p></li>
 <li><p>At the request of CRAN the <code>liblsoda</code> code has been changed so that the memory in C defined by <code>_C()</code> is now defined by <code>_rxC()</code>. This will be seen in some of the error messages, which will no longer match the error messages of unmodified liblsoda.</p></li>
 <li>
@@ -324,7 +337,7 @@
     <div id="rxode-105" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.5">
 <a href="#rxode-105" class="anchor" aria-hidden="true"></a>RxODE 1.0.5<small> 2021-03-09 </small></h1>
-<ul><li><p>Maintainance release – use <code>std::floor</code> and cast variables to <code>double</code> for internal C functions. This should allow a successful compile on Solaris CRAN.</p></li>
+<ul><li><p>Maintenance release – use <code>std::floor</code> and cast variables to <code>double</code> for internal C functions. This should allow a successful compile on Solaris CRAN.</p></li>
 <li><p>Changed <code>units</code> from an Imports to a Suggests to allow testing on Solaris rhub</p></li>
 <li><p>Changed <code>ODR</code> model names from time id to <code>_rx</code> followed by the <code>md5</code> hash id; For packages the id is <code>_rxp</code> followed by the <code>md5</code> hash.</p></li>
 <li>

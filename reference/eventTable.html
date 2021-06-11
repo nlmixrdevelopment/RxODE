@@ -73,9 +73,6 @@ adding and querying dosing and observation records" />
 
 
 
-<!-- dependencies from examples -->
-
-
   
 
   
@@ -98,7 +95,7 @@ adding and querying dosing and observation records" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -298,7 +295,7 @@ adding and querying dosing and observation records" />
 adding and querying dosing and observation records</p>
     </div>
 
-    <pre class="usage"><span class='fu'>eventTable</span><span class='op'>(</span>amount.units <span class='op'>=</span> <span class='cn'>NA</span>, time.units <span class='op'>=</span> <span class='cn'>NA</span><span class='op'>)</span></pre>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>eventTable</span><span class='op'>(</span>amount.units <span class='op'>=</span> <span class='cn'>NA</span>, time.units <span class='op'>=</span> <span class='cn'>NA</span><span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -356,7 +353,7 @@ This is done by <code>qd$expand(400)</code> for a 400 subject data expansion</p>
     <p>Matthew Fidler, Melissa Hallow and Wenping Wang</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='r-in'><span class='co'># create dosing and observation (sampling) events</span></span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='co'># create dosing and observation (sampling) events</span></span>
 <span class='r-in'><span class='co'># QD 50mg dosing, 5 days followed by 25mg 5 days</span></span>
 <span class='r-in'><span class='co'>#</span></span>
 <span class='r-in'><span class='va'>qd</span> <span class='op'>&lt;-</span> <span class='fu'>eventTable</span><span class='op'>(</span>amount.units <span class='op'>=</span> <span class='st'>"mg"</span>, time.units <span class='op'>=</span> <span class='st'>"days"</span><span class='op'>)</span></span>
@@ -403,7 +400,7 @@ This is done by <code>qd$expand(400)</code> for a 400 subject data expansion</p>
 <span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>qd3</span><span class='op'>$</span><span class='fu'>get.nobs</span><span class='op'>(</span><span class='op'>)</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 55</span>
 <span class='r-in'></span>
-</pre>
+</code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

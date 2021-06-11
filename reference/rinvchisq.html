@@ -72,9 +72,6 @@
 
 
 
-<!-- dependencies from examples -->
-
-
   
 
   
@@ -97,7 +94,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -296,7 +293,7 @@
     <p>Scaled Inverse Chi Squared distribution</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rinvchisq</span><span class='op'>(</span>n <span class='op'>=</span> <span class='fl'>1L</span>, nu <span class='op'>=</span> <span class='fl'>1</span>, scale <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span></pre>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>rinvchisq</span><span class='op'>(</span>n <span class='op'>=</span> <span class='fl'>1L</span>, nu <span class='op'>=</span> <span class='fl'>1</span>, scale <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -321,11 +318,11 @@
     <p>a vector of inverse chi squared deviates.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='r-in'><span class='fu'>rinvchisq</span><span class='op'>(</span><span class='fl'>3</span>, <span class='fl'>4</span>, <span class='fl'>1</span><span class='op'>)</span> <span class='co'>## Scale = 1, degrees of freedom = 4</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 1.9368602 0.7664844 0.5487002</span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='fu'>rinvchisq</span><span class='op'>(</span><span class='fl'>3</span>, <span class='fl'>4</span>, <span class='fl'>1</span><span class='op'>)</span> <span class='co'>## Scale = 1, degrees of freedom = 4</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 0.8109997 0.7475444 3.6859266</span>
 <span class='r-in'><span class='fu'>rinvchisq</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>4</span>, <span class='fl'>2</span><span class='op'>)</span> <span class='co'>## Scale = 2, degrees of freedom = 4</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 16.80059 12.18995</span>
-</pre>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] 1.383968 4.602622</span>
+</code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

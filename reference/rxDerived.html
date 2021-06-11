@@ -75,9 +75,6 @@ in a data frame or arguments" />
 
 
 
-<!-- dependencies from examples -->
-
-
   
 
   
@@ -100,7 +97,7 @@ in a data frame or arguments" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -301,7 +298,7 @@ linear models.</h1>
 in a data frame or arguments</p>
     </div>
 
-    <pre class="usage"><span class='fu'>rxDerived</span><span class='op'>(</span><span class='va'>...</span>, verbose <span class='op'>=</span> <span class='cn'>FALSE</span>, digits <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span></pre>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>rxDerived</span><span class='op'>(</span><span class='va'>...</span>, verbose <span class='op'>=</span> <span class='cn'>FALSE</span>, digits <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -372,7 +369,7 @@ peripheral to central compartment (3-compartment model)</p></li>
     <p>Matthew Fidler and documentation from Justin Wilkins, <a href='mailto:justin.wilkins@occams.com'>justin.wilkins@occams.com</a></p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='r-in'></span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'></span>
 <span class='r-in'><span class='co'>## Note that RxODE parses the names to figure out the best PK parameter</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='va'>params</span> <span class='op'>&lt;-</span> <span class='fu'>rxDerived</span><span class='op'>(</span>cl<span class='op'>=</span><span class='fl'>29.4</span>, v<span class='op'>=</span><span class='fl'>23.4</span>, Vp<span class='op'>=</span><span class='fl'>114</span>, vp2<span class='op'>=</span><span class='fl'>4614</span>, q<span class='op'>=</span><span class='fl'>270</span>, q2<span class='op'>=</span><span class='fl'>73</span><span class='op'>)</span></span>
@@ -394,7 +391,7 @@ peripheral to central compartment (3-compartment model)</p></li>
 <span class='r-in'></span>
 <span class='r-in'><span class='va'>params</span> <span class='op'>&lt;-</span> <span class='fu'>rxDerived</span><span class='op'>(</span>CL<span class='op'>=</span><span class='fl'>29.4</span>, V<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>3</span>, digits<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span></span>
 <span class='r-in'></span>
-</pre>
+</code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

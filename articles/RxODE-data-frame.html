@@ -42,7 +42,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.0</span>
       </span>
     </div>
 
@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Data Frames</h1>
             
-            <h4 data-toc-skip class="date">2021-05-10</h4>
+            <h4 data-toc-skip class="date">2021-06-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-data-frame.Rmd" class="external-link"><code>vignettes/RxODE-data-frame.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-data-frame.Rmd</code></div>
@@ -455,14 +455,14 @@
 <span class="co">#&gt;     0     0     0     2 </span>
 <span class="co">#&gt; -- First part of data (object): ------------------------------------------------</span>
 <span class="co">#&gt; # A tibble: 20 x 7</span>
-<span class="co">#&gt;        time    C2     C3  depot centr  peri   eff</span>
-<span class="co">#&gt;         [h] &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span>
-<span class="co">#&gt; 1 0.0000000   0   0      10000     0    0    2   </span>
-<span class="co">#&gt; 2 0.2631579  16.8 0.0817  9255.  677.  24.3  1.79</span>
-<span class="co">#&gt; 3 0.5263158  29.5 0.299   8566. 1187.  88.7  1.65</span>
-<span class="co">#&gt; 4 0.7894737  38.9 0.615   7929. 1562. 183.   1.55</span>
-<span class="co">#&gt; 5 1.0526316  45.5 1.00    7338. 1830. 298.   1.49</span>
-<span class="co">#&gt; 6 1.3157895  50.1 1.44    6792. 2013. 427.   1.44</span>
+<span class="co">#&gt;    time    C2     C3  depot centr  peri   eff</span>
+<span class="co">#&gt;     [h] &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span>
+<span class="co">#&gt; 1 0       0   0      10000     0    0    2   </span>
+<span class="co">#&gt; 2 0.263  16.8 0.0817  9255.  677.  24.3  1.79</span>
+<span class="co">#&gt; 3 0.526  29.5 0.299   8566. 1187.  88.7  1.65</span>
+<span class="co">#&gt; 4 0.789  38.9 0.615   7929. 1562. 183.   1.55</span>
+<span class="co">#&gt; 5 1.05   45.5 1.00    7338. 1830. 298.   1.49</span>
+<span class="co">#&gt; 6 1.32   50.1 1.44    6792. 2013. 427.   1.44</span>
 <span class="co">#&gt; # ... with 14 more rows</span>
 <span class="co">#&gt; ________________________________________________________________________________</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></code></pre></div>
@@ -488,14 +488,14 @@
 <span class="co">#&gt;     0     0     0     2 </span>
 <span class="co">#&gt; -- First part of data (object): ------------------------------------------------</span>
 <span class="co">#&gt; # A tibble: 20 x 7</span>
-<span class="co">#&gt;        time    C2    C3  depot centr   peri   eff</span>
-<span class="co">#&gt;         [h] &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;</span>
-<span class="co">#&gt; 1 0.0000000   0   0     10000     0     0    2   </span>
-<span class="co">#&gt; 2 0.2631579  52.2 0.261  7686. 2098.   77.6  1.82</span>
-<span class="co">#&gt; 3 0.5263158  83.3 0.900  5908. 3348.  267.   1.74</span>
-<span class="co">#&gt; 4 0.7894737  99.8 1.75   4541. 4010.  519.   1.69</span>
-<span class="co">#&gt; 5 1.0526316 106.  2.69   3490. 4273.  800.   1.67</span>
-<span class="co">#&gt; 6 1.3157895 106.  3.66   2683. 4272. 1086.   1.64</span>
+<span class="co">#&gt;    time    C2    C3  depot centr   peri   eff</span>
+<span class="co">#&gt;     [h] &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;</span>
+<span class="co">#&gt; 1 0       0   0     10000     0     0    2   </span>
+<span class="co">#&gt; 2 0.263  52.2 0.261  7686. 2098.   77.6  1.82</span>
+<span class="co">#&gt; 3 0.526  83.3 0.900  5908. 3348.  267.   1.74</span>
+<span class="co">#&gt; 4 0.789  99.8 1.75   4541. 4010.  519.   1.69</span>
+<span class="co">#&gt; 5 1.05  106.  2.69   3490. 4273.  800.   1.67</span>
+<span class="co">#&gt; 6 1.32  106.  3.66   2683. 4272. 1086.   1.64</span>
 <span class="co">#&gt; # ... with 14 more rows</span>
 <span class="co">#&gt; ________________________________________________________________________________</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></code></pre></div>
