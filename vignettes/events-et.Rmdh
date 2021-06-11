@@ -215,7 +215,7 @@ In this example, you start with a dosing time with a 6 hour dosing window:
 
 ```{r}
 set.seed(42)
-rxSetSeed(42s)
+rxSetSeed(42)
 ev <- et(timeUnits="hr") %>%
   et(time=list(c(0,6)), amt=10000, until = set_units(2, days),
      ii=12) %>% # loading doses
