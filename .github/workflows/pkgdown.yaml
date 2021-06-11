@@ -30,8 +30,8 @@ jobs:
 
       - name: Install packages from cran (source)
         run: |
-          utils::install.packages('curl', type="source")
           install.packages('remotes')
+	  remotes::install_github("jeroen/curl")
           remotes::install_github("nlmixrdevelopment/dparser-R")
           remotes::install_cran("stringi")
           remotes::install_github("https://github.com/symengine/symengine.R")
