@@ -91,11 +91,6 @@ jobs:
           writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
         shell: Rscript {0}
 
-      - name: Install Symengine from source for MacOS
-        if: runner.os == 'macOS'
-        run: install.packages("symengine", type="source")
-        shell: Rscript {0}
-
       - name: Cache R packages
         if: runner.os != 'Windows'
         uses: actions/cache@v1
