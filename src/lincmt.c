@@ -5,6 +5,7 @@
 #include <Rmath.h>
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
+#include "handle_evid.h"
 #define safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
 #define _as_zero(a) (fabs(a) < sqrt(DOUBLE_EPS) ? 0.0 : a)
 #define _as_dbleps(a) (fabs(a) < sqrt(DOUBLE_EPS) ? ((a) < 0 ? -sqrt(DOUBLE_EPS)  : sqrt(DOUBLE_EPS)) : a)
@@ -1605,8 +1606,6 @@ static inline void doAdvan(double *A,// Amounts
   }
 }
 
-extern int syncIdx(rx_solving_options_ind *ind);
-
 static inline int parTrans(int *trans, 
 			   double *p1, double *v1,
 			   double *p2, double *p3,
@@ -2396,8 +2395,6 @@ SEXP _calcDerived(SEXP ncmtSXP, SEXP transSXP, SEXP inp, SEXP sigdigSXP) {
   }
   return R_NilValue;
 }
-
-int handle_evidL(int evid, double *yp, double xout, int id, rx_solving_options_ind *ind);
 
 static inline void ssRateTauD(double *A, int ncmt, int oral0, double *tinf,
 			      double *tau, double *r1, double *r2, double *ka,

@@ -29,12 +29,17 @@ test_that("mixed oral iv etc model", {
          F1=0,
          ALAG2=4)
 
-  et1 <- et(amt = 100000, rate = -2, cmt = 2)
+  et1 <- et(amt = 100000, rate = -2, cmt = 2) %>%
+    et(seq(0, 24, length.out=100))
+
   et2 <- et1 %>%
     et(amt = 100000, cmt = 1)
 
-  a <- rxSolve(rx1, et1, t)
-  b <- rxSolve(rx2, et2, t)
+  a <- rxSolve(rx1, et1, t, returnType="data.frame")
+  cat("achs\n")
+  b <- rxSolve(rx2, et2, t, returnType="data.frame")
+
+  etTrans(et1, rx1)
 
   expect_equal(a, b)
 

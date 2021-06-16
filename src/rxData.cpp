@@ -32,6 +32,7 @@ using namespace Rcpp;
 using namespace arma;
 
 #include "cbindThetaOmega.h"
+#include "handle_evid.h"
 
 extern "C" uint64_t dtwiddle(const void *p, int i);
 extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
@@ -53,7 +54,6 @@ extern "C" void seedEng(int ncores);
 extern "C" int getRxThreads(const int64_t n, const bool throttle);
 extern "C" void RxODE_assign_fn_pointers_(const char *mv);
 extern "C" double getTime(int idx, rx_solving_options_ind *ind);
-extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 extern "C" void setSilentErr(int silent);
 
 bool useForder();
