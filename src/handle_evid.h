@@ -273,5 +273,15 @@ static inline int handle_evid(int evid, int neq,
   return 0;
 }
 
+static inline int handleEvid1(int *i, rx_solve *rx, int *neq,
+			      double *yp, double *xout) {
+  rx_solving_options_ind *ind = &(rx->subjects[neq[1]]);
+  rx_solving_options *op = rx->op;
+  ind->idx = *i;
+  return handle_evid(ind->evid[ind->ix[ind->idx]], neq[0] + op->extraCmt,
+		     ind->BadDose, ind->InfusionRate, ind->dose, yp,
+		     op->do_transit_abs, *xout, neq[1], ind);
+}
+
 #endif
 

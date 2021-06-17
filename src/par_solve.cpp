@@ -1566,9 +1566,7 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
 	if (rx->istateReset) idid = 1;
 	xp=xout;
 	ind->ixds++;
-      } else if (handle_evid(evid[ind->ix[i]], neq[0] + op->extraCmt,
-			     BadDose, InfusionRate, dose, yp,
-			     op->do_transit_abs, xout, neq[1], ind)){
+      } else if (handleEvid1(&i, rx, neq, yp, &xout)){
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &idid, op, ind, u_inis, NULL);
 	if (ind->wh0 == 30){
@@ -1706,9 +1704,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
 	if (rx->istateReset) ctx->state = 1;
 	xp=xout;
 	ind->ixds++;
-      } else if (handle_evid(evid[ind->ix[i]], neq[0] + op->extraCmt,
-			     BadDose, InfusionRate, dose, yp,
-			     op->do_transit_abs, xout, neq[1], ind)){
+      } else if (handleEvid1(&i, rx, neq, yp, &xout)){
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &(ctx->state), op, ind, u_inis, ctx);
 	if (ind->wh0 == 30){
@@ -2047,9 +2043,7 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
 	if (rx->istateReset) istate = 1;
 	ind->ixds++;
 	xp = xout;
-      } else if (handle_evid(ind->evid[ind->ix[i]], neq[0] + op->extraCmt,
-			     ind->BadDose, ind->InfusionRate, ind->dose, yp,
-			     op->do_transit_abs, xout, neq[1], ind)){
+      } else if (handleEvid1(&i, rx, neq, yp, &xout)){
 	handleSS(neq, ind->BadDose, ind->InfusionRate, ind->dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, ind->n_all_times, &istate, op, ind, u_inis, ctx);
 	if (ind->wh0 == 30){
@@ -2224,9 +2218,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
 	u_inis(neq[1], yp); // Update initial conditions @ current time
 	ind->ixds++;
 	xp=xout;
-      } else if (handle_evid(evid[ind->ix[i]], neq[0] + op->extraCmt,
-			     BadDose, InfusionRate, dose, yp,
-			     op->do_transit_abs, xout, neq[1], ind)){
+      } else if (handleEvid1(&i, rx, neq, yp, &xout)){
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &istate, op, ind, u_inis, ctx);
 	if (ind->wh0 == 30){
@@ -2762,7 +2754,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 		// ss
 		dfi = INTEGER(VECTOR_ELT(df, jj++));
 		switch (wh0){
-		/* case 30: */
+		  /* case 30: */
 		case 20:
 		  dullSS=0;
 		  dfi[ii] = 2;
@@ -2954,7 +2946,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	      dfp = REAL(VECTOR_ELT(df, jj));
 	      dfp[ii] =ind->lhs[j];
 	      jj++;
-             }
+	    }
           }
           // States
           if (nPrnState){
