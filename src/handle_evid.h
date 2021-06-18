@@ -64,18 +64,37 @@ static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) 
 }
 
 
+
 static inline int syncIdx(rx_solving_options_ind *ind) {
-  if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
+  if (ind->ix[ind->idx] != ind->idose[ind->ixds]) {
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-    int l = 0, r = ind->ndoses-1, m=0;
+    int l = 0, r = ind->ndoses-1, m=0, successful = 0;
     while(l <= r){
       m = FLOOR((l+r)/2);
       if (ind->idose[m] < ind->ix[ind->idx]) l = m+1;
       else if (ind->idose[m] > ind->ix[ind->idx]) r = m-1;
-      else break;
+      else {
+	successful = 1;
+	break;
+      }
     }
-    if (ind->idose[m] == ind->ix[ind->idx]){
-      ind->ixds=m;
+    if (!successful) {
+      //262144
+      if (!(ind->err & 262144)){
+	ind->err += 262144;
+      }
+      return 0;
+    }
+    if (ind->idose[m] == ind->ix[ind->idx]) {
+      if (ind->evid[ind->ix[ind->idx]] != ind->evid[ind->ixds]) {
+	//262144
+	if (!(ind->err & 262144)){
+	  ind->err += 262144;
+	}
+	return 0;
+      } else {
+	ind->ixds=m;
+      }
     } else {
       //262144
       if (!(ind->err & 262144)){
@@ -106,8 +125,6 @@ static inline int syncIdx(rx_solving_options_ind *ind) {
 	ind->err += 524288;
       }
       return 0;
-      /* Rf_errorcall(R_NilValue, "The event table has been corrupted; ind->idx: %d ind->ixds: %d ind->idose: %d.", */
-      /* 	ind->ix[ind->idx], ind->ixds, ind->idose[ind->ixds]); */
     }
   }
   return 1;
