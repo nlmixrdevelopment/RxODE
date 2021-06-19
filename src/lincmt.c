@@ -34,16 +34,16 @@ void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
 // Linear compartment models/functions
 extern double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p){
-  double dose = ind->dose[l];
+  double dose = getDoseNumber(ind, l);
   if (backward){
     if (l <= 0) {
       Rf_errorcall(R_NilValue, _("could not find a start to the infusion"));
     }
     p[0] = l-1;
-    while (p[0] > 0 && ind->dose[p[0]] != -dose){
+    while (p[0] > 0 && getDoseNumber(ind, p[0]) != -dose){
       p[0]--;
     }
-    if (ind->dose[p[0]] != -dose){
+    if (getDoseNumber(ind, p[0]) != -dose){
       Rf_errorcall(R_NilValue, _("could not find a start to the infusion"));
     }
     return ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p[0]]];
@@ -52,10 +52,10 @@ extern double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned
       Rf_errorcall(R_NilValue, _("could not find an end to the infusion"));
     }
     p[0] = l+1;
-    while (p[0] < ind->ndoses && ind->dose[p[0]] != -dose){
+    while (p[0] < ind->ndoses && getDoseNumber(ind, p[0]) != -dose){
       p[0]++;
     }
-    if (ind->dose[p[0]] != -dose){
+    if (getDoseNumber(ind, p[0]) != -dose){
       Rf_errorcall(R_NilValue, _("could not find an end to the infusion"));
     }
     return ind->all_times[ind->idose[p[0]]] - ind->all_times[ind->idose[l]];
@@ -2592,7 +2592,7 @@ static inline void handleSSL(double *A,// Amounts
   // handle_evid has been called, so ind->wh0 and like have already been called
   double *rate = ind->linCmtRate;
   // note ind->ixds has already advanced
-  double amt = ind->dose[ind->ixds-1];
+  double amt = getDoseNumber(ind, ind->ixds-1);
   switch(ind->wh0){
   case 40: { // Steady state constant infusion
     // Already advanced ind->ixds
