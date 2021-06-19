@@ -63,30 +63,18 @@ static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) 
   }
 }
 
-
-
 static inline int syncIdx(rx_solving_options_ind *ind) {
   if (ind->ix[ind->idx] != ind->idose[ind->ixds]) {
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-    int l = 0, r = ind->ndoses-1, m=0, successful = 0;
+    int l = 0, r = ind->ndoses-1, m=0;
     while(l <= r){
       m = FLOOR((l+r)/2);
       if (ind->idose[m] < ind->ix[ind->idx]) l = m+1;
       else if (ind->idose[m] > ind->ix[ind->idx]) r = m-1;
-      else {
-	successful = 1;
-	break;
-      }
-    }
-    if (!successful) {
-      //262144
-      if (!(ind->err & 262144)){
-	ind->err += 262144;
-      }
-      return 0;
+      else break;
     }
     if (ind->idose[m] == ind->ix[ind->idx]) {
-      if (ind->evid[ind->ix[ind->idx]] != ind->evid[ind->ixds]) {
+      if (ind->evid[ind->ix[ind->idx]] != ind->evid[ind->idose[ind->ixds]]) {
 	//262144
 	if (!(ind->err & 262144)){
 	  ind->err += 262144;
@@ -128,6 +116,16 @@ static inline int syncIdx(rx_solving_options_ind *ind) {
     }
   }
   return 1;
+}
+
+static inline double getDoseNumber(rx_solving_options_ind *ind, int i) {
+  //return ind->dose[ind->idose[i]];
+  return ind->dose[i];
+}
+
+static inline void setDoseNumber(rx_solving_options_ind *ind, int i, double value) {
+  //ind->dose[ind->idose[i]] = value;
+  ind->dose[i] = value;
 }
 
 extern t_F AMT;
@@ -182,10 +180,7 @@ static inline int handle_evid(int evid, int neq,
     }
   } else {
     rx_solving_options *op = &op_global;
-    
-    REprintf("ind->ix[ind->idx]: %d ind->ixds: %d\n", ind->ix[ind->idx], ind->ixds);
     if (syncIdx(ind) == 0) return 0;
-    REprintf("\tind->ix[ind->idx]: %d ind->ixds: %d\n", ind->ix[ind->idx], ind->ixds);
     if (ind->wh0 == 30){
       yp[cmt]=op_global.inits[cmt];
       InfusionRate[cmt] = 0;
@@ -203,7 +198,6 @@ static inline int handle_evid(int evid, int neq,
       // Rate already calculated and saved in the next dose record
       ind->on[cmt] = 1;
       ind->cacheME=0;
-      REprintf("Turn on infusion at cmt: %d t: %f rate: %f; %d\n", cmt, xout, dose[ind->ixds+1], ind->ixds+1);
       InfusionRate[cmt] -= dose[ind->ixds+1];
       if (ind->wh0 == 20 && getAmt(ind, id, cmt, dose[ind->ixds], xout, yp) != dose[ind->ixds]){
 	if (!(ind->err & 1048576)){
@@ -218,7 +212,6 @@ static inline int handle_evid(int evid, int neq,
       // In this case re-sort is not going to be assessed
       // If cmt is off, don't remove rate....
       // Probably should throw an error if the infusion rate is on still.
-      REprintf("Turn OFF infusion at cmt: %d t: %f rate: %f; %d\n", cmt, xout, dose[ind->ixds], ind->ixds);
       InfusionRate[cmt] += dose[ind->ixds];
       ind->cacheME=0;
       if (ind->wh0 == 20 &&
