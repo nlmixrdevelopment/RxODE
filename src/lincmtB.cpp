@@ -2138,11 +2138,11 @@ namespace stan {
 	      (!oral0 && cmtOff != 0)) {
 	  } else {
 	    syncIdx(ind);
-	    amt = ind->dose[ind->ixds];
-	    if (!ISNA(ind->dose[ind->ixds]) && (amt > 0) && (wh0 == 10 || wh0 == 20)) {
+	    amt = getDoseNumber(ind, ind->ixds);
+	    if (!ISNA(getDoseNumber(ind, ind->ixds)) && (amt > 0) && (wh0 == 10 || wh0 == 20)) {
 	      // dosing to cmt
 	      // Steady state doses; wh0 == 20 is equivalent to SS=2 in NONMEM
-	      double tau = ind->ii[ind->ixds];
+	      double tau = getIiNumber(ind, ind->ixds);
 	      Eigen::Matrix<T, Eigen::Dynamic, 1> aSave(oral0+ncmt, 1);
 	      if (wh0 == 20) {
 		aSave = doAdvan(ncmt, oral0, tlast, curTime,
@@ -2173,7 +2173,7 @@ namespace stan {
 	      } break;
 	      case 8: // Duration is modeled
 	      case 9: { // Rate is modeled
-		amt = -ind->dose[ind->ixds+1];
+		amt = -getDoseNumber(ind, ind->ixds+1);
 		if (whI == 9) {
 		  // cmtOff = 0
 		  if (cmtOff == 0)  {
@@ -2203,7 +2203,7 @@ namespace stan {
 	      } break;
 	      case 1:
 	      case 2: {
-		if (ISNA(ind->dose[ind->ixds])){
+		if (ISNA(getDoseNumber(ind, ind->ixds))){
 		} else if (amt > 0) {
 		  doInf=1;
 		  unsigned int p;
@@ -2264,7 +2264,7 @@ namespace stan {
 	    }
 	    // dosing to cmt
 	    // use handle_evid here
-	    amt = ind->dose[ind->ixds];
+	    amt = getDoseNumber(ind, ind->ixds);
 	    switch (whI){
 	    case 0: { // Bolus dose
 	      // base dose
@@ -2283,7 +2283,7 @@ namespace stan {
 	    case 9:
 	    case 8: { // modeled duration.
 	      //InfusionRate[cmt] -= dose[ind->ixds+1];
-	      rateAdjust = -ind->dose[ind->ixds+1];
+	      rateAdjust = -getDoseNumber(ind, ind->ixds+1);
 	      doRate = cmtOff+1;
 	    } break;
 	    case 6: // end modeled duration

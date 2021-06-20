@@ -74,23 +74,13 @@ static inline int syncIdx(rx_solving_options_ind *ind) {
       else break;
     }
     if (ind->idose[m] == ind->ix[ind->idx]) {
-      if (ind->evid[ind->ix[ind->idx]] != ind->evid[ind->idose[ind->ixds]]) {
-	//262144
-	if (!(ind->err & 262144)){
-	  ind->err += 262144;
-	}
-	return 0;
-      } else {
 	ind->ixds=m;
-      }
     } else {
       //262144
       if (!(ind->err & 262144)){
 	ind->err += 262144;
       }
       return 0;
-      /* Rf_errorcall(R_NilValue, "Corrupted event table; EVID=%d: %d %d %d", evid, ind->idose[m], ind->ix[ind->idx], */
-      /* 	ind->idx); */
     }
     // Need to adjust ixdsr
     for(int j = ind->ixds; j--;){
@@ -121,6 +111,10 @@ static inline int syncIdx(rx_solving_options_ind *ind) {
 static inline double getDoseNumber(rx_solving_options_ind *ind, int i) {
   //return ind->dose[ind->idose[i]];
   return ind->dose[i];
+}
+
+static inline double getIiNumber(rx_solving_options_ind *ind, int i) {
+  return ind->ii[i];
 }
 
 static inline void setDoseNumber(rx_solving_options_ind *ind, int i, double value) {

@@ -1223,7 +1223,7 @@ void handleSS(int *neq,
   int doSSinf=0;
   /* Rprintf("evid: %d\n", ind->evid[ind->ixds-1]); */
   if (((ind->wh0 == 20 || ind->wh0 == 10) &&
-      ind->ii[ind->ixds-1] > 0) || ind->wh0 == 40){
+      getIiNumber(ind, ind->ixds-1) > 0) || ind->wh0 == 40){
     ind->doSS=1;
     ind->ixds--; // This dose stays in place; Reverse dose
     if (ind->wh0 == 20){
@@ -1244,8 +1244,8 @@ void handleSS(int *neq,
 	  if (whI == oldI && cmt == ind->cmt){
 	    dur = getTime(ind->idose[j], ind) -
 	      getTime(ind->ix[*i], ind);
-	    dur2 = ind->ii[ind->ixds] - dur;
-	    /* Rprintf("000; dur: %f; dur2: %f; ii: %f;\n", dur, dur2, ind->ii[ind->ixds]); */
+	    dur2 = getIiNumber(ind, ind->ixds) - dur;
+	    /* Rprintf("000; dur: %f; dur2: %f; ii: %f;\n", dur, dur2, getIiNumber(ind, ind->ixds)); */
 	    infEixds = j;
 	    break;
 	  }
@@ -1257,7 +1257,7 @@ void handleSS(int *neq,
       infEixds = ind->ixds+1;
       dur = getTime(ind->idose[infEixds], ind) -
 	getTime(ind->idose[infBixds],ind);
-      dur2 = ind->ii[ind->ixds] - dur;
+      dur2 = getIiNumber(ind, ind->ixds) - dur;
     }
     /* bi = *i; */
     if (ind->wh0 == 40){
@@ -1341,7 +1341,7 @@ void handleSS(int *neq,
     } else if (dur == 0){
       // Oral or Steady State Infusion
       for (j = 0; j < op->maxSS; j++){
-	xout2 = xp2+ind->ii[ind->ixds];
+	xout2 = xp2+getIiNumber(ind, ind->ixds);
 	// Use "real" xout for handle_evid functions.
 	ind->idx=*i;
 	handle_evid(ind->evid[ind->ix[*i]], neq[0],
@@ -1383,7 +1383,7 @@ void handleSS(int *neq,
 	xp2 = xout2;
       }
     } else {
-      if (dur >= ind->ii[ind->ixds]){
+      if (dur >= getIiNumber(ind, ind->ixds)){
 	ind->wrongSSDur=1;
 	// Bad Solve => NA
 	badSolveExit(*i);
@@ -2768,7 +2768,7 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	      dfp[ii] = isObs(evid) ? NA_REAL : getDoseNumber(ind, di++);
 	    }
 	    if (nmevid && isDose(evid)){
-	      double curIi = ind->ii[di];
+	      double curIi = getIiNumber(ind, di);
 	      if (curIi != 0) dullIi=0;
 	      double curAmt = getDoseNumber(ind, di++);
 	      // rate dur ii ss

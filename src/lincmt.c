@@ -2619,7 +2619,7 @@ static inline void handleSSL(double *A,// Amounts
   } break;
   case 20: // Steady state + last observed event
   case 10: { // Steady state
-    double tau = ind->ii[ind->ixds-1];
+    double tau = getIiNumber(ind, ind->ixds-1);
     rate[0] =*r1  = *r2 = 0;
     if (oral0){
       rate[1] = 0;
