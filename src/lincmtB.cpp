@@ -1946,7 +1946,7 @@ namespace stan {
 	    Eigen::Matrix<double, Eigen::Dynamic, 1>& bolus,
 	    Eigen::Matrix<double, Eigen::Dynamic, 1>& rate) {
       double t = ct - tlast;
-      if (r1 > DOUBLE_EPS  || (oral0 && r2 > DOUBLE_EPS)){
+      if (r1 > DBL_EPSILON  || (oral0 && r2 > DBL_EPSILON)){
 	if (oral0){
 	  switch (ncmt){
 	  case 1: {
@@ -2659,7 +2659,7 @@ extern "C" double linCmtB(rx_solve *rx, unsigned int id,
       idx = _locateTimeIndex(t, ind);
       it = getTime(ind->ix[idx], ind);
     }
-    int sameTime = fabs(t-it) < sqrt(DOUBLE_EPS);
+    int sameTime = fabs(t-it) < sqrt(DBL_EPSILON);
     if (idx <= ind->solved && sameTime){
       // Pull from last solved value (cached)
       double *A = getAdvan(idx);
