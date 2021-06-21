@@ -309,7 +309,7 @@ void rxOptionsIniEnsure(int mx);
 
 void rxUpdateFuns(SEXP trans);
 
-#define _eps sqrt(DOUBLE_EPS)
+#define _eps sqrt(DBL_EPSILON)
 
 static inline double erfinv(double x)  __attribute__((unused));
 static inline double erfinv(double x) {

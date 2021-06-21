@@ -6,9 +6,9 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 #include "handle_evid.h"
-#define safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
-#define _as_zero(a) (fabs(a) < sqrt(DOUBLE_EPS) ? 0.0 : a)
-#define _as_dbleps(a) (fabs(a) < sqrt(DOUBLE_EPS) ? ((a) < 0 ? -sqrt(DOUBLE_EPS)  : sqrt(DOUBLE_EPS)) : a)
+#define safe_zero(a) ((a) == 0 ? DBL_EPSILON : (a))
+#define _as_zero(a) (fabs(a) < sqrt(DBL_EPSILON) ? 0.0 : a)
+#define _as_dbleps(a) (fabs(a) < sqrt(DBL_EPSILON) ? ((a) < 0 ? -sqrt(DBL_EPSILON)  : sqrt(DBL_EPSILON)) : a)
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -88,7 +88,7 @@ extern int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind){
     i--;
   }
   if (i == 0){
-    while(i < ind->ndoses-2 && fabs(obs_time  - getTime(ind->ix[i+1], ind))<= sqrt(DOUBLE_EPS)){
+    while(i < ind->ndoses-2 && fabs(obs_time  - getTime(ind->ix[i+1], ind))<= sqrt(DBL_EPSILON)){
       i++;
     }
   }
@@ -254,10 +254,10 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx) {
 	  double *par_ptr = ind->par_ptr;
 	  double *all_times = indSample->all_times;
 	  double *y = indSample->cov_ptr + indSample->n_all_times*k;
-	  if (idxSample == 0 && fabs(t- all_times[idxSample]) < DOUBLE_EPS) {
+	  if (idxSample == 0 && fabs(t- all_times[idxSample]) < DBL_EPSILON) {
 	    par_ptr[op->par_cov[k]-1] = y[0];
 	    ind->cacheME=0;
-	  } else if (idxSample > 0 && idxSample < indSample->n_all_times && fabs(t- all_times[idxSample]) < DOUBLE_EPS) {
+	  } else if (idxSample > 0 && idxSample < indSample->n_all_times && fabs(t- all_times[idxSample]) < DBL_EPSILON) {
 	    par_ptr[op->par_cov[k]-1] = getValue(idxSample, y, indSample);
 	    if (getValue(idxSample, y, indSample) != getValue(idxSample-1, y, indSample)) {
 	      ind->cacheME=0;
@@ -1530,7 +1530,7 @@ static inline void doAdvan(double *A,// Amounts
     }
     return;
   }
-  if ((*r1) > DOUBLE_EPS  || (*r2) > DOUBLE_EPS){
+  if ((*r1) > DBL_EPSILON  || (*r2) > DBL_EPSILON){
     if (oral0){
       switch (ncmt){
       case 1: {

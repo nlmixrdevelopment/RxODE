@@ -130,7 +130,7 @@ arma::vec phiv(double t, arma::mat& A, arma::vec& u,
     int mb    = m; double t_out   = fabs(t);
     int istep = 0; double t_new   = 0;
     double t_now = 0; double s_error = 0;
-    double rndoff= anorm*DOUBLE_EPS;
+    double rndoff= anorm*DBL_EPSILON;
     double sgn = (0.0 < t) - (t > 0.0);
     int k1 = 3, ireject = 0, mx=0;
     double xm = 1.0/m; 

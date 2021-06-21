@@ -2275,7 +2275,7 @@ LogicalVector rxSolveFree(){
     rxUnlock(rxSolveFreeObj);
     rxSolveFreeObj=R_NilValue;
   }
-  if (_globals.gindLin != NULL) Free(_globals.gindLin);
+  if (_globals.gindLin != NULL) R_Free(_globals.gindLin);
   rxOptionsFree(); // f77 losda free
   rxOptionsIni();// realloc f77 lsoda cache
   parseFree(0); //free parser
@@ -4580,8 +4580,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	// Inductive linearization
 	IntegerVector indLinItems = as<IntegerVector>(indLin[3]);
 	op->indLinN = indLinItems.size();
-	if (_globals.gindLin != NULL) Free(_globals.gindLin);
-	_globals.gindLin = Calloc(op->indLinN,int);
+	if (_globals.gindLin != NULL) R_Free(_globals.gindLin);
+	_globals.gindLin = R_Calloc(op->indLinN,int);
 	op->indLin = _globals.gindLin;
 	std::copy(indLinItems.begin(), indLinItems.end(), op->indLin);
 	if (me){
