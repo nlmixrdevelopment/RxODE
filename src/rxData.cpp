@@ -3208,9 +3208,9 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	tlast = NA_REAL;
       }
       // Create index
+      _globals.gii[i] = datIi[i];
       if (isDose(_globals.gevid[i])){
 	_globals.gidose[j] = i-lasti;
-	_globals.gii[j] = datIi[i];
 	_globals.gamt[j] = amt[i];
 	ind->ndoses++;
 	ndoses++; nall++; j++;

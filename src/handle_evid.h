@@ -114,12 +114,13 @@ static inline double getDoseNumber(rx_solving_options_ind *ind, int i) {
 }
 
 static inline double getIiNumber(rx_solving_options_ind *ind, int i) {
-  return ind->ii[i];
+  //return ind->ii[i];
+  return ind->ii[ind->idose[i]];
 }
 
-static inline void setDoseNumber(rx_solving_options_ind *ind, int i, double value) {
-  //ind->dose[ind->idose[i]] = value;
-  ind->dose[i] = value;
+static inline void setDoseNumber(rx_solving_options_ind *ind, int i, int j, double value) {
+  //ind->dose[ind->idose[i] + j] = value;
+  ind->dose[i+j] = value;
 }
 
 extern t_F AMT;

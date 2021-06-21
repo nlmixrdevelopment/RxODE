@@ -660,7 +660,7 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
     rate  = getRate(ind, ind->id, ind->cmt, amt, t);
     if (rate > 0){
       dur = amt/rate; // mg/hr
-      setDoseNumber(ind, j+1, -rate);
+      setDoseNumber(ind, j, 1, -rate);
       ind->all_times[idx+1]=t+dur;
       ind->idx=oldIdx;
     } else {
@@ -721,7 +721,7 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
     dur  = getDur(ind, ind->id, ind->cmt, amt, t);
     if (dur > 0){
       rate = amt/dur;// mg/hr
-      setDoseNumber(ind, j+1, -rate);
+      setDoseNumber(ind, j, 1, -rate);
       ind->all_times[idx+1]=t+dur;
       ind->idx=oldIdx;
     } else {
