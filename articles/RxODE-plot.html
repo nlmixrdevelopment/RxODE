@@ -178,7 +178,7 @@
 </li>
 <li>
   <a href="https://nlmixrdevelopment.github.io/RxODE/reference/index.html">
-    <span class="fas fa-file-code-o"></span>
+    <span class="fa fa-file-code-o"></span>
      
     Functions
   </a>
@@ -203,13 +203,13 @@
 </li>
 <li>
   <a href="https://github.com/nlmixrdevelopment/RxODE" class="external-link">
-    <span class="fas fa-github"></span>
+    <span class="fa fa-github"></span>
      
   </a>
 </li>
 <li>
   <a href="https://github.com/nlmixrdevelopment/RxODE/releases" class="external-link">
-    <span class="fas fa-download"></span>
+    <span class="fa fa-download"></span>
      
   </a>
 </li>
@@ -235,7 +235,7 @@
       <h1 data-toc-skip>Plotting RxODE models</h1>
                         <h4 data-toc-skip class="author">Matthew Fidler</h4>
             
-            <h4 data-toc-skip class="date">2021-06-11</h4>
+            <h4 data-toc-skip class="date">2021-06-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-plot.Rmd" class="external-link"><code>vignettes/RxODE-plot.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-plot.Rmd</code></div>
@@ -378,6 +378,8 @@
 <p>If you are only interested in the concentration, it produces a similar plot:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">C2</span>, log<span class="op">=</span><span class="st">"y"</span>, ylab<span class="op">=</span><span class="st">"Concentration"</span><span class="op">)</span></code></pre></div>
+<pre><code>## Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =
+## "none")` instead.</code></pre>
 <pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
 <p><img src="RxODE-plot_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <p>Notice that this plot each individual is labeled by an attached id to let you know where the individual comes from. This is done by <code>ggrepel</code> if it is available, otherwise a legend is retained.</p>
@@ -385,7 +387,7 @@
 <h3 class="hasAnchor">
 <a href="#multi-subject-plots-with-large-number-of-subjects" class="anchor" aria-hidden="true"></a>Multi-subject plots with large number of subjects</h3>
 <p>This can get a bit much when there are many subjects that are solved (in this example lets simulate 100)</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits <span class="op">=</span> <span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt <span class="op">=</span> <span class="fl">10000</span>, until <span class="op">=</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">days</span><span class="op">)</span>, ii <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># loading doses</span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">48</span>, length.out <span class="op">=</span> <span class="fl">200</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
@@ -394,17 +396,19 @@
 <span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m2</span>, <span class="va">ev</span>, omega<span class="op">=</span><span class="va">omega</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">C2</span>, log<span class="op">=</span><span class="st">"y"</span>, ylab<span class="op">=</span><span class="st">"Concentration"</span><span class="op">)</span></code></pre></div>
+<pre><code>## Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =
+## "none")` instead.</code></pre>
 <pre><code>## Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
 <p><img src="RxODE-plot_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <p>In this case, all the individuals are put on the plot in transparent greyscale and plot on the same pane. This allows the places where more subjects are present to be darker.</p>
 <p>The number of individuals where the plots switch from legend to grayscale is controlled by changing the options for <code>RxODE.spaghetti</code>. ie. <code>options(RxODE.spaghetti=7)</code>. 7 individuals is the default value when the plotting changes from individual to grayscale spaghetti plots.</p>
 <p>You can also create a confidence interval of these simulations with <code>confint</code>:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">s2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">s</span>, parm<span class="op">=</span><span class="st">"C2"</span><span class="op">)</span></code></pre></div>
 <pre><code>## ! in order to put confidence bands around the intervals, you need at least 2500 simulations</code></pre>
 <pre><code>## summarizing data...done</code></pre>
 <p>And plot this with <code>plot</code></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">s2</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-plot_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 </div>
