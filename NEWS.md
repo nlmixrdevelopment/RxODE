@@ -40,6 +40,14 @@
 
 * Handle edge case of interpolation at first index correctly, fixes #433
 
+* Instead of storing each dose information sequentially, store dose
+  information at the same index of the `evid` defining the dose.  This
+  memory rewrite is to fix the issue #435.
+  
+* Start using strict headers as it is required for the forthcoming
+  release of `Rcpp`.  Thanks to Dirk Eddelbuettel for some of the
+  fixes and alerting us to this change.
+
 # RxODE 1.0.9
 
 * At the request of CRAN, stripping the debugging symbols for the CRAN

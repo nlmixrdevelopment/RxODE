@@ -37,6 +37,7 @@
  * Bill Denney -- Documentation updates, manual and minor bug fixes
  * Tim Waterhouse -- Fixed one bug with mac working directories
  * Richard Upton -- Helped with solving the ADVAN linCmt() solutions
+ * Dirk Eddelbuettel -- Made some fixes for the Rcpp changes require R strict headers
  * Ross Ihaka -- R author
  * Robert Gentleman -- R author
  * R core team -- R authors
