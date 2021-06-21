@@ -113,6 +113,14 @@ static inline double getDoseNumber(rx_solving_options_ind *ind, int i) {
   //return ind->dose[i];
 }
 
+static inline double getDoseIndex(rx_solving_options_ind *ind, int i) {
+  return ind->dose[ind->ix[i]];
+}
+
+static inline double getDoseIndex1(rx_solving_options_ind *ind, int i) {
+  return ind->dose[ind->ix[i]+1];
+}
+
 static inline double getIiNumber(rx_solving_options_ind *ind, int i) {
   //return ind->ii[i];
   return ind->ii[ind->idose[i]];
@@ -193,9 +201,9 @@ static inline int handle_evid(int evid, int neq,
       // Rate already calculated and saved in the next dose record
       ind->on[cmt] = 1;
       ind->cacheME=0;
-      InfusionRate[cmt] -= getDoseNumber(ind, ind->ixds+1);
-      if (ind->wh0 == 20 && getAmt(ind, id, cmt, getDoseNumber(ind, ind->ixds), xout, yp) !=
-	  getDoseNumber(ind, ind->ixds)) {
+      InfusionRate[cmt] -= getDoseIndex1(ind, ind->idx);
+      if (ind->wh0 == 20 && getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp) !=
+	  getDoseIndex(ind, ind->idx)) {
 	if (!(ind->err & 1048576)){
 	  ind->err += 1048576;
 	}
@@ -208,11 +216,11 @@ static inline int handle_evid(int evid, int neq,
       // In this case re-sort is not going to be assessed
       // If cmt is off, don't remove rate....
       // Probably should throw an error if the infusion rate is on still.
-      InfusionRate[cmt] += getDoseNumber(ind, ind->ixds);
+      InfusionRate[cmt] += getDoseIndex(ind, ind->idx);
       ind->cacheME=0;
       if (ind->wh0 == 20 &&
-	  getAmt(ind, id, cmt, getDoseNumber(ind, ind->ixds), xout, yp) !=
-	  getDoseNumber(ind, ind->ixds)) {
+	  getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp) !=
+	  getDoseIndex(ind, ind->idx)) {
 	if (!(ind->err & 2097152)){
 	  ind->err += 2097152;
 	}
@@ -223,10 +231,10 @@ static inline int handle_evid(int evid, int neq,
       // In this case bio-availability changes the rate, but the
       // duration remains constant.  rate = amt/dur
       ind->on[cmt] = 1;
-      tmp = getAmt(ind, id, cmt, getDoseNumber(ind, ind->ixds), xout, yp);
+      tmp = getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp);
       InfusionRate[cmt] += tmp;
       ind->cacheME=0;
-      if (ind->wh0 == 20 && tmp != getDoseNumber(ind, ind->ixds)) {
+      if (ind->wh0 == 20 && tmp != getDoseIndex(ind, ind->idx)) {
 	if (!(ind->err & 4194304)){
 	  ind->err += 4194304;
 	}
@@ -235,10 +243,10 @@ static inline int handle_evid(int evid, int neq,
       break;
     case 1:
       ind->on[cmt] = 1;
-      InfusionRate[cmt] += getDoseNumber(ind, ind->ixds);
+      InfusionRate[cmt] += getDoseIndex(ind, ind->idx);
       ind->cacheME=0;
-      if (ind->wh0 == 20 && getDoseNumber(ind, ind->ixds) > 0 &&
-	  getAmt(ind, id, cmt, getDoseNumber(ind, ind->ixds), xout, yp) != getDoseNumber(ind, ind->ixds)) {
+      if (ind->wh0 == 20 && getDoseIndex(ind, ind->idx) > 0 &&
+	  getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp) != getDoseIndex(ind, ind->idx)) {
 	if (!(ind->err & 4194304)){
 	  ind->err += 4194304;
 	}
@@ -248,29 +256,29 @@ static inline int handle_evid(int evid, int neq,
       ind->on[cmt] = 1;
       ind->podo = 0;
       handleTlastInline(&xout, ind);
-      yp[cmt] = getAmt(ind, id, cmt, getDoseNumber(ind, ind->ixds), xout, yp);     //dosing before obs
+      yp[cmt] = getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp);     //dosing before obs
       break;
     case 5: //multiply
       ind->on[cmt] = 1;
       ind->podo = 0;
       handleTlastInline(&xout, ind);
-      yp[cmt] *= getAmt(ind, id, cmt, getDoseNumber(ind, ind->ixds), xout, yp);     //dosing before obs
+      yp[cmt] *= getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp);     //dosing before obs
       break;
     case 0:
       if (do_transit_abs) {
 	ind->on[cmt] = 1;
 	if (ind->wh0 == 20){
-	  tmp = getAmt(ind, id, cmt, getDoseNumber(ind, ind->ixds), xout, yp);
+	  tmp = getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp);
 	  ind->podo = tmp;
 	} else {
-	  ind->podo = getAmt(ind, id, cmt, getDoseNumber(ind, ind->ixds), xout, yp);
+	  ind->podo = getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp);
 	}
 	handleTlastInline(&xout, ind);
       } else {
 	ind->on[cmt] = 1;
 	ind->podo = 0;
 	handleTlastInline(&xout, ind);
-	yp[cmt] += getAmt(ind, id, cmt, getDoseNumber(ind, ind->ixds), xout, yp);     //dosing before obs
+	yp[cmt] += getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp);     //dosing before obs
       }
     }
     ind->ixds++;
