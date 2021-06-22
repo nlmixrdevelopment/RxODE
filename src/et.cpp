@@ -2,6 +2,7 @@
 #include <Rcpp.h>
 #include <R.h>
 #include "timsort.h"
+#include "handle_evid.h"
 #define SORT gfx::timsort
 using namespace Rcpp;
 
@@ -61,8 +62,6 @@ NumericVector setUnits(NumericVector obj, std::string unit){
     return obj;
   }
 }
-
-extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
 //[[Rcpp::export]]
 CharacterVector etDollarNames(RObject obj){

@@ -5,6 +5,7 @@
 #include <Rmath.h>
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
+#include "handle_evid.h"
 #define safe_zero(a) ((a) == 0 ? DBL_EPSILON : (a))
 #define _as_zero(a) (fabs(a) < sqrt(DBL_EPSILON) ? 0.0 : a)
 #define _as_dbleps(a) (fabs(a) < sqrt(DBL_EPSILON) ? ((a) < 0 ? -sqrt(DBL_EPSILON)  : sqrt(DBL_EPSILON)) : a)
@@ -33,16 +34,16 @@ void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
 // Linear compartment models/functions
 extern double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p){
-  double dose = ind->dose[l];
+  double dose = getDoseNumber(ind, l);
   if (backward){
     if (l <= 0) {
       Rf_errorcall(R_NilValue, _("could not find a start to the infusion"));
     }
     p[0] = l-1;
-    while (p[0] > 0 && ind->dose[p[0]] != -dose){
+    while (p[0] > 0 && getDoseNumber(ind, p[0]) != -dose){
       p[0]--;
     }
-    if (ind->dose[p[0]] != -dose){
+    if (getDoseNumber(ind, p[0]) != -dose){
       Rf_errorcall(R_NilValue, _("could not find a start to the infusion"));
     }
     return ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p[0]]];
@@ -51,10 +52,10 @@ extern double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned
       Rf_errorcall(R_NilValue, _("could not find an end to the infusion"));
     }
     p[0] = l+1;
-    while (p[0] < ind->ndoses && ind->dose[p[0]] != -dose){
+    while (p[0] < ind->ndoses && getDoseNumber(ind, p[0]) != -dose){
       p[0]++;
     }
-    if (ind->dose[p[0]] != -dose){
+    if (getDoseNumber(ind, p[0]) != -dose){
       Rf_errorcall(R_NilValue, _("could not find an end to the infusion"));
     }
     return ind->all_times[ind->idose[p[0]]] - ind->all_times[ind->idose[l]];
@@ -1605,8 +1606,6 @@ static inline void doAdvan(double *A,// Amounts
   }
 }
 
-extern int syncIdx(rx_solving_options_ind *ind);
-
 static inline int parTrans(int *trans, 
 			   double *p1, double *v1,
 			   double *p2, double *p3,
@@ -2397,8 +2396,6 @@ SEXP _calcDerived(SEXP ncmtSXP, SEXP transSXP, SEXP inp, SEXP sigdigSXP) {
   return R_NilValue;
 }
 
-int handle_evidL(int evid, double *yp, double xout, int id, rx_solving_options_ind *ind);
-
 static inline void ssRateTauD(double *A, int ncmt, int oral0, double *tinf,
 			      double *tau, double *r1, double *r2, double *ka,
 			      double *kel, double *k12, double *k21, double *k13, double *k31) {
@@ -2595,7 +2592,7 @@ static inline void handleSSL(double *A,// Amounts
   // handle_evid has been called, so ind->wh0 and like have already been called
   double *rate = ind->linCmtRate;
   // note ind->ixds has already advanced
-  double amt = ind->dose[ind->ixds-1];
+  double amt = getDoseNumber(ind, ind->ixds-1);
   switch(ind->wh0){
   case 40: { // Steady state constant infusion
     // Already advanced ind->ixds
@@ -2622,7 +2619,7 @@ static inline void handleSSL(double *A,// Amounts
   } break;
   case 20: // Steady state + last observed event
   case 10: { // Steady state
-    double tau = ind->ii[ind->ixds-1];
+    double tau = getIiNumber(ind, ind->ixds-1);
     rate[0] =*r1  = *r2 = 0;
     if (oral0){
       rate[1] = 0;

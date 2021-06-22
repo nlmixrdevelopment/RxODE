@@ -9,15 +9,12 @@
 #define getAdvan(idx) ind->solve + (op->neq + op->nlin)*(idx) + op->neq
 #define getSolve(idx) ind->solve + (op->neq + op->nlin)*(idx)
 
-
-
 #ifdef _isRxODE_
 
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 #define isSameTime(xout, xp) ((xout)-(xp) <= DBL_EPSILON*max2(fabs(xout),fabs(xp)))
 
 #else
-
 #if defined(__cplusplus)
 #include "RxODE_RcppExports.h"
 #endif
@@ -681,6 +678,12 @@ static inline void lineNull(vLines *sbb) {
   sbb->n  = 0;
   sbb->o  = 0;
 }
+
+
+extern rx_solve rx_global;
+extern rx_solving_options op_global;
+extern rx_solving_options_ind *inds_global;
+
 
 #endif
 #if defined(__cplusplus)
