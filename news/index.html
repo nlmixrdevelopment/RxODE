@@ -300,6 +300,8 @@
 <li><p>Updating parameter pointers is done once per ID and locked based on ID to remove the recursion in <a href='https://github.com/nlmixrdevelopment/RxODE/issues/399'>#399</a>, but still have the correct behavior see <a href='https://github.com/nlmixrdevelopment/RxODE/issues/430'>#430</a></p></li>
 <li><p>Parsing updated to retain “param()” in normalized model, <a href='https://github.com/nlmixrdevelopment/RxODE/issues/432'>#432</a>.</p></li>
 <li><p>Handle edge case of interpolation at first index correctly, fixes <a href='https://github.com/nlmixrdevelopment/RxODE/issues/433'>#433</a></p></li>
+<li><p>Instead of storing each dose information sequentially, store dose information at the same index of the <code>evid</code> defining the dose. This memory rewrite is to fix the issue <a href='https://github.com/nlmixrdevelopment/RxODE/issues/435'>#435</a>.</p></li>
+<li><p>Start using strict headers as it is required for the forthcoming release of <code>Rcpp</code>. Thanks to Dirk Eddelbuettel for some of the fixes and alerting us to this change.</p></li>
 </ul></div>
     <div id="rxode-109" class="section level1">
 <h1 class="page-header" data-toc-text="1.0.9">
