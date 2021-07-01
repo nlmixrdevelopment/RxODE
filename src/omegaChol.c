@@ -1,4 +1,5 @@
 //Generated from refresh.R for 12 dimensions
+#define STRICT_R_HEADER
 #include <R.h>
 #include <Rdefines.h>
 #include <R_ext/Error.h>

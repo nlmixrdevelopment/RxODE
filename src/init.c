@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

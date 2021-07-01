@@ -1,5 +1,6 @@
 // [[Rcpp::interfaces(r, cpp)]]
 //#undef NDEBUG
+#define STRICT_R_HEADER
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #include <RcppArmadillo.h>
 #include "../inst/include/RxODE.h"

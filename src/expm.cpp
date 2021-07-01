@@ -1,4 +1,5 @@
 //#undef NDEBUG
+#define STRICT_R_HEADER
 #define ARMA_DONT_USE_OPENMP // Known to cause speed problems
 #include <iostream>
 #include <RcppArmadillo.h>

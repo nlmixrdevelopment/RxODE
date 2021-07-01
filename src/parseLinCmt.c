@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include "parseLinCmt.h"
 
 char errLin[errLinLen];

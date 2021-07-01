@@ -1,4 +1,5 @@
 //#undef NDEBUG
+#define STRICT_R_HEADER
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "../inst/include/RxODE.h"

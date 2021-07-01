@@ -6,6 +6,7 @@
 #define BOOST_MATH_DENORM_ERROR_POLICY ignore_error
 #define BOOST_MATH_EVALUATION_ERROR_POLICY ignore_error
 #define BOOST_MATH_INDETERMINATE_RESULT_ERROR_POLICY ignore_error
+#define STRICT_R_HEADERS
 // Include boost and R
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/policies/error_handling.hpp>

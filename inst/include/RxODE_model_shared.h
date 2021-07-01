@@ -1,6 +1,7 @@
 #ifndef __RxODE_model_shared_H__
 #define __RxODE_model_shared_H__
 #include <RxODE.h>
+#include <float.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -14,17 +15,17 @@
 #define ODE_Rprintf Rprintf
 #define ODE0_Rprintf if ( (&_solveData->subjects[_cSub])->dadt_counter == 0) Rprintf
 #define LHS_Rprintf Rprintf
-#define _safe_log(a) (&_solveData->safeZero ? (((a) <= 0) ? log(DOUBLE_EPS) : log(a)) : log(a))
-#define safe_zero(a) (&_solveData->safeZero ? ((a) == 0 ? DOUBLE_EPS : (a)) : (a))
-#define _as_zero(a) (&_solveData->safeZero && fabs(a) < sqrt(DOUBLE_EPS) ? 0.0 : a)
-#define _as_dbleps(a) (&_solveData->safeZero && fabs(a) < sqrt(DOUBLE_EPS) ? ((a) < 0 ? -sqrt(DOUBLE_EPS)  : sqrt(DOUBLE_EPS)) : a)
-#define _as_dbleps2(a) (&_solveData->safeZero && fabs(a) < sqrt(DOUBLE_EPS) ? sqrt(DOUBLE_EPS) : a)
+#define _safe_log(a) (&_solveData->safeZero ? (((a) <= 0) ? log(DBL_EPSILON) : log(a)) : log(a))
+#define safe_zero(a) (&_solveData->safeZero ? ((a) == 0 ? DBL_EPSILON : (a)) : (a))
+#define _as_zero(a) (&_solveData->safeZero && fabs(a) < sqrt(DBL_EPSILON) ? 0.0 : a)
+#define _as_dbleps(a) (&_solveData->safeZero && fabs(a) < sqrt(DBL_EPSILON) ? ((a) < 0 ? -sqrt(DBL_EPSILON)  : sqrt(DBL_EPSILON)) : a)
+#define _as_dbleps2(a) (&_solveData->safeZero && fabs(a) < sqrt(DBL_EPSILON) ? sqrt(DBL_EPSILON) : a)
 #define factorial(a) exp(lgamma1p(a))
 #define sign_exp(sgn, x)(((sgn) > 0.0) ? exp(x) : (((sgn) < 0.0) ? -exp(x) : 0.0))
 #define Rx_pow(a, b) R_pow(a, b)
 #define Rx_pow_di(a, b) R_pow_di(a, b)
 #define abs_log1p(x) (((x) + 1.0 > 0.0) ? log1p(x) : (((x) + 1.0 > 0.0) ? log1p(-x) : 0.0))
-#define abs_log(x) ((&_solveData->safeZero && fabs(x) <= sqrt(DOUBLE_EPS)) ? log(sqrt(DOUBLE_EPS)) : (((x) > 0.0) ? log(x) ? (((x) == 0) ? 0.0 : log(-x))))
+#define abs_log(x) ((&_solveData->safeZero && fabs(x) <= sqrt(DBL_EPSILON)) ? log(sqrt(DBL_EPSILON)) : (((x) > 0.0) ? log(x) ? (((x) == 0) ? 0.0 : log(-x))))
 #define _IR (_solveData->subjects[_cSub].InfusionRate)
 #define _ON (_solveData->subjects[_cSub].on)
 #define _PP (_solveData->subjects[_cSub].par_ptr)

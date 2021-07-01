@@ -1,6 +1,7 @@
 // [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 //#undef NDEBUG
+#define STRICT_R_HEADER
 #define NCMT 100
 // NONMEM 7.1 has a max of 50 obesrrvations/individual
 #define MAXIDS 500

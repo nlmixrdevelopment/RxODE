@@ -1,4 +1,5 @@
 //#undef NDEBUG
+#define STRICT_R_HEADERS
 #include <Rcpp.h>
 #include "checkmate.h"
 

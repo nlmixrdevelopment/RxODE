@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include "genModelVars.h"
 
 SEXP generateModelVars() {

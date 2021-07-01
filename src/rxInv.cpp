@@ -1,6 +1,7 @@
 // [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 //#undef NDEBUG
+#define STRICT_R_HEADER
 #include <stdarg.h>
 #include <RcppArmadillo.h>
 #include <R.h>

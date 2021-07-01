@@ -21,7 +21,7 @@
    "New Scaling and Squaring Algorithm for the Matrix Exponential", by
    Awad H. Al-Mohy and Nicholas J. Higham, August 2009
 */
-
+#define STRICT_R_HEADER
 #include <stdlib.h>
 // #include <assert.h>
 #include <math.h>

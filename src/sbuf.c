@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include "sbuf.h"
 #include "tran.h"
 

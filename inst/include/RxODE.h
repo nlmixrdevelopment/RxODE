@@ -1,6 +1,8 @@
 #pragma once
 #ifndef __RxODE_H__
 #define __RxODE_H__
+#include <float.h>
+#define STRICT_R_HEADERS
 #define isDose(evid) ((evid) == 3 || (evid) >= 100)
 #define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 9 && (evid) <= 99))
 

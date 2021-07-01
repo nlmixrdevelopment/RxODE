@@ -1,4 +1,5 @@
 //#undef NDEBUG
+#define STRICT_R_HEADER
 #include <Rcpp.h>
 #include <R.h>
 #include "timsort.h"

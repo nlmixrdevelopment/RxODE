@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include <Rcpp.h>
 
 Rcpp::Function loadNamespaceQs("loadNamespace", R_BaseNamespace);

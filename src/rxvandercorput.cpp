@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 // [[Rcpp::interfaces(r, cpp)]]
 //#undef NDEBUG
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )

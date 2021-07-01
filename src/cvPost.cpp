@@ -1,4 +1,5 @@
 //#undef NDEBUG
+#define STRICT_R_HEADER
 #include <RcppArmadillo.h>
 #include <R.h>
 #include <threefry.h>

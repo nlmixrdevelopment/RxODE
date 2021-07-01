@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #ifdef __STANDALONE__
 #include <stdio.h>
 #define Rprintf printf

@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -1513,7 +1514,6 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   int nx;
   rx_solving_options_ind *ind;
   double *inits;
-  int *evid;
   double *x;
   int *BadDose;
   double *InfusionRate;

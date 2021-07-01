@@ -1,4 +1,5 @@
 //#undef NDEBUG
+#define STRICT_R_HEADER
 #include <Rcpp.h>
 using namespace Rcpp;
 // bool rxIs(const RObject &obj, std::string cls);
