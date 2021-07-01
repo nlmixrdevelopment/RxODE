@@ -1525,7 +1525,6 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   ind = &(rx->subjects[neq[1]]);
   if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
   nx = ind->n_all_times;
-  evid = ind->evid;
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   x = ind->all_times;
