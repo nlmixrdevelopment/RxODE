@@ -270,12 +270,12 @@ plot.rxSolve <- function(x, y, ..., log = "",
       data = .dat2, nudge_x = 1,
       fontface = "bold", size = 5
     )
-    .legend <- ggplot2::guides(color = FALSE)
+    .legend <- ggplot2::guides(color = "none")
   } else {
     if (.nlvl < .rxSpaghetti) {
       .legend <- ggplot2::theme(legend.title = ggplot2::element_blank())
     } else {
-      .legend <- ggplot2::guides(color = FALSE)
+      .legend <- ggplot2::guides(color = "none")
       .line <- geom_line(size = 1.2, alpha = 0.2)
       .aes <- .aesG
     }
