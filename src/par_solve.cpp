@@ -635,34 +635,13 @@ void updateRate(int idx, rx_solving_options_ind *ind, double *yp){
   int oldIdx = ind->idx;
   ind->idx=idx;
   if (ind->all_times[idx+1] == t){
-    // Hasn't been calculated yet.
-    int j;
-    // Find the amount
-    // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-    int l = 0, r = ind->ndoses-1, m=0;
-    while(l <= r){
-      m = std::floor((l+r)/2);
-      if (ind->idose[m] < idx) l = m+1;
-      else if (ind->idose[m] > idx) r = m-1;
-      else break;
-    }
-    if (ind->idose[m] == idx){
-      j=m;
-    } else {
-      if (!(ind->err & 1)){
-	ind->err += 1;
-      }
-      return;
-      /* Rf_errorcall(R_NilValue, "Corrupted event table during sort (1)."); */
-    }
     double dur, rate, amt;
-    // 
-    amt  = getAmt(ind, ind->id, ind->cmt, getDoseNumber(ind, j), t, yp);
+    amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[idx], t, yp);
     rate  = getRate(ind, ind->id, ind->cmt, amt, t);
     if (rate > 0){
       dur = amt/rate; // mg/hr
-      setDoseNumber(ind, j, 1, -rate);
-      ind->all_times[idx+1]=t+dur;
+      ind->dose[idx+1]      = - rate;
+      ind->all_times[idx+1] = t+dur;
       ind->idx=oldIdx;
     } else {
       rx_solve *rx;
@@ -695,35 +674,14 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
   int oldIdx = ind->idx;
   ind->idx=idx;
   if (ind->all_times[idx+1] == t){
-    // Hasn't been calculated yet.
-    int j;
-    // Find the amount
-    // Find the amount
-    // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-    int l = 0, r = ind->ndoses-1, m=0;
-    while(l <= r){
-      m = std::floor((l+r)/2);
-      if (ind->idose[m] < idx) l = m+1;
-      else if (ind->idose[m] > idx) r = m-1;
-      else break;
-    }
-    if (ind->idose[m] == idx){
-      j=m;
-    } else {
-      if (!(ind->err & 8)){
-	ind->err += 8;
-      }
-      return;
-      /* Rf_errorcall(R_NilValue, "Corrupted event table during sort (2)."); */
-    }
     double dur, rate, amt;
     // The duration and f cannot depend on state values
-    amt  = getAmt(ind, ind->id, ind->cmt, getDoseNumber(ind, j), t, yp);
+    amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[idx], t, yp);
     dur  = getDur(ind, ind->id, ind->cmt, amt, t);
     if (dur > 0){
       rate = amt/dur;// mg/hr
-      setDoseNumber(ind, j, 1, -rate);
-      ind->all_times[idx+1]=t+dur;
+      ind->dose[idx+1]      = -rate;
+      ind->all_times[idx+1] = t + dur;
       ind->idx=oldIdx;
     } else {
       rx_solve *rx = &rx_global;
@@ -859,33 +817,19 @@ extern "C" double getTime(int idx, rx_solving_options_ind *ind){
       break;
     case 1:
       {
-	int j;
-	// Find the amount
-	// bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-	int l = 0, r = ind->ndoses-1, m=0;
-	while(l <= r){
-	  m = std::floor((l+r)/2);
-	  if (ind->idose[m] < idx) l = m+1;
-	  else if (ind->idose[m] > idx) r = m-1;
-	  else break;
-	}
-	if (ind->idose[m] == idx){
-	  j=m;
-	} else {
-	  if (!(ind->err & 16384)){
-	    ind->err += 16384;
-	  }
-	  return 0.0;
-	  /* Rf_errorcall(R_NilValue, "Corrupted event table during sort (1)."); */
-	}
-	if (getDoseNumber(ind, j) > 0){
+	double amt = ind->dose[idx];
+	if (amt > 0){
 	  ret = getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
 	  return ret;
-	} else if (getDoseNumber(ind, j) < 0){
-	  // f*amt/rate=dur
-	  // amt/rate=durOld
-	  // f = dur/durOld
-	  // f*durOld = dur
+	} else if (amt < 0){
+	  int j = getDoseNumberFromIndex(ind, idx);
+	  if (j == -1){
+	    if (!(ind->err & 16384)){
+	      ind->err += 16384;
+	    }
+	    return 0.0;
+	    /* Rf_errorcall(R_NilValue, "Corrupted event table during sort (1)."); */
+	  }
 	  int k;
 	  for (k = j; k--;){
 	    if (ind->evid[ind->idose[j]] == ind->evid[ind->idose[k]]) break;

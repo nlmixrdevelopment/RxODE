@@ -63,17 +63,25 @@ static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) 
   }
 }
 
+static inline int getDoseNumberFromIndex(rx_solving_options_ind *ind, int idx) {
+  // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
+  int l = 0, r = ind->ndoses-1, m=0, ix=0, idose = 0;
+  while(l <= r){
+    m = FLOOR((l+r)/2);
+    idose= ind->idose[m];
+    if (idose < idx) l = m+1;
+    else if (idose > idx) r = m-1;
+    else return m;
+  }
+  return -1;
+}
+
+
 static inline int syncIdx(rx_solving_options_ind *ind) {
   if (ind->ix[ind->idx] != ind->idose[ind->ixds]) {
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-    int l = 0, r = ind->ndoses-1, m=0;
-    while(l <= r){
-      m = FLOOR((l+r)/2);
-      if (ind->idose[m] < ind->ix[ind->idx]) l = m+1;
-      else if (ind->idose[m] > ind->ix[ind->idx]) r = m-1;
-      else break;
-    }
-    if (ind->idose[m] == ind->ix[ind->idx]) {
+    int m = getDoseNumberFromIndex(ind, ind->ix[ind->idx]);
+    if (m != -1) {
 	ind->ixds=m;
     } else {
       //262144
