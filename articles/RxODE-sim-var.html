@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE Simulation</h1>
             
-            <h4 data-toc-skip class="date">2021-07-03</h4>
+            <h4 data-toc-skip class="date">2021-07-04</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-sim-var.Rmd" class="external-link"><code>vignettes/RxODE-sim-var.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-sim-var.Rmd</code></div>
@@ -315,32 +315,21 @@
 <span class="co">## The plots from RxODE are ggplots so they can be modified with</span>
 <span class="co">## standard ggplot commands.</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">C2</span>, log<span class="op">=</span><span class="st">"y"</span><span class="op">)</span> <span class="op">+</span>
-    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Central Compartment"</span><span class="op">)</span> 
-<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =</span>
-<span class="co">#&gt; "none")` instead.</span></code></pre></div>
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Central Compartment"</span><span class="op">)</span> </code></pre></div>
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 <p>Of course this additional parameter could also be a state value, like <code>eff</code>:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## They also takes many of the standard plot arguments; See ?plot</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">eff</span>, ylab<span class="op">=</span><span class="st">"Effect"</span><span class="op">)</span>
-<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =</span>
-<span class="co">#&gt; "none")` instead.</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">eff</span>, ylab<span class="op">=</span><span class="st">"Effect"</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 <p>Or you could even look at the two side-by-side:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span>
-<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =</span>
-<span class="co">#&gt; "none")` instead.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">C2</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <p>Or stack them with <code>patchwork</code></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">C2</span>, log<span class="op">=</span><span class="st">"y"</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">eff</span><span class="op">)</span>
-<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =</span>
-<span class="co">#&gt; "none")` instead.</span>
-
-<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =</span>
-<span class="co">#&gt; "none")` instead.</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">C2</span>, log<span class="op">=</span><span class="st">"y"</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim</span>, <span class="va">eff</span><span class="op">)</span></code></pre></div>
 <p><img src="RxODE-sim-var_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 </div>
 <div id="processing-the-data-to-create-summary-plots" class="section level3">

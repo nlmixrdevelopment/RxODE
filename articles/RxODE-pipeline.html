@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>RxODE in a pipeline</h1>
             
-            <h4 data-toc-skip class="date">2021-07-03</h4>
+            <h4 data-toc-skip class="date">2021-07-04</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-pipeline.Rmd" class="external-link"><code>vignettes/RxODE-pipeline.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-pipeline.Rmd</code></div>
@@ -410,9 +410,7 @@
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">250</span>, by<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># Add some sampling times (not required)</span>
     <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span>nSub<span class="op">=</span><span class="fl">3</span>, nStud<span class="op">=</span><span class="fl">3</span>, omega<span class="op">=</span><span class="va">omega</span>, sigma<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/lotri/man/lotri.html" class="external-link">lotri</a></span><span class="op">(</span><span class="va">prop.err</span> <span class="op">~</span> <span class="fl">0.05</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>,
             dfSub<span class="op">=</span><span class="fl">760</span>, dfObs<span class="op">=</span><span class="fl">95</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># Solve the simulation</span>
-    <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pt</span>, <span class="va">q</span>, <span class="va">qp</span>, <span class="va">pstar</span><span class="op">)</span> <span class="co"># Plot it, plotting the variables of interest</span>
-<span class="co">#&gt; Warning: `guides(&lt;scale&gt; = FALSE)` is deprecated. Please use `guides(&lt;scale&gt; =</span>
-<span class="co">#&gt; "none")` instead.</span></code></pre></div>
+    <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pt</span>, <span class="va">q</span>, <span class="va">qp</span>, <span class="va">pstar</span><span class="op">)</span> <span class="co"># Plot it, plotting the variables of interest</span></code></pre></div>
 <p><img src="RxODE-pipeline_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <p>Often in simulations we have a full covariance matrix for the fixed effect parameters. In this case, we do not have the matrix, but it could be specified by <code>thetaMat</code>.</p>
 <p>While we do not have a full covariance matrix, we can have information about the diagonal elements of the covariance matrix from the model paper. These can be converted as follows:</p>
