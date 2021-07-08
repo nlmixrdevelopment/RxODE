@@ -1,4 +1,4 @@
-###' Note, in RxODE models \code{n} or \code{ncores} are not
+##' Note, in RxODE models \code{n} or \code{ncores} are not
 ##' accepted/included.  These are determined by the \code{rxSolve()}
 ##' and the event table.
 ##'
