@@ -15,8 +15,54 @@ extern "C" {
   
 #if defined(__cplusplus)
 }
-#endif  
+#endif
 
+// EVID = 0; Observations
+// EVID = 1; is illegal, but converted from NONMEM
+// EVID = 2; Non-observation, possibly covariate
+// EVID = 3; Reset ODE states to zero; Non-observation event
+// EVID = 4; Reset and then dose event;  Illegal
+// EVID = 9; Non-observation event to ini system at time zero; This is to set the INIs at the correct place.
+// EVID = 10-99; mtime events (from ODE system)
+// When EVID > 100
+// EVID: ## # ## ##
+//       c2 I c1 xx
+// c2 = Compartment numbers over 100
+//  I = Infusion Flag/ Special event flag
+#define EVIDF_NORMAL 0
+
+#define EVIDF_INF_RATE 1
+#define EVIDF_INF_DUR  2
+
+#define EVIDF_REPLACE  4
+#define EVIDF_MULT     5
+
+#define EVIDF_MODEL_DUR_ON   8
+#define EVIDF_MODEL_DUR_OFF  6
+
+#define EVIDF_MODEL_RATE_ON  9
+#define EVIDF_MODEL_RATE_OFF 7
+//      0 = no Infusion
+//      1 = Infusion, AMT=rate (mg/hr for instance)
+//      2 = Infusion, duration is fixed
+//      4 = Replacement event
+//      5 = Multiplication event
+//      6 = Turn off modeled duration
+//      7 = Turn off modeled rate compartment
+//      8 = Duration is modeled, AMT=dose; Rate = AMT/(Modeled Duration) NONMEM RATE=-2
+//      9 = Rate is modeled, AMT=dose; Duration = AMT/(Modeled Rate) NONMEM RATE=-1
+// c1 = Compartment numbers below 99
+// xx = 1, regular event
+// xx = 10, steady state event SS=1
+// xx = 20, steady state event + last observed info.
+// xx = 30, Turn off compartment
+// xx = 40, Steady state constant infusion
+// Steady state events need a II data item > 0
+#define EVID0_REGULAR 1
+#define EVID0_SS 10
+#define EVID0_SS2 20
+#define EVID0_OFF 30
+#define EVID0_SSINF 40
 
 static inline void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0){
   *wh = evid;
@@ -65,7 +111,7 @@ static inline void handleTlastInline(double *time, rx_solving_options_ind *ind) 
 
 static inline int getDoseNumberFromIndex(rx_solving_options_ind *ind, int idx) {
   // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-  int l = 0, r = ind->ndoses-1, m=0, ix=0, idose = 0;
+  int l = 0, r = ind->ndoses-1, m=0, idose = 0;
   while(l <= r){
     m = FLOOR((l+r)/2);
     idose= ind->idose[m];
@@ -164,7 +210,7 @@ static inline int handle_evid(int evid, int neq,
   double tmp;
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
   handleTlastInline(&xout, ind);
-  if (ind->wh0 == 40){
+  if (ind->wh0 == EVID0_SSINF){
     ind->ixds++;
     return 1;
   }
@@ -191,26 +237,26 @@ static inline int handle_evid(int evid, int neq,
     }
   } else {
     rx_solving_options *op = &op_global;
-    if (syncIdx(ind) == 0) return 0;
-    if (ind->wh0 == 30){
+    //if (syncIdx(ind) == 0) return 0;
+    if (ind->wh0 == EVID0_OFF) {
       yp[cmt]=op_global.inits[cmt];
       InfusionRate[cmt] = 0;
       ind->cacheME=0;
       ind->on[cmt] = 0;
       return 1;
     }
-    if (!ind->doSS && ind->wh0 == 20 && cmt < op->neq){
+    if (!ind->doSS && ind->wh0 == EVID0_SS2 && cmt < op->neq) {
       // Save for adding at the end; Only for ODE systems
       memcpy(ind->solveSave, yp, op->neq*sizeof(double));
     }
     switch(ind->whI){
-    case 9: // modeled rate.
-    case 8: // modeled duration.
+    case EVIDF_MODEL_RATE_ON: // modeled rate.
+    case EVIDF_MODEL_DUR_ON: // modeled duration.
       // Rate already calculated and saved in the next dose record
       ind->on[cmt] = 1;
       ind->cacheME=0;
       InfusionRate[cmt] -= getDoseIndex1(ind, ind->idx);
-      if (ind->wh0 == 20 && getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp) !=
+      if (ind->wh0 == EVID0_SS2 && getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp) !=
 	  getDoseIndex(ind, ind->idx)) {
 	if (!(ind->err & 1048576)){
 	  ind->err += 1048576;
@@ -219,14 +265,14 @@ static inline int handle_evid(int evid, int neq,
 	/* Rf_errorcall(R_NilValue, "SS=2 & Modeled F does not work"); */
       }
       break;
-    case 7: // End modeled rate
-    case 6: // end modeled duration
+    case EVIDF_MODEL_RATE_OFF: // End modeled rate
+    case EVIDF_MODEL_DUR_OFF: // end modeled duration
       // In this case re-sort is not going to be assessed
       // If cmt is off, don't remove rate....
       // Probably should throw an error if the infusion rate is on still.
       InfusionRate[cmt] += getDoseIndex(ind, ind->idx);
       ind->cacheME=0;
-      if (ind->wh0 == 20 &&
+      if (ind->wh0 == EVID0_SS2 &&
 	  getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp) !=
 	  getDoseIndex(ind, ind->idx)) {
 	if (!(ind->err & 2097152)){
@@ -235,47 +281,47 @@ static inline int handle_evid(int evid, int neq,
 	return 0;
       }
       break;
-    case 2:
+    case EVIDF_INF_DUR:
       // In this case bio-availability changes the rate, but the
       // duration remains constant.  rate = amt/dur
       ind->on[cmt] = 1;
       tmp = getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp);
       InfusionRate[cmt] += tmp;
       ind->cacheME=0;
-      if (ind->wh0 == 20 && tmp != getDoseIndex(ind, ind->idx)) {
+      if (ind->wh0 == EVID0_SS2 && tmp != getDoseIndex(ind, ind->idx)) {
 	if (!(ind->err & 4194304)){
 	  ind->err += 4194304;
 	}
 	return 0;
       }
       break;
-    case 1:
+    case EVIDF_INF_RATE:
       ind->on[cmt] = 1;
       InfusionRate[cmt] += getDoseIndex(ind, ind->idx);
       ind->cacheME=0;
-      if (ind->wh0 == 20 && getDoseIndex(ind, ind->idx) > 0 &&
+      if (ind->wh0 == EVID0_SS2 && getDoseIndex(ind, ind->idx) > 0 &&
 	  getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp) != getDoseIndex(ind, ind->idx)) {
 	if (!(ind->err & 4194304)){
 	  ind->err += 4194304;
 	}
       }
       break;
-    case 4: // replace
+    case EVIDF_REPLACE: // replace
       ind->on[cmt] = 1;
       ind->podo = 0;
       handleTlastInline(&xout, ind);
       yp[cmt] = getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp);     //dosing before obs
       break;
-    case 5: //multiply
+    case EVIDF_MULT: //multiply
       ind->on[cmt] = 1;
       ind->podo = 0;
       handleTlastInline(&xout, ind);
       yp[cmt] *= getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp);     //dosing before obs
       break;
-    case 0:
+    case EVIDF_NORMAL:
       if (do_transit_abs) {
 	ind->on[cmt] = 1;
-	if (ind->wh0 == 20){
+	if (ind->wh0 == EVID0_SS2){
 	  tmp = getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp);
 	  ind->podo = tmp;
 	} else {
@@ -301,10 +347,10 @@ static inline int handleEvid1(int *i, rx_solve *rx, int *neq,
   rx_solving_options_ind *ind = &(rx->subjects[neq[1]]);
   rx_solving_options *op = rx->op;
   ind->idx = *i;
+  if (!isObs(ind->evid[ind->ix[ind->idx]])) syncIdx(ind);
   return handle_evid(ind->evid[ind->ix[ind->idx]], neq[0] + op->extraCmt,
 		     ind->BadDose, ind->InfusionRate, ind->dose, yp,
 		     op->do_transit_abs, *xout, neq[1], ind);
 }
-
 #endif
 

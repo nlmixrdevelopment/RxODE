@@ -995,10 +995,6 @@ extern "C" int iniSubjectE(int solveid, int inLhs, rx_solving_options_ind *ind, 
   return iniSubject(solveid, inLhs, ind, op, rx, u_inis);
 }
 
-
-
-
-
 static void chkIntFn(void *dummy) {
   R_CheckUserInterrupt();
 }
@@ -1167,19 +1163,19 @@ void handleSS(int *neq,
   int doSS2=0;
   int doSSinf=0;
   /* Rprintf("evid: %d\n", ind->evid[ind->ixds-1]); */
-  if (((ind->wh0 == 20 || ind->wh0 == 10) &&
-      getIiNumber(ind, ind->ixds-1) > 0) || ind->wh0 == 40){
+  if (((ind->wh0 == EVID0_SS2 || ind->wh0 == EVID0_SS) &&
+      getIiNumber(ind, ind->ixds-1) > 0) || ind->wh0 == EVID0_SSINF){
     ind->doSS=1;
     ind->ixds--; // This dose stays in place; Reverse dose
-    if (ind->wh0 == 20){
+    if (ind->wh0 == EVID0_SS2){
       doSS2=1;
-    } else if (ind->wh0 == 40){
+    } else if (ind->wh0 == EVID0_SSINF){
       doSSinf=1;
     }
     double dur = 0, dur2=0;
     int infBixds =0, infEixds = 0, ei=0, wh, cmt, wh100, whI, wh0, oldI;
     if (doSSinf){
-    } else if (ind->whI == 1 || ind->whI == 2){
+    } else if (ind->whI == EVIDF_INF_RATE || ind->whI == EVIDF_INF_DUR) {
       oldI = ind->whI;
       infBixds = ind->ixds;
       // Find the next fixed length infusion that is turned off.
@@ -1196,7 +1192,7 @@ void handleSS(int *neq,
 	  }
 	}
       }
-    } else if (ind->whI == 9 || ind->whI == 8) {
+    } else if (ind->whI == EVIDF_MODEL_DUR_ON || ind->whI == EVIDF_MODEL_RATE_ON) {
       // These are right next to another.
       infBixds = ind->ixds;
       infEixds = ind->ixds+1;
@@ -1205,8 +1201,8 @@ void handleSS(int *neq,
       dur2 = getIiNumber(ind, ind->ixds) - dur;
     }
     /* bi = *i; */
-    if (ind->wh0 == 40){
-    } else if (ind->whI == 1 || ind->whI == 2 || ind->whI == 8 || ind->whI == 9){
+    if (ind->wh0 == EVID0_SSINF){
+    } else if (ind->whI == EVIDF_INF_RATE || ind->whI == EVIDF_INF_DUR || ind->whI == EVIDF_MODEL_DUR_ON || ind->whI == EVIDF_MODEL_RATE_ON) {
       ei = *i;
       while(ind->ix[ei] != ind->idose[infEixds] && ei < ind->n_all_times){
 	ei++;
@@ -1236,11 +1232,11 @@ void handleSS(int *neq,
     double xp2, xout2;
     int canBreak=0;
     xp2 = xp;
-    if (doSSinf){
+    if (doSSinf) {
       double rate;
       ind->idx=*i;
       // Rate is fixed, so modifying bio-availability doesn't change duration.
-      if (ind->whI == 9){
+      if (ind->whI == EVIDF_MODEL_RATE_ON){
 	rate  = getRate(ind, ind->id, ind->cmt, 0.0,
 			ind->all_times[ind->idose[ind->ixds]]);
       } else {
@@ -1286,9 +1282,9 @@ void handleSS(int *neq,
     } else if (dur == 0){
       // Oral or Steady State Infusion
       for (j = 0; j < op->maxSS; j++){
-	xout2 = xp2+getIiNumber(ind, ind->ixds);
-	// Use "real" xout for handle_evid functions.
 	ind->idx=*i;
+	xout2 = xp2+ind->ii[ind->idx];
+	// Use "real" xout for handle_evid functions.
 	handle_evid(ind->evid[ind->ix[*i]], neq[0],
 		    BadDose, InfusionRate, dose, yp,
 		    op->do_transit_abs, xout, neq[1], ind);
