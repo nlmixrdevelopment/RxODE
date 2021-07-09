@@ -953,7 +953,7 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
 
 static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx,
 			     t_update_inis u_inis) {
-  ind->ixds=ind->idx=0; // reset dosing
+  ind->ixds = ind->idx = ind->_update_par_ptr_in = 0; // reset dosing
   ind->id=solveid;
   ind->cacheME=0;
   ind->curShift=0.0;
