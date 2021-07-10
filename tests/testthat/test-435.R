@@ -38,7 +38,6 @@ rxodeTest(
       et(amt = 100000, cmt = 1)
 
     a <- rxSolve(rx1, et1, t, returnType="data.frame")
-    cat("between\n")
     b <- rxSolve(rx2, et2, t, returnType="data.frame")
 
     expect_equal(a, b)
