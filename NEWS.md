@@ -48,6 +48,8 @@
   release of `Rcpp`.  Thanks to Dirk Eddelbuettel for some of the
   fixes and alerting us to this change.
 
+* Check arguments for `add.dosing()` more strictly. See Issue #441
+
 # RxODE 1.0.9
 
 * At the request of CRAN, stripping the debugging symbols for the CRAN
