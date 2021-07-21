@@ -754,7 +754,7 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L,
   } else {
     .lst$dosing.interval <- 0.0
   }
-  checkmate::assertIntegerish(nbr.doses, lower=1L, any.missing=FALSE, finite=TRUE, max.len=1)
+  checkmate::assertIntegerish(nbr.doses, lower=1L, any.missing=FALSE, max.len=1)
   .Call(`_RxODE_et_`, .lst, eventTable)
 }
 
