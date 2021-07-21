@@ -195,7 +195,6 @@ rxodeTest({
 
     context("tad family of functions with linCmt()")
 
-
     test_that("lincmt solution tad family", {
 
       sol.1c.ka <- RxODE({
@@ -267,7 +266,6 @@ rxodeTest({
 
       expect_equal(s$tad, s$tadc)
       expect_equal(s$tafd, s$tafdc)
-
 
     })
 

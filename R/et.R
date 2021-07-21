@@ -735,7 +735,7 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L,
                        rate = NULL, amount.units = NA_character_,
                        start.time = 0.0, do.sampling = FALSE,
                        time.units = NA_character_, ...) {
-  checkmate::assertDouble(dose, lower=0, any.missing=FALSE, finite=TRUE, max.len=1)
+  checkmate::assertDouble(dose, any.missing=FALSE, finite=TRUE, max.len=1)
   checkmate::assertDouble(dosing.interval, lower=0, any.missing=FALSE, finite=TRUE, max.len=1)
   checkmate::assertDouble(start.time, any.missing=FALSE, finite=TRUE, max.len=1)
   .lst <- list(
