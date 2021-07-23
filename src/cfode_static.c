@@ -1,3 +1,4 @@
+#define STRICT_R_HEADERS
 #include <R.h>
 #include <Rinternals.h>
 #include "lsoda.h"

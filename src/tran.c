@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -167,11 +168,6 @@ static inline int parseNodePossiblySkipRecursion(nodeInfo ni, char *name, D_Pars
       handleFunctions(ni, name, i, depth, nch, xpn, pn) ||
       handleTheta(ni, name, xpn) ||
       handleEta(ni, name, xpn)) return 1;
-
-  if (nodeHas(param_statement) && i == 0) {
-    sAppendN(&sbt,"param", 5);
-    sbDt.o = 0;
-  }
   return 0;
 }
 

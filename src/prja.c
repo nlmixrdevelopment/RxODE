@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include <R.h>
 #include <Rinternals.h>
 #include <stdio.h>

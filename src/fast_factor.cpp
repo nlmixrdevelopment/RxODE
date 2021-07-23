@@ -1,5 +1,5 @@
 // Author: Kevin Ushey, David Cooley
-
+#define STRICT_R_HEADER
 #include <Rcpp.h>
 using namespace Rcpp;
 #include "checkmate.h"

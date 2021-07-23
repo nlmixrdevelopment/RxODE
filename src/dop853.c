@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h> /* dj: malloc.h */

@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 // [[Rcpp::interfaces(r, cpp)]]
 //#undef NDEBUG
 #include <Rcpp.h>

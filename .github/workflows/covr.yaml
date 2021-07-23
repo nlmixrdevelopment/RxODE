@@ -24,7 +24,7 @@ jobs:
 
       - name: install linux deps
         if: runner.os == 'Linux'
-        run: sudo add-apt-repository ppa:cran/libgit2 && sudo apt-get update && sudo apt-get install libssh2-1-dev libgit2-dev libudunits2-dev  libgmp-dev libmpfr-dev libmpc-dev libharfbuzz-dev libfribidi-dev -y
+        run: sudo add-apt-repository ppa:cran/libgit2 && sudo add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" && sudo apt-get update && sudo apt-get install libssh2-1-dev libgit2-dev libudunits2-dev  libgmp-dev libmpfr-dev libmpc-dev libharfbuzz-dev libfribidi-dev libicu-dev libicu55 libcurl4-gnutls-dev -y
         shell: bash
 
       - uses: r-lib/actions/setup-pandoc@v1
@@ -43,8 +43,9 @@ jobs:
       - name: Query dependencies
         run: |
           install.packages('remotes')
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
-          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
+          remotes::install_github("nlmixrdevelopment/dparser-R")
+          remotes::install_cran("stringi")
+          remotes::install_github("https://github.com/symengine/symengine.R")
         shell: Rscript {0}
 
       - name: Cache R packages

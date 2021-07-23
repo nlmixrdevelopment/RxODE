@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -8,8 +9,9 @@
 #include "../inst/include/RxODE.h"
 
 #include "tran.h"
-#include "threefry.h"
+#include "rxthreefry.h"
 #include "cbindThetaOmega.h"
+#include "seed.h"
 
 SEXP _rxHasOpenMp();
 
@@ -444,6 +446,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_invWR1d", (DL_FUNC) _RxODE_invWR1d, 3},
     {"_RxODE_rxSimThetaOmega", (DL_FUNC) _RxODE_rxSimThetaOmega, 27},
     {"_rxCbindStudyIndividual", (DL_FUNC) _rxCbindStudyIndividual, 2},
+    {"_rxSetSeed", (DL_FUNC) _rxSetSeed, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

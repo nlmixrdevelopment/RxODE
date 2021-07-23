@@ -4,7 +4,7 @@ rxodeTest(
   context("plot tests")
   if (requireNamespace("units", quietly = TRUE)) {
     test_that("plot tests", {
-      skip_if(utils::packageVersion("ggplot2") < "3.3.0")
+      skip_if(utils::packageVersion("ggplot2") < "3.3.5")
 
       ## Model from RxODE tutorial
       m1 <- RxODE({

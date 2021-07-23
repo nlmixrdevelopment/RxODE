@@ -42,6 +42,7 @@ using weight based dosing, this needs to be simulated first
 
 ```{r}
 set.seed(42)
+rxSetSeed(42)
 library(dplyr)
 nsub=30
 # Simulate Weight based on age and gender

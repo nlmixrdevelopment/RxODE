@@ -115,6 +115,7 @@ model-based parameters:
 
 ```{r}
 set.seed(1089)
+rxSetSeed(1089)
 Ribba2012 %>% # Use RxODE
     et(time.units="months") %>% # Pipe to a new event table
     et(amt=1, time=50, until=58, ii=1.5) %>% # Add dosing every 1.5 months

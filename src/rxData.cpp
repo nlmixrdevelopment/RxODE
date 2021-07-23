@@ -1,6 +1,7 @@
 // [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 //#undef NDEBUG
+#define STRICT_R_HEADER
 #define NCMT 100
 // NONMEM 7.1 has a max of 50 obesrrvations/individual
 #define MAXIDS 500
@@ -32,6 +33,7 @@ using namespace Rcpp;
 using namespace arma;
 
 #include "cbindThetaOmega.h"
+#include "handle_evid.h"
 
 extern "C" uint64_t dtwiddle(const void *p, int i);
 extern "C" void calcNradix(int *nbyte, int *nradix, int *spare, uint64_t *maxD, uint64_t *minD);
@@ -53,7 +55,6 @@ extern "C" void seedEng(int ncores);
 extern "C" int getRxThreads(const int64_t n, const bool throttle);
 extern "C" void RxODE_assign_fn_pointers_(const char *mv);
 extern "C" double getTime(int idx, rx_solving_options_ind *ind);
-extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 extern "C" void setSilentErr(int silent);
 
 bool useForder();
@@ -2275,7 +2276,7 @@ LogicalVector rxSolveFree(){
     rxUnlock(rxSolveFreeObj);
     rxSolveFreeObj=R_NilValue;
   }
-  if (_globals.gindLin != NULL) Free(_globals.gindLin);
+  if (_globals.gindLin != NULL) R_Free(_globals.gindLin);
   rxOptionsFree(); // f77 losda free
   rxOptionsIni();// realloc f77 lsoda cache
   parseFree(0); //free parser
@@ -2986,6 +2987,7 @@ extern "C" void setupRxInd(rx_solving_options_ind* ind, int first) {
   ind->logitLow         = 0;
   ind->logitHi          = 1;
   ind->isIni            = 0;
+  ind->_update_par_ptr_in = 0;
   if (first){
     ind->solveTime	= 0.0;
     ind->nBadDose	= 0;
@@ -3207,10 +3209,11 @@ static inline void rxSolve_datSetupHmax(const RObject &obj, const List &rxContro
 	tlast = NA_REAL;
       }
       // Create index
+      _globals.gii[i] = datIi[i];
+      _globals.gamt[i] = amt[i];
+
       if (isDose(_globals.gevid[i])){
 	_globals.gidose[j] = i-lasti;
-	_globals.gii[j] = datIi[i];
-	_globals.gamt[j] = amt[i];
 	ind->ndoses++;
 	ndoses++; nall++; j++;
       } else {
@@ -4476,45 +4479,42 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	switch (thread) {
 	case 2:
 	  // Thread safe, but possibly not reproducible
-	  //warning(_("thread safe method, but results may depend on system/load, using 1 core (can change with `cores=`)"));
-	  //op->cores = 1;
-	  //rxSolveDat->throttle = false;
-	  op->cores = getRxThreads(INT_MAX, false);
-	  rxSolveDat->throttle = true;
-	  op->doesRandom = 1;
+	  if (op->cores > 1) {
+	    op->stiff = method = 4;
+	    warning(_("results depend on the number of cores used"));
+	  }
+	  rxSolveDat->throttle = false;
 	  break;
 	case 1:
 	  // Thread safe, and reproducible
 	  op->cores = getRxThreads(INT_MAX, false);
 	  rxSolveDat->throttle = true;
-	  op->doesRandom = 0;
 	  break;
 	case 0:
 	  // Not thread safe.
 	  warning(_("not thread safe method, using 1 core"));
 	  op->cores = 1;
 	  rxSolveDat->throttle = false;
-	  op->doesRandom = 0;
 	  break;
 	}
       } else {
 	switch (thread) {
 	case 2:
 	  // Thread safe, but possibly not reproducible
-	  if (op->cores > 1) warning(_("thread safe method, results depend on number of cores used"));
-	  op->doesRandom = 1;
+	  if (op->cores > 1) {
+	    op->stiff = method = 4;
+	    warning(_("results depend on the number of cores used"));
+	  }
 	  break;
 	case 1:
 	  // Thread safe, and reproducible
 	  rxSolveDat->throttle = true;
-	  op->doesRandom = 0;
 	  break;
 	case 0:
 	  // Not thread safe.
 	  warning(_("not thread safe method, using 1 core"));
 	  op->cores = 1;
 	  rxSolveDat->throttle = false;
-	  op->doesRandom = 0;
 	  break;
 	}
       }
@@ -4582,8 +4582,8 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	// Inductive linearization
 	IntegerVector indLinItems = as<IntegerVector>(indLin[3]);
 	op->indLinN = indLinItems.size();
-	if (_globals.gindLin != NULL) Free(_globals.gindLin);
-	_globals.gindLin = Calloc(op->indLinN,int);
+	if (_globals.gindLin != NULL) R_Free(_globals.gindLin);
+	_globals.gindLin = R_Calloc(op->indLinN,int);
 	op->indLin = _globals.gindLin;
 	std::copy(indLinItems.begin(), indLinItems.end(), op->indLin);
 	if (me){
@@ -4935,7 +4935,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 #endif // rxSolveT
     rxSolve_normalizeParms(object, rxControl, specParams, extraArgs,
 			   pars, ev1, inits, rxSolveDat);
-    if (op->stiff == 2) { // liblsoda
+    if (op->stiff == 2 || op->stiff == 4) { // liblsoda
       // Order by the number of times per subject
       sortIds(rx, 1);
     }

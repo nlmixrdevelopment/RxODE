@@ -1,3 +1,4 @@
+#define STRICT_R_HEADERS
 #include <Rcpp.h>
 #include "../inst/include/RxODE.h"
 #include <R.h>

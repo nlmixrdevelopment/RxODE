@@ -10,22 +10,46 @@
   simulated individual parameters and residual parameters,
   `rxCbindStudyIndividual()`.
 
-* When random numbers are generated during ode solving, split the
-  simulation by the number of parallel threads simulating.
+* Now data frame input can be mixed with simulating from omega and
+  sigma matrices (though not yet in nested simulations)
 
-  This way the thread generates the same numbers regardless of the
-  different amount of time needed to solve the systems. Before, the
-  results may have been different based on race conditions, and the
-  parallel solving was limited to 1 core when any simulations
-  generated random numbers. Now the results depend only on the number
-  of threads used in the simulation.
+* Race conditions when simulating random numbers is solved by chunking
+  each simulation into groups that will always be performed per each
+  thread.  This way the simulation is now reproducible regardless of
+  load.  Because of the chunking, simulations with random numbers generated
+  inside of it are now threaded by default (though a warning is
+  produced about the simulation only be reproducible when run with the
+  same number of threads)
 
-* Also split the simulations of random numbers by the number of seeds;
-  For simulation methods that are complex and can contain rejection
-  rules, the split avoids race conditions altering the outcome of the
-  simulation.  Now the simulations depend only on the number of cores
-  used, and the initial seed.
+* Simulations were double checked and made sure to use the engine
+  reserved for each core run in parallel; Some of the random
+  generators were not taking random numbers from the correct engine,
+  which was corrected.  Therefore, simulations from this version are
+  expected to be different (in parallel) than previous versions.
+
+* Added function `rxSetSeed()` to set the internal RxODE seed instead
+  of grabbing it from a uniform random number tied to the original R
+  seed.  This will avoid the possibility of [duplicate
+  seeds](https://tinyurl.com/m62v3kv9) and is the best practice.
+
+* Updating parameter pointers is done once per ID and locked based on
+  ID to remove the recursion in #399, but still have the correct
+  behavior see #430
+
+* Parsing updated to retain "param()" in normalized model, #432.
+
+* Handle edge case of interpolation at first index correctly, fixes #433
+
+* Instead of storing each dose information sequentially, store dose
+  information at the same index of the `evid` defining the dose.  This
+  memory rewrite is to fix the issue #435.
   
+* Start using strict headers as it is required for the forthcoming
+  release of `Rcpp`.  Thanks to Dirk Eddelbuettel for some of the
+  fixes and alerting us to this change.
+
+* Check arguments for `add.dosing()` more strictly. See Issue #441
+
 # RxODE 1.0.9
 
 * At the request of CRAN, stripping the debugging symbols for the CRAN

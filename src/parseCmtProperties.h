@@ -251,8 +251,8 @@ static inline int handleRemainingAssignmentsCalcProps(nodeInfo ni, char *name, i
 static inline int finalizeLineParam(nodeInfo ni, char *name) {
   if (nodeHas(param_statement)) {
     sbDt.o = 0; sbt.o = 0;
-    sAppend(&sbNrm, "%s;\n", sbt.s);
-    addLine(&sbNrmL, "%s;\n", sbt.s);
+    sAppend(&sbNrm, "param%s;\n", sbt.s);
+    addLine(&sbNrmL, "param%s;\n", sbt.s);
     ENDLINE;
     return 1;
   }

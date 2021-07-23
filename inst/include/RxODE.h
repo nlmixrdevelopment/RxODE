@@ -1,6 +1,8 @@
 #pragma once
 #ifndef __RxODE_H__
 #define __RxODE_H__
+#include <float.h>
+#define STRICT_R_HEADERS
 #define isDose(evid) ((evid) == 3 || (evid) >= 100)
 #define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 9 && (evid) <= 99))
 
@@ -9,15 +11,12 @@
 #define getAdvan(idx) ind->solve + (op->neq + op->nlin)*(idx) + op->neq
 #define getSolve(idx) ind->solve + (op->neq + op->nlin)*(idx)
 
-
-
 #ifdef _isRxODE_
 
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 #define isSameTime(xout, xp) ((xout)-(xp) <= DBL_EPSILON*max2(fabs(xout),fabs(xp)))
 
 #else
-
 #if defined(__cplusplus)
 #include "RxODE_RcppExports.h"
 #endif
@@ -232,6 +231,8 @@ typedef struct {
   double curShift;
   double *simIni;
   int isIni;
+  int _update_par_ptr_in;
+
 } rx_solving_options_ind;
 
 typedef struct {
@@ -311,7 +312,7 @@ void rxOptionsIniEnsure(int mx);
 
 void rxUpdateFuns(SEXP trans);
 
-#define _eps sqrt(DOUBLE_EPS)
+#define _eps sqrt(DBL_EPSILON)
 
 static inline double erfinv(double x)  __attribute__((unused));
 static inline double erfinv(double x) {
@@ -680,6 +681,12 @@ static inline void lineNull(vLines *sbb) {
   sbb->n  = 0;
   sbb->o  = 0;
 }
+
+
+extern rx_solve rx_global;
+extern rx_solving_options op_global;
+extern rx_solving_options_ind *inds_global;
+
 
 #endif
 #if defined(__cplusplus)

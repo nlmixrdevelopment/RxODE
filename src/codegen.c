@@ -1,3 +1,4 @@
+#define STRICT_R_HEADER
 #include "codegen.h"
 #include "codegen2.h"
 

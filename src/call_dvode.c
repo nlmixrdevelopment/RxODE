@@ -1,14 +1,17 @@
+#include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include "dop853.h"
 #define max(a, b) ((a) > (b) ? (a) : (b))
+#define STRICT_R_HEADERS
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
 #include <PreciseSums.h>
 #include "../inst/include/RxODE.h"
+
 
 
 //--------------------------------------------------------------------------
@@ -59,13 +62,13 @@ extern double RxODE_sum(double *input, int len){
 extern double RxODE_sumV(int n, ...){
   va_list valist;
   va_start(valist, n);
-  double *p = Calloc(n, double);
+  double *p = R_Calloc(n, double);
   for (unsigned int i = (unsigned int)n; i--;){
     p[i] = va_arg(valist, double);
   }
   va_end(valist);
   double s = PreciseSums_sum(p, n);
-  Free(p);
+  R_Free(p);
   return s;
 }
 
@@ -86,13 +89,13 @@ extern double RxODE_prod(double *input, int len){
 extern double RxODE_prodV(int n, ...){
   va_list valist;
   va_start(valist, n);
-  double *p = Calloc(n, double);
+  double *p = R_Calloc(n, double);
   for (unsigned int i = (unsigned int)n; i--;){
     p[i] = va_arg(valist, double);
   }
   va_end(valist);
   double s = PreciseSums_prod(p, n);
-  Free(p);
+  R_Free(p);
   return s;
 }
 
