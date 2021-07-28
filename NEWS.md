@@ -50,6 +50,12 @@
 
 * Check arguments for `add.dosing()` more strictly. See Issue #441
 
+* Issue a warning when either `dur()` or `rate()` is in the model but
+  the modeled rate and duration is not included in the event table.
+  
+* When the data requires a modeled rate and modeled duration but it is
+  not in the model do not solve, throw an error instead.
+
 # RxODE 1.0.9
 
 * At the request of CRAN, stripping the debugging symbols for the CRAN
