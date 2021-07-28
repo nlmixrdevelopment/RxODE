@@ -367,8 +367,7 @@ rxodeTest(
     mod <- RxODE({
       if (t > T0) {
         kel <- Cl / Vc
-      }
-      else {
+      } else {
         kel <- 2 * Cl / Vc
       }
       d / dt(depot) <- -KA * depot
@@ -383,20 +382,20 @@ rxodeTest(
 
 
     ## Logit sensitivity problem
-    pk <- function(){
-      t.ef0=THETA[1]
-      t.Emax=THETA[2]
-      t.fct=THETA[3]
-      t.gamma=THETA[4]
-      t.kout=THETA[5]
-      t.kM=THETA[6]
-      t.sM1=THETA[7]
-      t.ktr=THETA[8]
-      t.k1p=THETA[9]
-      t.kp1=THETA[10]
-      Vvit=THETA[11]
-      logit.sd=THETA[12]
-      eta.ef0 = ETA[1]
+    pk <- function() {
+      t.ef0 <- THETA[1]
+      t.Emax <- THETA[2]
+      t.fct <- THETA[3]
+      t.gamma <- THETA[4]
+      t.kout <- THETA[5]
+      t.kM <- THETA[6]
+      t.sM1 <- THETA[7]
+      t.ktr <- THETA[8]
+      t.k1p <- THETA[9]
+      t.kp1 <- THETA[10]
+      Vvit <- THETA[11]
+      logit.sd <- THETA[12]
+      eta.ef0 <- ETA[1]
       nlmixr_ef0_expr <- expit(t.ef0 + eta.ef0, 50, 90)
       nlmixr_fct_expr <- expit(t.fct, 0.2, 20)
       nlmixr_gamma_expr <- t.gamma
@@ -407,7 +406,7 @@ rxodeTest(
       nlmixr_sM1_expr <- t.sM1
       nlmixr_k1p_expr <- exp(t.k1p)
       nlmixr_kp1_expr <- exp(t.kp1)
-      nlmixr_cvit_expr <- central/Vvit * 1e+06
+      nlmixr_cvit_expr <- central / Vvit * 1e+06
     }
 
     m1 <- RxODE({
@@ -421,17 +420,17 @@ rxodeTest(
       sM1 <- nlmixr_sM1_expr
       k1p <- nlmixr_k1p_expr
       kp1 <- nlmixr_kp1_expr
-      d/dt(central) = -central * log(2)/t12
+      d / dt(central) <- -central * log(2) / t12
       cvit <- nlmixr_cvit_expr
-      d/dt(t1) = central * ktr - t1 * ktr
-      d/dt(t2) = t1 * ktr - t2 * ktr
-      d/dt(t3) = t2 * ktr - t3 * ktr
-      d/dt(t4) = t3 * ktr - t4 * ktr
-      d/dt(M1) = ktr * t4 - kM * M1 - M1 * k1p + Mp * kp1
-      d/dt(Mp) = M1 * k1p - Mp * kp1
-      d/dt(eff) = ef0/kout * (1 + Emax/(1 + (fct * ic50/cvit)^gamma)) - kout * eff * (1 + sM1 * M1)
-      eff(0) = ef0
-      M1(0) = 1
+      d / dt(t1) <- central * ktr - t1 * ktr
+      d / dt(t2) <- t1 * ktr - t2 * ktr
+      d / dt(t3) <- t2 * ktr - t3 * ktr
+      d / dt(t4) <- t3 * ktr - t4 * ktr
+      d / dt(M1) <- ktr * t4 - kM * M1 - M1 * k1p + Mp * kp1
+      d / dt(Mp) <- M1 * k1p - Mp * kp1
+      d / dt(eff) <- ef0 / kout * (1 + Emax / (1 + (fct * ic50 / cvit)^gamma)) - kout * eff * (1 + sM1 * M1)
+      eff(0) <- ef0
+      M1(0) <- 1
       cmt(eff)
       nlmixr_pred <- eff
     })
@@ -449,38 +448,40 @@ rxodeTest(
     ## Error
 
     mod <- RxODE({
-      tka=THETA[1]
-      tcl=THETA[2]
-      tv=THETA[3]
-      probit.sd=THETA[4]
-      prop.sd=THETA[5]
-      lambda=THETA[6]
-      eta.ka=ETA[1]
-      eta.cl=ETA[2]
-      eta.v=ETA[3]
+      tka <- THETA[1]
+      tcl <- THETA[2]
+      tv <- THETA[3]
+      probit.sd <- THETA[4]
+      prop.sd <- THETA[5]
+      lambda <- THETA[6]
+      eta.ka <- ETA[1]
+      eta.cl <- ETA[2]
+      eta.v <- ETA[3]
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl)
       v <- exp(tv + eta.v)
-      d/dt(depot) = -ka * depot
-      d/dt(center) = ka * depot - cl/v * center
-      ipre = center/v
+      d / dt(depot) <- -ka * depot
+      d / dt(center) <- ka * depot - cl / v * center
+      ipre <- center / v
       nlmixr_pred <- ipre
       cmt(ipre)
     })
 
     ## Deparse will split to multiple lines
-    err <- function () {
+    err <- function() {
       return(probitNorm(probit.sd, -0.5, 14) + prop(prop.sd) +
-               yeoJohnson(lambda))
+        yeoJohnson(lambda))
     }
 
     dp1 <- rxSymPySetupPred(mod,
-                            function() { return(nlmixr_pred) }, NULL, err,
-                            grad=FALSE, pred.minus.dv = TRUE, sum.prod = FALSE,
-                            interaction=TRUE, only.numeric=FALSE, run.internal=TRUE,
-                            addProp="combined2", optExpression=TRUE)
+      function() {
+        return(nlmixr_pred)
+      }, NULL, err,
+      grad = FALSE, pred.minus.dv = TRUE, sum.prod = FALSE,
+      interaction = TRUE, only.numeric = FALSE, run.internal = TRUE,
+      addProp = "combined2", optExpression = TRUE
+    )
     expect_true(inherits(dp1, "rxFocei"))
-
   },
   silent = TRUE,
   test = "focei"

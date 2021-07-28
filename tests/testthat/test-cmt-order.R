@@ -6,7 +6,6 @@ rxodeTest(
 
     load(test_path("warfarin.rda"))
     test_that("cmt() syntax makes sense", {
-
       mod <- RxODE({
         a <- 6
         b <- 0.6
@@ -20,8 +19,8 @@ rxodeTest(
       mod <- RxODE({
         a <- 6
         b <- 0.6
-        d/dt(intestine) <- -a * intestine
-        d/dt(blood) <- a * intestine - b * blood
+        d / dt(intestine) <- -a * intestine
+        d / dt(blood) <- a * intestine - b * blood
       })
 
       expect_equal(c("intestine", "blood"), rxState(mod))

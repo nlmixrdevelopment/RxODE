@@ -13,11 +13,11 @@ rxodeTest(
         f <- 1
         ri <- 10
         li <- 0
-        d/dt(intestine) <- -a * intestine
+        d / dt(intestine) <- -a * intestine
         f(intestine) <- f
         rate(intestine) <- ri
         alag(intestine) <- li
-        d/dt(blood) <- a * intestine - b * blood
+        d / dt(blood) <- a * intestine - b * blood
       })
 
       et <- et() %>%
@@ -180,7 +180,6 @@ rxodeTest(
       test_that("Duration 0.5, F=1, li=0.3", {
         expect_equal(as.data.frame(f.a), as.data.frame(f.b))
       })
-
     }
 
     context("error when bioavaibility(state)+rate/dur, but maintain f(state) #216 #222")
@@ -191,11 +190,11 @@ rxodeTest(
       f <- 1
       ri <- 10
       li <- 0
-      d/dt(intestine) <- -a * intestine
+      d / dt(intestine) <- -a * intestine
       f(intestine) <- f
       rate(intestine) <- ri * intestine
       alag(intestine) <- li
-      d/dt(blood) <- a * intestine - b * blood
+      d / dt(blood) <- a * intestine - b * blood
     })
 
     et <- et() %>%
@@ -210,11 +209,11 @@ rxodeTest(
       f <- 1
       ri <- 10
       li <- 0
-      d/dt(intestine) <- -a * intestine
+      d / dt(intestine) <- -a * intestine
       f(intestine) <- f
       dur(intestine) <- ri * intestine
       alag(intestine) <- li
-      d/dt(blood) <- a * intestine - b * blood
+      d / dt(blood) <- a * intestine - b * blood
     })
 
     et <- et() %>%
@@ -224,21 +223,21 @@ rxodeTest(
     expect_error(rxSolve(mod.rate, et))
 
     mod.rate <- RxODE({
-        a <- 6
-        b <- 0.6
-        f <- 1
-        ri <- 10
-        li <- 0
-        d/dt(intestine) <- -a * intestine
-        f(intestine) <- f * intestine
-        rate(intestine) <- ri
-        alag(intestine) <- li
-        d/dt(blood) <- a * intestine - b * blood
-      })
+      a <- 6
+      b <- 0.6
+      f <- 1
+      ri <- 10
+      li <- 0
+      d / dt(intestine) <- -a * intestine
+      f(intestine) <- f * intestine
+      rate(intestine) <- ri
+      alag(intestine) <- li
+      d / dt(blood) <- a * intestine - b * blood
+    })
 
-      et <- et() %>%
-        et(amt = 2 / 24, rate = 1, 0, addl = 9, ii = 1) %>%
-        et(seq(0, 10, by = 1 / 24))
+    et <- et() %>%
+      et(amt = 2 / 24, rate = 1, 0, addl = 9, ii = 1) %>%
+      et(seq(0, 10, by = 1 / 24))
 
     expect_error(rxSolve(mod.rate, et))
 
@@ -249,16 +248,16 @@ rxodeTest(
     expect_error(rxSolve(mod.rate, et))
 
     mod.rate <- RxODE({
-        a <- 6
-        b <- 0.6
-        f <- 1
-        ri <- 10
-        li <- 0
-        d/dt(intestine) <- -a * intestine
-        f(intestine) <- f * intestine
-        dur(intestine) <- ri
-        alag(intestine) <- li
-        d/dt(blood) <- a * intestine - b * blood
+      a <- 6
+      b <- 0.6
+      f <- 1
+      ri <- 10
+      li <- 0
+      d / dt(intestine) <- -a * intestine
+      f(intestine) <- f * intestine
+      dur(intestine) <- ri
+      alag(intestine) <- li
+      d / dt(blood) <- a * intestine - b * blood
     })
 
     et <- et() %>%
@@ -268,17 +267,17 @@ rxodeTest(
     expect_error(rxSolve(mod.rate, et))
 
     ## Test that state-based bio-availability's does work
-    CLp = 25
-    CLh = 1
-    fuinc = 1
-    Nh = 0.4
-    Vh = 3.9
-    V1 = 1800
-    ke = 0.02
-    sample.int = 24
-    Sample.V = 20
-    Days = 5
-    ini <- c(A1 = 1000, A2 =0, V.ms=0)
+    CLp <- 25
+    CLh <- 1
+    fuinc <- 1
+    Nh <- 0.4
+    Vh <- 3.9
+    V1 <- 1800
+    ke <- 0.02
+    sample.int <- 24
+    Sample.V <- 20
+    Days <- 5
+    ini <- c(A1 = 1000, A2 = 0, V.ms = 0)
     mod <- "
   d/dt(V.ms) = 0
 
@@ -293,15 +292,16 @@ rxodeTest(
 "
     mod <- RxODE(model = mod)
 
-    par <- c(CLp=CLp, CLh = CLh, fuinc = fuinc, Nh= Nh, V2 = Vh,
-             V1 = V1-Sample.V, Sample.V=Sample.V, ke = ke, Cp1=0)
+    par <- c(
+      CLp = CLp, CLh = CLh, fuinc = fuinc, Nh = Nh, V2 = Vh,
+      V1 = V1 - Sample.V, Sample.V = Sample.V, ke = ke, Cp1 = 0
+    )
 
-    sim.ev <- et(seq(0,Days*60*24, by = 1)) %>%
-      et(cmt="V.ms", evid = 4,  amt=Sample.V, nbr=5, ii=sample.int*60) %>%
-      et(cmt="A1", time=1440, evid=6, amt=1)
+    sim.ev <- et(seq(0, Days * 60 * 24, by = 1)) %>%
+      et(cmt = "V.ms", evid = 4, amt = Sample.V, nbr = 5, ii = sample.int * 60) %>%
+      et(cmt = "A1", time = 1440, evid = 6, amt = 1)
 
-    expect_error(rxSolve(mod, par, sim.ev, inits= ini, addDosing=TRUE), NA)
-
+    expect_error(rxSolve(mod, par, sim.ev, inits = ini, addDosing = TRUE), NA)
   },
   test = "lvl2"
 )

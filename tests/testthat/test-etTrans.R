@@ -1,12 +1,16 @@
 rxodeTest(
-{
-
-  .rx <- loadNamespace("RxODE")
+  {
+    .rx <- loadNamespace("RxODE")
 
     for (radi in 1:2) {
-
-      .rx$forderForceBase(switch(radi, TRUE, FALSE))
-      radix <- switch(radi, "base::order", "data.table::forder")
+      .rx$forderForceBase(switch(radi,
+        TRUE,
+        FALSE
+      ))
+      radix <- switch(radi,
+        "base::order",
+        "data.table::forder"
+      )
       context(sprintf("etTrans checks (radix: %s)", radix))
       rxSetIni0(FALSE)
 
@@ -684,7 +688,6 @@ d/dt(blood)     = a*intestine - b*blood
 
       expect_equal(as.double((t$sex == "male") * 1), t$sm)
       expect_equal(as.double((t$sex == "female") * 1), t$sf)
-
     }
   },
   test = "lvl2",

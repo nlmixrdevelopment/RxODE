@@ -73,7 +73,7 @@
       .idData <- as.data.frame(idData)
     }
     .oId <- .idData[[.w]]
-    if (inherits(.idData[[.w]], "numeric")){
+    if (inherits(.idData[[.w]], "numeric")) {
       .idData[[.w]] <- factor(.idData[[.w]], levels = as.numeric(goodLvl), labels = goodLvl)
     } else {
       .idData[[.w]] <- factor(.idData[[.w]], levels = goodLvl, labels = goodLvl)

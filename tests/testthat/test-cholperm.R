@@ -1,8 +1,7 @@
 ## These functions are taken from TruncatedNormal for testing
 rxodeTest(
-{
-
-  .rx <- loadNamespace("RxODE")
+  {
+    .rx <- loadNamespace("RxODE")
 
     lnNpr <-
       function(a, b) { ## computes ln(P(a<Z<b))

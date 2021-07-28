@@ -27,13 +27,13 @@ d/dt(blood)     = a*intestine - b*blood
   s4 <- solve(mod, et, addDosing = TRUE)
 
 
-  s1tbs <- solve(mod, et, addDosing = FALSE, returnType="data.frame.TBS")
+  s1tbs <- solve(mod, et, addDosing = FALSE, returnType = "data.frame.TBS")
 
-  s2tbs <- solve(mod, et, addDosing = NULL, returnType="data.frame.TBS")
+  s2tbs <- solve(mod, et, addDosing = NULL, returnType = "data.frame.TBS")
 
-  s3tbs <- solve(mod, et, addDosing = NA, returnType="data.frame.TBS")
+  s3tbs <- solve(mod, et, addDosing = NA, returnType = "data.frame.TBS")
 
-  s4tbs <- solve(mod, et, addDosing = TRUE, returnType="data.frame.TBS")
+  s4tbs <- solve(mod, et, addDosing = TRUE, returnType = "data.frame.TBS")
 
   test_that("evid is included with evid=2", {
     expect_true("evid" %in% names(s1))
@@ -102,5 +102,4 @@ d/dt(blood)     = a*intestine - b*blood
     expect_true(any(pk4$time == 0.5))
     expect_false(any(pk5$time == 0.5))
   })
-
 })

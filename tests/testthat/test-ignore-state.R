@@ -1,5 +1,5 @@
-rxodeTest({
-
+rxodeTest(
+  {
     context("Make sure the right state is ignored.")
     ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf p11
 
@@ -7,8 +7,8 @@ rxodeTest({
     mod <- RxODE({
       a <- 6
       b <- 0.6
-      d/dt(intestine) <- -a * intestine
-      d/dt(blood) <- a * intestine - b * blood
+      d / dt(intestine) <- -a * intestine
+      d / dt(blood) <- a * intestine - b * blood
     })
 
     test_that("Nothing ignored", {
@@ -20,32 +20,32 @@ rxodeTest({
       mod <- RxODE({
         a <- 6
         b <- 0.6
-        d/dt(intestine) ~ -a * intestine
-        d/dt(blood) <- a * intestine - b * blood
+        d / dt(intestine) ~ -a * intestine
+        d / dt(blood) <- a * intestine - b * blood
       })
 
       mod.f <- RxODE({
         a <- 6
         b <- 0.6
         f(intestine) <- 1
-        d/dt(intestine) ~ -a * intestine
-        d/dt(blood) <- a * intestine - b * blood
+        d / dt(intestine) ~ -a * intestine
+        d / dt(blood) <- a * intestine - b * blood
       })
 
       mod.alag <- RxODE({
         a <- 6
         b <- 0.6
         alag(intestine) <- 0
-        d/dt(intestine) ~ -a * intestine
-        d/dt(blood) <- a * intestine - b * blood
+        d / dt(intestine) ~ -a * intestine
+        d / dt(blood) <- a * intestine - b * blood
       })
 
       mod.rate <- RxODE({
         a <- 6
         b <- 0.6
         rate(intestine) <- 2
-        d/dt(intestine) ~ -a * intestine
-        d/dt(blood) <- a * intestine - b * blood
+        d / dt(intestine) ~ -a * intestine
+        d / dt(blood) <- a * intestine - b * blood
       })
 
 
@@ -53,8 +53,8 @@ rxodeTest({
         a <- 6
         b <- 0.6
         dur(intestine) <- 2
-        d/dt(intestine) ~ -a * intestine
-        d/dt(blood) <- a * intestine - b * blood
+        d / dt(intestine) ~ -a * intestine
+        d / dt(blood) <- a * intestine - b * blood
       })
 
       test_that("Ignore first comparment", {
@@ -68,40 +68,40 @@ rxodeTest({
       mod <- RxODE({
         a <- 6
         b <- 0.6
-        d/dt(intestine) <- -a * intestine
-        d/dt(blood) ~ a * intestine - b * blood
+        d / dt(intestine) <- -a * intestine
+        d / dt(blood) ~ a * intestine - b * blood
       })
 
       mod.f <- RxODE({
         a <- 6
         b <- 0.6
         f(blood) <- 1
-        d/dt(intestine) <- -a * intestine
-        d/dt(blood) ~ a * intestine - b * blood
+        d / dt(intestine) <- -a * intestine
+        d / dt(blood) ~ a * intestine - b * blood
       })
 
       mod.alag <- RxODE({
         a <- 6
         b <- 0.6
         alag(blood) <- 0
-        d/dt(intestine) <- -a * intestine
-        d/dt(blood) ~ a * intestine - b * blood
+        d / dt(intestine) <- -a * intestine
+        d / dt(blood) ~ a * intestine - b * blood
       })
 
       mod.rate <- RxODE({
         a <- 6
         b <- 0.6
         rate(blood) <- 2
-        d/dt(intestine) <- -a * intestine
-        d/dt(blood) ~ a * intestine - b * blood
+        d / dt(intestine) <- -a * intestine
+        d / dt(blood) ~ a * intestine - b * blood
       })
 
       mod.dur <- RxODE({
         a <- 6
         b <- 0.6
         dur(blood) <- 2
-        d/dt(intestine) <- -a * intestine
-        d/dt(blood) ~ a * intestine - b * blood
+        d / dt(intestine) <- -a * intestine
+        d / dt(blood) ~ a * intestine - b * blood
       })
 
       test_that("Nothing ignored", {
@@ -120,33 +120,33 @@ rxodeTest({
       mod.f <- RxODE({
         a <- 6
         b <- 0.6
-        d/dt(intestine) <- -a * intestine
+        d / dt(intestine) <- -a * intestine
         f(blood) <- 1
-        d/dt(blood) ~ a * intestine - b * blood
+        d / dt(blood) ~ a * intestine - b * blood
       })
 
       mod.alag <- RxODE({
         a <- 6
         b <- 0.6
-        d/dt(intestine) <- -a * intestine
+        d / dt(intestine) <- -a * intestine
         alag(blood) <- 0
-        d/dt(blood) ~ a * intestine - b * blood
+        d / dt(blood) ~ a * intestine - b * blood
       })
 
       mod.rate <- RxODE({
         a <- 6
         b <- 0.6
-        d/dt(intestine) <- -a * intestine
+        d / dt(intestine) <- -a * intestine
         rate(blood) <- 2
-        d/dt(blood) ~ a * intestine - b * blood
+        d / dt(blood) ~ a * intestine - b * blood
       })
 
       mod.dur <- RxODE({
         a <- 6
         b <- 0.6
-        d/dt(intestine) <- -a * intestine
+        d / dt(intestine) <- -a * intestine
         dur(blood) <- 2
-        d/dt(blood) ~ a * intestine - b * blood
+        d / dt(blood) ~ a * intestine - b * blood
       })
 
 
@@ -167,67 +167,64 @@ rxodeTest({
 
 
     .rxWithOptions(list(RxODE.syntax.require.ode.first = TRUE), {
-
       test_that("errors usually occur", {
         expect_error(RxODE({
           a <- 6
           b <- 0.6
-          d/dt(intestine) <- -a * intestine
+          d / dt(intestine) <- -a * intestine
           alag(blood) <- 0
-          d/dt(blood) ~ a * intestine - b * blood
+          d / dt(blood) ~ a * intestine - b * blood
         }))
 
         expect_error(RxODE({
           a <- 6
           b <- 0.6
-          d/dt(intestine) <- -a * intestine
+          d / dt(intestine) <- -a * intestine
           rate(blood) <- 2
-          d/dt(blood) ~ a * intestine - b * blood
+          d / dt(blood) ~ a * intestine - b * blood
         }))
 
         expect_error(RxODE({
           a <- 6
           b <- 0.6
-          d/dt(intestine) <- -a * intestine
+          d / dt(intestine) <- -a * intestine
           dur(blood) <- 2
-          d/dt(blood) ~ a * intestine - b * blood
+          d / dt(blood) ~ a * intestine - b * blood
         }))
 
         expect_error(RxODE({
           a <- 6
           b <- 0.6
           f(blood) <- 1
-          d/dt(intestine) <- -a * intestine
-          d/dt(blood) ~ a * intestine - b * blood
+          d / dt(intestine) <- -a * intestine
+          d / dt(blood) ~ a * intestine - b * blood
         }))
 
         expect_error(RxODE({
           a <- 6
           b <- 0.6
           alag(blood) <- 0
-          d/dt(intestine) <- -a * intestine
-          d/dt(blood) ~ a * intestine - b * blood
+          d / dt(intestine) <- -a * intestine
+          d / dt(blood) ~ a * intestine - b * blood
         }))
 
         expect_error(RxODE({
           a <- 6
           b <- 0.6
           rate(blood) <- 2
-          d/dt(intestine) <- -a * intestine
-          d/dt(blood) ~ a * intestine - b * blood
+          d / dt(intestine) <- -a * intestine
+          d / dt(blood) ~ a * intestine - b * blood
         }))
 
         expect_error(RxODE({
           a <- 6
           b <- 0.6
           dur(blood) <- 2
-          d/dt(intestine) <- -a * intestine
-          d/dt(blood) ~ a * intestine - b * blood
+          d / dt(intestine) <- -a * intestine
+          d / dt(blood) ~ a * intestine - b * blood
         }))
-
       })
     })
-
   },
   test = "lvl2"
 )

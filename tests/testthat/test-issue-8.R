@@ -27,7 +27,6 @@ rxodeTest(
         y <- ode2$run(theta, ev, inits = inits)
 
         expect_equal(x, y)
-
       })
 
       .rxWithOptions(list(RxODE.syntax.assign.state = FALSE), {

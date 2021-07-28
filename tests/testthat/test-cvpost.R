@@ -17,7 +17,7 @@ rxodeTest(
       set.seed(42)
       draw3c <- cvPost(3, matrix(c(1, .3, .3, 1), 2, 2), n = 3, returnChol = TRUE)
       set.seed(42)
-      draw3ct1 <- cvPost(3, matrix(c(1, .3, .3, 1), 2, 2), n = 3, returnChol = TRUE, type=1)
+      draw3ct1 <- cvPost(3, matrix(c(1, .3, .3, 1), 2, 2), n = 3, returnChol = TRUE, type = 1)
       expect_true(inherits(draw3, "list"))
       expect_true(inherits(draw3c, "list"))
       for (i in seq_along(draw3)) {
@@ -36,16 +36,22 @@ rxodeTest(
       }
 
       set.seed(42)
-      lkj <- cvPost(3,vapply(1:3,function(...){rnorm(10)}, numeric(10)), type="lkj",
-                    returnChol=TRUE)
+      lkj <- cvPost(3, vapply(1:3, function(...) {
+        rnorm(10)
+      }, numeric(10)),
+      type = "lkj",
+      returnChol = TRUE
+      )
 
       set.seed(42)
-      lkjTn <- cvPost(3,vapply(1:3,function(...){rnorm(10)}, numeric(10)), type=2,
-                      returnChol=TRUE, diagXformType=5)
+      lkjTn <- cvPost(3, vapply(1:3, function(...) {
+        rnorm(10)
+      }, numeric(10)),
+      type = 2,
+      returnChol = TRUE, diagXformType = 5
+      )
 
       expect_equal(lkj, lkjTn)
-
-
     })
     context("rinvchisq")
     test_that("rinvchisq produces proper output", {

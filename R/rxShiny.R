@@ -114,7 +114,6 @@ $(document).on("keyup", function(e) {
               resize = "both",
               value = .(rxNorm(object))
             ),
-
             shiny::actionButton("goButton", "Compile", align = "right"),
             shiny::actionButton("goPlot", "Update Plots", align = "right"),
             shiny::checkboxInput("goLogy", "Log y"),

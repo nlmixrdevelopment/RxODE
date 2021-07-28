@@ -391,7 +391,7 @@ print.rxSolve <- function(x, ...) {
       if (length(.out) > 0) .nb <- FALSE
     }
     if (.nb) {
-      print.rxSolveSimType(x, bound=.bound)
+      print.rxSolveSimType(x, bound = .bound)
       .df <- x
       .cls <- c(
         paste0("Solved\u00A0Data: ", .bound),

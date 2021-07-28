@@ -3,7 +3,6 @@ rxodeTest(
     context("Testing solving with ID(s) in the dataset")
 
     test_that("simple solving with ID(s) in the dataset", {
-
       theoSd <- readRDS("theoSd.rds")
       d <- theoSd[, names(theoSd) != "EVID"]
       d <- d[d$ID != 10, ]
@@ -36,11 +35,9 @@ rxodeTest(
       tmp <- rxSolve(mod, d, idFactor = FALSE)
 
       expect_false(inherits(tmp$id, "factor"))
-
     })
 
     test_that("Test giving IDs to data-frames", {
-
       d <- readRDS("theoSd.rds")
       d$ID <- paste(d$ID)
 
@@ -151,11 +148,9 @@ rxodeTest(
       tmp2 <- expect_warning(rxSolve(mod, d, parData2))
 
       expect_false(all(tmp1$params$tka == tmp2$params$tka))
-
     })
 
     test_that("test iCov ID", {
-
       d <- readRDS("theoSd.rds")
       d$ID <- paste(d$ID)
 
@@ -252,11 +247,9 @@ rxodeTest(
       iCov2 <- iCov[order(-iCov$id), ]
 
       expect_error(rxSolve(mod, d, iCov = iCov2, keep = "wt"))
-
     })
 
     test_that("id is retained as an integer", {
-
       theoSd <- readRDS("theoSd.rds")
       d <- theoSd[, names(theoSd) != "EVID"]
       d <- d[d$ID != 10, ]
@@ -294,7 +287,6 @@ rxodeTest(
 
       expect_true(is.numeric(d$ID))
       expect_true(is.factor(tmp$id))
-
     })
   },
   test = "lvl2"

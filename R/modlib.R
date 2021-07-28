@@ -5,8 +5,8 @@
 }
 
 .norm2 <- function(obj) {
-  if (inherits(obj, "RxODE")){
-    if (exists(".linCmtM", obj)){
+  if (inherits(obj, "RxODE")) {
+    if (exists(".linCmtM", obj)) {
       return(get(".linCmtM", obj))
     }
   }
@@ -14,7 +14,7 @@
 }
 
 .isWritable <- function(...) {
-  .ret <- try(assertthat::is.writeable(...), silent=TRUE)
+  .ret <- try(assertthat::is.writeable(...), silent = TRUE)
   if (inherits(.ret, "try-error")) {
     .ret <- FALSE
   }
@@ -81,7 +81,8 @@
   ))) != 0)
 }
 
-.rxUseI <- new.env(parent=emptyenv());#1
+.rxUseI <- new.env(parent = emptyenv())
+# 1
 .rxUseI$i <- 1L
 .rxUseCdir <- ""
 
@@ -168,10 +169,10 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
           cat("#'\n")
           cat("#' \\emph{Model Code}\n") # sprintf(,.f2)
           cat("#'\n")
-          .code  <- deparse(body(eval(parse(text=paste("function(){",.norm2(.tmp),"}")))))
-          .code[1]  <- "RxODE({"
-          .code[length(.code)]  <- "})"
-          cat(paste(paste0("#' ",.code,"\n"),collapse=""))
+          .code <- deparse(body(eval(parse(text = paste("function(){", .norm2(.tmp), "}")))))
+          .code[1] <- "RxODE({"
+          .code[length(.code)] <- "})"
+          cat(paste(paste0("#' ", .code, "\n"), collapse = ""))
           cat("#'\n")
           cat(paste(paste0("#' @seealso \\code{\\link[RxODE]{eventTable}}, \\code{\\link[RxODE]{et}}, \\code{\\link[RxODE]{rxSolve}}, \\code{\\link[RxODE]{RxODE}}\n")))
           cat("#' \n")
@@ -195,9 +196,11 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
         .minfo(sprintf("copy '%s'", basename(x)))
         .env <- .rx$.rxUseI
         .rxUseI <- .env$i
-        .f0 <- gsub("^#define (.*) _rx(.*)$",
-                    paste0("#define \\1 _rxp",.rxUseI, "\\2"), readLines(x))
-        assign("i", .rxUseI+1, envir=.env)
+        .f0 <- gsub(
+          "^#define (.*) _rx(.*)$",
+          paste0("#define \\1 _rxp", .rxUseI, "\\2"), readLines(x)
+        )
+        assign("i", .rxUseI + 1, envir = .env)
         .f0 <- c("#include <RxODE.h>\n#include <RxODE_model_shared.h>", .f0)
         .w <- which(.f0 == "#include \"extraC.h\"")
         if (length(.w) > 0) .f0 <- .f0[-.w[1]]
@@ -251,9 +254,9 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
       cat(".rxUpdated <- new.env(parent=emptyenv())\n")
       sink()
     }
-    unlink(devtools::package_file("inst/rx"), recursive = TRUE, force=TRUE)
+    unlink(devtools::package_file("inst/rx"), recursive = TRUE, force = TRUE)
     if (length(list.files(devtools::package_file("inst"))) == 0) {
-      unlink(devtools::package_file("inst"), recursive = TRUE, force=TRUE)
+      unlink(devtools::package_file("inst"), recursive = TRUE, force = TRUE)
     }
     return(invisible(TRUE))
   } else {
@@ -282,11 +285,11 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
 #' @return this function returns nothing and is used for its side effects
 #' @export
 rxPkg <- function(..., package,
-                  wd=getwd(),
-                  action=c("install", "build", "binary", "create"),
-                  license=c("gpl3", "lgpl", "mit", "agpl3"),
-                  name="Firstname Lastname",
-                  fields=list()) {
+                  wd = getwd(),
+                  action = c("install", "build", "binary", "create"),
+                  license = c("gpl3", "lgpl", "mit", "agpl3"),
+                  name = "Firstname Lastname",
+                  fields = list()) {
   if (missing(package)) {
     stop("'package' needs to be specified")
   }
@@ -294,21 +297,27 @@ rxPkg <- function(..., package,
   license <- match.arg(license)
   .owd <- getwd()
   .op <- options()
-  on.exit({setwd(.owd);options(.op)})
+  on.exit({
+    setwd(.owd)
+    options(.op)
+  })
   .dir <- wd
   if (!dir.exists(.dir)) {
     dir.create(.dir)
   }
   setwd(.dir)
-  options(usethis.description = list(`Title`="This is generated from RxODE"),
-          usethis.full_name = ifelse(missing(name), getOption("usethis.full_name", "Firstname Lastname"), name))
+  options(
+    usethis.description = list(`Title` = "This is generated from RxODE"),
+    usethis.full_name = ifelse(missing(name), getOption("usethis.full_name", "Firstname Lastname"), name)
+  )
   .dir2 <- file.path(.dir, package)
   usethis::create_package(.dir2,
-                          fields = fields,
-                          rstudio = FALSE,
-                          roxygen = TRUE,
-                          check_name = TRUE,
-                          open = FALSE)
+    fields = fields,
+    rstudio = FALSE,
+    roxygen = TRUE,
+    check_name = TRUE,
+    open = FALSE
+  )
   setwd(.dir2)
   usethis::use_package("RxODE", "LinkingTo")
   usethis::use_package("RxODE", "Depends")
@@ -322,20 +331,22 @@ rxPkg <- function(..., package,
     usethis::use_mit_license()
   }
   .p <- devtools::package_file("DESCRIPTION")
-  writeLines(c(readLines(.p),
-               "NeedsCompilation: yes",
-               "Biarch: true"), .p)
+  writeLines(c(
+    readLines(.p),
+    "NeedsCompilation: yes",
+    "Biarch: true"
+  ), .p)
   ## Now use rxUse for each item
   .env <- new.env()
   .lst <- as.list(match.call()[-1])
   .w <- which(names(.lst) == "")
   .lst <- .lst[.w]
 
-  for (.i in seq_along(.lst)){
+  for (.i in seq_along(.lst)) {
     .v <- as.character(deparse(.lst[[.i]]))
-    assign(.v, eval(.lst[[.i]], envir=parent.frame(1)), .env)
+    assign(.v, eval(.lst[[.i]], envir = parent.frame(1)), .env)
     print(.env[[.v]])
-    eval(parse(text=sprintf("rxUse(%s)", .v)), envir=.env)
+    eval(parse(text = sprintf("rxUse(%s)", .v)), envir = .env)
   }
 
   ## Final rxUse to generate all code
@@ -346,28 +357,34 @@ rxPkg <- function(..., package,
   .w <- which(regexpr("@useDynLib", .f) != -1)
 
   if (length(.w) == 0) {
-    .f <- c(paste0("#' @useDynLib ", package,", .registration=TRUE"),
-            "#' @import RxODE",
-            .f)
+    .f <- c(
+      paste0("#' @useDynLib ", package, ", .registration=TRUE"),
+      "#' @import RxODE",
+      .f
+    )
     writeLines(.f, .p)
   }
   devtools::document()
   if (!file.exists("configure.win")) {
-    writeLines(c("#!/bin/sh",
-                 "echo \"unlink('src', recursive=TRUE);RxODE::rxUse()\" > build.R",
-                 "${R_HOME}/bin/Rscript build.R",
-                 "rm build.R"
-                 ), "configure.win")
+    writeLines(c(
+      "#!/bin/sh",
+      "echo \"unlink('src', recursive=TRUE);RxODE::rxUse()\" > build.R",
+      "${R_HOME}/bin/Rscript build.R",
+      "rm build.R"
+    ), "configure.win")
   }
   if (!file.exists("configure")) {
-    writeLines(c("#!/bin/sh",
-                 "echo \"unlink('src', recursive=TRUE);RxODE::rxUse()\" > build.R",
-                 "${R_HOME}/bin/Rscript build.R",
-                 "rm build.R"
-                 ), "configure")
+    writeLines(c(
+      "#!/bin/sh",
+      "echo \"unlink('src', recursive=TRUE);RxODE::rxUse()\" > build.R",
+      "${R_HOME}/bin/Rscript build.R",
+      "rm build.R"
+    ), "configure")
     if (!file.exists("configure.ac")) {
-      writeLines("## dummy autoconf script",
-                 "configure.ac")
+      writeLines(
+        "## dummy autoconf script",
+        "configure.ac"
+      )
     }
   }
   if (action == "install") {
@@ -375,7 +392,7 @@ rxPkg <- function(..., package,
   } else if (action == "build") {
     devtools::build()
   } else if (action == "binary") {
-    devtools::build(binary=TRUE)
+    devtools::build(binary = TRUE)
   }
   invisible()
 }

@@ -18,13 +18,14 @@
 #' ## Another fast method; See
 #' ## https://stackoverflow.com/questions/10405637/use-outer-instead-of-expand-grid
 #'
-#' expand.grid.jc <- function(seq1,seq2) {
-#'  cbind(Var1 = rep.int(seq1, length(seq2)),
-#'   Var2 = rep.int(seq2, rep.int(length(seq1),length(seq2))))
+#' expand.grid.jc <- function(seq1, seq2) {
+#'   cbind(
+#'     Var1 = rep.int(seq1, length(seq2)),
+#'     Var2 = rep.int(seq2, rep.int(length(seq1), length(seq2)))
+#'   )
 #' }
-#'
 #' \donttest{
-#'  microbenchmark::microbenchmark(rxExpandGrid(letters, letters), expand.grid.jc(letters, letters))
+#' microbenchmark::microbenchmark(rxExpandGrid(letters, letters), expand.grid.jc(letters, letters))
 #' }
 #' @export
 rxExpandGrid <- function(x, y, type = 0L) {
@@ -224,7 +225,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
 #'     pred/error information and (2) extra error variables created.
 #' @author Matthew L Fidler
 .rxGenPred <- function(obj, predfn, errfn, init,
-                       addProp=c("combined2", "combined1")) {
+                       addProp = c("combined2", "combined1")) {
   .extraPars <- NULL
   add <- function(...) {} # maker rcheck happy
   if (is.null(errfn)) {
@@ -244,11 +245,11 @@ rxExpandGrid <- function(x, y, type = 0L) {
   }))
   .pars <- .pars[.w]
   if (length(.pars) > 0) {
-      .mtheta <- max(as.numeric(gsub(rex::rex("THETA[", capture(numbers), "]"), "\\1", .pars)))
+    .mtheta <- max(as.numeric(gsub(rex::rex("THETA[", capture(numbers), "]"), "\\1", .pars)))
   } else {
     .mtheta <- 0
   }
-  .err <- rxParseErr(errfn, baseTheta = .mtheta + 1, init = init, addProp=addProp)
+  .err <- rxParseErr(errfn, baseTheta = .mtheta + 1, init = init, addProp = addProp)
   .predMod <- rxParsePred(predfn, init = init, .err)
   .extraPars <- attr(.predMod, "ini")
   .predMod <- rxGetModel(.predMod)
@@ -258,8 +259,8 @@ rxExpandGrid <- function(x, y, type = 0L) {
 }
 
 .rxFixR <- function(.newmod, addProp) {
-  if (!exists("..fixR", envir=.newmod)) {
-    if (exists("rx_r_", envir=.newmod)) {
+  if (!exists("..fixR", envir = .newmod)) {
+    if (exists("rx_r_", envir = .newmod)) {
       ## Breaks focei for non-trivial examples
       ## if (!rxErrEnv.hasAdd) {
       ##   ## Convert abs() to abs1()
@@ -269,15 +270,15 @@ rxExpandGrid <- function(x, y, type = 0L) {
       ##   assign("rx_r_", .r, envir=.newmod)
       ## }
       if (addProp == "combined1") {
-        assign("rx_r_", get("rx_r_", envir = .newmod)^2, envir=.newmod)
+        assign("rx_r_", get("rx_r_", envir = .newmod)^2, envir = .newmod)
       }
-      assign("..fixR", TRUE, envir=.newmod)
+      assign("..fixR", TRUE, envir = .newmod)
     }
   }
 }
 
 .rxLoadPrune <- function(mod, doConst = TRUE, promoteLinSens = TRUE, fullModel = FALSE,
-                         addProp=c("combined2", "combined1")) {
+                         addProp = c("combined2", "combined1")) {
   addProp <- match.arg(addProp)
   if (fullModel) {
     .malert("pruning branches ({.code if}/{.code else}) of full model...")
@@ -307,8 +308,8 @@ rxExpandGrid <- function(x, y, type = 0L) {
 #' @author Matthew Fidler
 #' @noRd
 .rxGenFun <- function(obj, predfn, pkpars = NULL, errfn = NULL,
-                      init = NULL, promoteLinSens = TRUE, full=TRUE,
-                      addProp=c("combined2", "combined1")) {
+                      init = NULL, promoteLinSens = TRUE, full = TRUE,
+                      addProp = c("combined2", "combined1")) {
   rxSolveFree()
   rxTempDir()
   .checkGood(predfn)
@@ -322,10 +323,10 @@ rxExpandGrid <- function(x, y, type = 0L) {
   }
   .stateInfo <- .rxGenFunState(obj)
   .newmod <- .rxGenPkpars(obj, pkpars, init)
-  .newmod <- .rxGenPred(.newmod, predfn, errfn, init, addProp=addProp)
+  .newmod <- .rxGenPred(.newmod, predfn, errfn, init, addProp = addProp)
   .extraPars <- .newmod[[2]]
   .newmod <- .newmod[[1]]
-  .newmod <- .rxLoadPrune(.newmod, promoteLinSens = promoteLinSens, addProp=addProp)
+  .newmod <- .rxLoadPrune(.newmod, promoteLinSens = promoteLinSens, addProp = addProp)
   .newmod$..stateInfo <- .stateInfo
   .newmod$..extraPars <- .extraPars
   return(.newmod)
@@ -333,21 +334,21 @@ rxExpandGrid <- function(x, y, type = 0L) {
 
 .rxIsOp <- function(x) {
   (identical(x, quote(`*`)) ||
-     identical(x, quote(`**`)) ||
-     identical(x, quote(`^`)) ||
-     identical(x, quote(`+`)) ||
-     identical(x, quote(`-`)) ||
-     identical(x, quote(`/`)) ||
-     identical(x, quote(`==`)) ||
-     identical(x, quote(`!=`)) ||
-     identical(x, quote(`>=`)) ||
-     identical(x, quote(`<=`)) ||
-     identical(x, quote(`<`)) ||
-     identical(x, quote(`>`)) ||
-     identical(x, quote(`&&`)) ||
-     identical(x, quote(`&`)) ||
-     identical(x, quote(`||`)) ||
-     identical(x, quote(`|`)))
+    identical(x, quote(`**`)) ||
+    identical(x, quote(`^`)) ||
+    identical(x, quote(`+`)) ||
+    identical(x, quote(`-`)) ||
+    identical(x, quote(`/`)) ||
+    identical(x, quote(`==`)) ||
+    identical(x, quote(`!=`)) ||
+    identical(x, quote(`>=`)) ||
+    identical(x, quote(`<=`)) ||
+    identical(x, quote(`<`)) ||
+    identical(x, quote(`>`)) ||
+    identical(x, quote(`&&`)) ||
+    identical(x, quote(`&`)) ||
+    identical(x, quote(`||`)) ||
+    identical(x, quote(`|`)))
 }
 
 .rxIsEqOrTilde <- function(x) {
@@ -364,23 +365,30 @@ rxExpandGrid <- function(x, y, type = 0L) {
       return(paste0("(", .rxGenSaemHide0(x[[2]]), ")"))
     } else if (identical(x[[1]], quote(`{`))) {
       return(paste0("{\n", paste(lapply(x[-1], .rxGenSaemHide0),
-                                 collapse = "\n"), "\n}"))
+        collapse = "\n"
+      ), "\n}"))
     } else if (as.character(x[[1]]) == "if") {
       if (length(x) == 3) {
-        return(paste0("if (", .rxGenSaemHide0(x[[2]]), ") ",
-                      .rxGenSaemHide0(x[[3]])))
+        return(paste0(
+          "if (", .rxGenSaemHide0(x[[2]]), ") ",
+          .rxGenSaemHide0(x[[3]])
+        ))
       } else if (length(x) == 4) {
-        return(paste0("if (", .rxGenSaemHide0(x[[2]]), ") ",
-                      .rxGenSaemHide0(x[[3]]), " else ",
-                      .rxGenSaemHide0(x[[4]])))
+        return(paste0(
+          "if (", .rxGenSaemHide0(x[[2]]), ") ",
+          .rxGenSaemHide0(x[[3]]), " else ",
+          .rxGenSaemHide0(x[[4]])
+        ))
       }
     } else if (.rxIsOp(x[[1]])) {
       if (length(x) == 3) {
-        return(paste0(.rxGenSaemHide0(x[[2]]),
-                      as.character(x[[1]]),
-                      .rxGenSaemHide0(x[[3]])))
+        return(paste0(
+          .rxGenSaemHide0(x[[2]]),
+          as.character(x[[1]]),
+          .rxGenSaemHide0(x[[3]])
+        ))
       } else {
-        ##Unary Operators
+        ## Unary Operators
         return(paste(
           as.character(x[[1]]),
           .rxGenSaemHide0(x[[2]])
@@ -389,23 +397,30 @@ rxExpandGrid <- function(x, y, type = 0L) {
     } else if (.rxIsEqOrTilde(x[[1]])) {
       .x2 <- .rxGenSaemHide0(x[[2]])
       if (.x2 == "nlmixr_pred" || regexpr("[(]", .x2) != -1) {
-        return(paste0(.x2, "=",
-                      .rxGenSaemHide0(x[[3]])))
+        return(paste0(
+          .x2, "=",
+          .rxGenSaemHide0(x[[3]])
+        ))
       } else {
-        return(paste0(.x2, "~",
-                      .rxGenSaemHide0(x[[3]])))
+        return(paste0(
+          .x2, "~",
+          .rxGenSaemHide0(x[[3]])
+        ))
       }
     } else {
-      return(paste0(as.character(x[[1]]), "(", paste(unlist(lapply(x[-1],
-                                                            .rxGenSaemHide0)),
-                                                     collapse = ", "), ")"))
+      return(paste0(as.character(x[[1]]), "(", paste(unlist(lapply(
+        x[-1],
+        .rxGenSaemHide0
+      )),
+      collapse = ", "
+      ), ")"))
     }
   }
 }
 .rxGenSaemHide <- function(x) {
-  .ret <- strsplit(.rxGenSaemHide0(eval(parse(text=paste0("quote({", x, "})")))), "\n")[[1]]
+  .ret <- strsplit(.rxGenSaemHide0(eval(parse(text = paste0("quote({", x, "})")))), "\n")[[1]]
   .ret <- .ret[-c(1, length(.ret))]
-  paste(.ret, collapse="\n")
+  paste(.ret, collapse = "\n")
 }
 #' Generate pred-only SAEM RxODE model
 #'
@@ -423,29 +438,33 @@ rxExpandGrid <- function(x, y, type = 0L) {
 #' @return RxODE text
 #' @author Matthew Fidler
 #' @export
-rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=TRUE,
-                      loadSymengine=TRUE) {
+rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod = FALSE, optExpression = TRUE,
+                      loadSymengine = TRUE) {
   rxReq("symengine")
-  .digest <- digest::digest(list(rxModelVars(obj)$md5["parsed_md5"],
-                                 ifelse(is.function(pkpars), paste(deparse1(body(pkpars)), collapse=""), ""),
-                                 sum.prod, optExpression, loadSymengine))
+  .digest <- digest::digest(list(
+    rxModelVars(obj)$md5["parsed_md5"],
+    ifelse(is.function(pkpars), paste(deparse1(body(pkpars)), collapse = ""), ""),
+    sum.prod, optExpression, loadSymengine
+  ))
   .path <- file.path(rxTempDir(), paste0("saem-", .digest, ".rds"))
   if (file.exists(.path)) {
-    .ret <- try(readRDS(.path), silent=TRUE)
+    .ret <- try(readRDS(.path), silent = TRUE)
     if (!inherits(.ret, "try-error")) {
       return(.ret)
     }
   }
   nlmixrAdd <- NULL
-  add <- function(...){}
-  .errfn <- function(){
+  add <- function(...) {}
+  .errfn <- function() {
     return(add(nlmixrAdd))
   }
   ## FIXME need to check if predfn is nlmixr_pred
   ## Add prop not supplied here, so it doesn't matter what you choose
   if (loadSymengine) {
-    .s <- .rxGenFun(obj, predfn, pkpars, errfn=.errfn,
-                    init=NULL, promoteLinSens=FALSE, full=FALSE)
+    .s <- .rxGenFun(obj, predfn, pkpars,
+      errfn = .errfn,
+      init = NULL, promoteLinSens = FALSE, full = FALSE
+    )
     .prd <- get("rx_pred_", envir = .s)
     .prd <- paste0("rx_pred_=", rxFromSE(.prd))
     .lhs0 <- .s$..lhs0
@@ -461,16 +480,16 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
       .s$..stateInfo["dvid"],
       ""
     ), collapse = "\n")
-    if (is.null(pkpars)){
+    if (is.null(pkpars)) {
       .mv <- rxModelVars(obj)$params
     } else {
       .mv <- deparse1(body(pkpars))
       .len <- length(.mv)
-      .mv <- if(.mv[1]=="{") .mv[2:(.len-1)] else .mv
-      .mv <- rxModelVars(paste(.mv, collapse="\n"))$params
+      .mv <- if (.mv[1] == "{") .mv[2:(.len - 1)] else .mv
+      .mv <- rxModelVars(paste(.mv, collapse = "\n"))$params
     }
   } else {
-    if (is.null(pkpars)){
+    if (is.null(pkpars)) {
       .mv <- rxModelVars(obj)
       .state <- .mv$state
       .mv <- .mv$params
@@ -478,8 +497,8 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
     } else {
       .mv <- deparse(body(pkpars))
       .len <- length(.mv)
-      .mv <- if(.mv[1]=="{") .mv[2:(.len-1)] else .mv
-      .pre <- paste(.mv, collapse="\n")
+      .mv <- if (.mv[1] == "{") .mv[2:(.len - 1)] else .mv
+      .pre <- paste(.mv, collapse = "\n")
       .saem <- paste0(.pre, "\n", rxNorm(obj))
       .mv <- rxModelVars(.saem)
       .state <- .mv$state
@@ -487,14 +506,19 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
     }
     if (!any(rxModelVars(.saem)$lhs == "nlmixr_pred")) {
       warning("this was not generated from nlmixr, loading into symengine")
-      return(rxGenSaem(obj=obj, predfn=predfn, pkpars=pkpars, sum.prod=sum.prod, optExpression=optExpression,
-                       loadSymengine=TRUE))
+      return(rxGenSaem(
+        obj = obj, predfn = predfn, pkpars = pkpars, sum.prod = sum.prod, optExpression = optExpression,
+        loadSymengine = TRUE
+      ))
     }
     .malert("generate SAEM model")
     .saem <- .rxGenSaemHide(.saem)
-    .saem <- paste0(ifelse(length(.state) > 0,
-                           paste(paste0("cmt(", .state, ")"), collapse="\n"), ""), "\n",
-                    .saem)
+    .saem <- paste0(
+      ifelse(length(.state) > 0,
+        paste(paste0("cmt(", .state, ")"), collapse = "\n"), ""
+      ), "\n",
+      .saem
+    )
     .msuccess("done")
   }
   if (sum.prod) {
@@ -505,8 +529,10 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
   if (optExpression) {
     .saem <- rxOptExpr(.saem, "SAEM model")
   }
-  .saem <- paste0("params(", paste(.mv, collapse=","), ")\n",
-                  .saem)
+  .saem <- paste0(
+    "params(", paste(.mv, collapse = ","), ")\n",
+    .saem
+  )
   saveRDS(.saem, .path)
 
   return(.saem)
@@ -521,9 +547,9 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
 #' @author Matthew L. Fidler
 .rxGenEtaS <- function(obj, predfn, pkpars = NULL, errfn = NULL,
                        init = NULL, promoteLinSens = TRUE,
-                       theta = FALSE, addProp=c("combined2", "combined1")) {
+                       theta = FALSE, addProp = c("combined2", "combined1")) {
   .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
-    promoteLinSens = promoteLinSens, addProp=addProp
+    promoteLinSens = promoteLinSens, addProp = addProp
   )
   .etaVars <- NULL
   if (theta && exists("..maxTheta", .s)) {
@@ -536,8 +562,9 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
   }
   .stateVars <- rxState(.s)
   .s <- .rxGenFun(obj, predfn, pkpars, errfn, init,
-                  promoteLinSens = promoteLinSens,
-                  addProp=addProp)
+    promoteLinSens = promoteLinSens,
+    addProp = addProp
+  )
   .rxJacobian(.s, c(.stateVars, .etaVars))
   .rxSens(.s, .etaVars)
   return(.s)
@@ -551,11 +578,11 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
 .rxGenHdEta <- function(obj, predfn, pkpars = NULL, errfn = NULL,
                         init = NULL, pred.minus.dv = TRUE,
                         promoteLinSens = TRUE,
-                        theta = FALSE, addProp=c("combined2", "combined1")) {
+                        theta = FALSE, addProp = c("combined2", "combined1")) {
   ## Equation 19 in Almquist
   .s <- .rxGenEtaS(obj, predfn, pkpars, errfn, init,
     promoteLinSens = promoteLinSens,
-    theta = theta, addProp=addProp
+    theta = theta, addProp = addProp
   )
   .stateVars <- rxState(.s)
   .grd <- rxExpandFEta_(
@@ -724,10 +751,11 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
                        optExpression = TRUE,
                        promoteLinSens = TRUE,
                        theta = FALSE,
-                       addProp=c("combined2", "combined1")) {
+                       addProp = c("combined2", "combined1")) {
   .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
-                    promoteLinSens = promoteLinSens, theta = theta,
-                    addProp=addProp)
+    promoteLinSens = promoteLinSens, theta = theta,
+    addProp = addProp
+  )
   .s$..REta <- NULL
   ## Take etas from rx_r
   eval(parse(text = rxRepR0_(.s$..maxEta)))
@@ -747,10 +775,11 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
                         sum.prod = FALSE,
                         optExpression = TRUE,
                         promoteLinSens = TRUE, theta = FALSE,
-                        addProp=c("combined2", "combined1")) {
+                        addProp = c("combined2", "combined1")) {
   .s <- .rxGenHdEta(obj, predfn, pkpars, errfn, init, pred.minus.dv,
-                    promoteLinSens = promoteLinSens, theta = theta,
-                    addProp=addProp)
+    promoteLinSens = promoteLinSens, theta = theta,
+    addProp = addProp
+  )
   .stateVars <- rxState(.s)
   .grd <- rxExpandFEta_(.stateVars, .s$..maxEta, FALSE)
   if (.useUtf()) {
@@ -785,8 +814,8 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod=FALSE, optExpression=
 .rxGenEBE <- function(obj, predfn, pkpars = NULL, errfn = NULL,
                       init = NULL, pred.minus.dv = TRUE,
                       sum.prod = FALSE, optExpression = TRUE,
-                      theta = FALSE, addProp=c("combined2", "combined1")) {
-  .s <- .rxGenFun(obj, predfn, pkpars, errfn, init, addProp=addProp)
+                      theta = FALSE, addProp = c("combined2", "combined1")) {
+  .s <- .rxGenFun(obj, predfn, pkpars, errfn, init, addProp = addProp)
   .s$..inner <- NULL
   .s$..outer <- NULL
   .rxFinalizePred(.s, sum.prod, optExpression)
@@ -842,16 +871,18 @@ rxSymPyExpEtas <- NULL
 rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
                       grad = FALSE, sum.prod = FALSE, pred.minus.dv = TRUE,
                       only.numeric = FALSE, optExpression = TRUE, interaction = TRUE, ...,
-                      promoteLinSens = TRUE, theta = FALSE, addProp=c("combined2", "combined1")) {
+                      promoteLinSens = TRUE, theta = FALSE, addProp = c("combined2", "combined1")) {
   rxReq("symengine")
   addProp <- match.arg(addProp)
-  .digest <- digest::digest(list(rxModelVars(obj)$md5["parsed_md5"],
-                                 ifelse(is.function(predfn), paste(deparse1(body(predfn)), collapse=""), ""),
-                                 ifelse(is.function(pkpars), paste(deparse1(body(pkpars)), collapse=""), ""),
-                                 ifelse(is.function(errfn), paste(deparse1(body(errfn)), collapse=""), ""),
-                                 init, grad, sum.prod, pred.minus.dv, only.numeric, optExpression,
-                                 interaction, promoteLinSens, theta,
-                                 addProp))
+  .digest <- digest::digest(list(
+    rxModelVars(obj)$md5["parsed_md5"],
+    ifelse(is.function(predfn), paste(deparse1(body(predfn)), collapse = ""), ""),
+    ifelse(is.function(pkpars), paste(deparse1(body(pkpars)), collapse = ""), ""),
+    ifelse(is.function(errfn), paste(deparse1(body(errfn)), collapse = ""), ""),
+    init, grad, sum.prod, pred.minus.dv, only.numeric, optExpression,
+    interaction, promoteLinSens, theta,
+    addProp
+  ))
   .path <- file.path(rxTempDir(), paste0("inner-", .digest, ".rds"))
   if (file.exists(.path)) {
     return(readRDS(.path))
@@ -868,18 +899,21 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   assignInMyNamespace("rxSymPyExpEtas", NULL)
   if (only.numeric) {
     .s <- .rxGenEBE(obj, predfn, pkpars, errfn, init, pred.minus.dv,
-                    sum.prod, optExpression,
-                    theta = theta, addProp=addProp)
+      sum.prod, optExpression,
+      theta = theta, addProp = addProp
+    )
   } else if (interaction) {
     .s <- .rxGenFocei(obj, predfn, pkpars, errfn, init, pred.minus.dv,
       sum.prod, optExpression,
       promoteLinSens = promoteLinSens, theta = theta,
-      addProp=addProp)
+      addProp = addProp
+    )
   } else {
     .s <- .rxGenFoce(obj, predfn, pkpars, errfn, init, pred.minus.dv,
       sum.prod, optExpression,
       promoteLinSens = promoteLinSens, theta = theta,
-      addProp=addProp)
+      addProp = addProp
+    )
   }
   .toRx <- function(x, msg) {
     if (is.null(x)) {
@@ -928,8 +962,7 @@ rxSEinner <- function(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
       .s$..pred.nolhs <- rxOptExpr(.s$..pred.nolhs, "FD model")
     }
     .s$..pred.nolhs <- paste(c(
-
-      paste0("params(", paste(inner$params, collapse=",") , ")"),
+      paste0("params(", paste(inner$params, collapse = ","), ")"),
       .s$..pred.nolhs
     ), collapse = "\n")
     pred.opt <- .s$..pred.nolhs

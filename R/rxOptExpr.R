@@ -144,31 +144,31 @@
   return(..rxOpt(.ret))
 }
 
-..rxOptLhs <- function(x){
-  if (is.atomic(x) || is.name(x)){
+..rxOptLhs <- function(x) {
+  if (is.atomic(x) || is.name(x)) {
     return(as.character(x))
-  } else if (is.call(x)){
-    if (identical(x[[1]], quote(`/`))){
+  } else if (is.call(x)) {
+    if (identical(x[[1]], quote(`/`))) {
       return(paste0(..rxOptLhs(x[[2]]), "/", ..rxOptLhs(x[[3]])))
-    } else if (identical(x[[1]], quote(`(`))){
+    } else if (identical(x[[1]], quote(`(`))) {
       return(paste0("(", ..rxOptLhs(x[[2]]), ")"))
-    } else if (identical(x[[1]], quote(`dt`))){
+    } else if (identical(x[[1]], quote(`dt`))) {
       return(paste0("dt(", ..rxOptLhs(x[[2]]), ")"))
-    } else if (identical(x[[1]], quote(`f`))){
+    } else if (identical(x[[1]], quote(`f`))) {
       return(paste0("f(", ..rxOptLhs(x[[2]]), ")"))
-    } else if (identical(x[[1]], quote(`F`))){
+    } else if (identical(x[[1]], quote(`F`))) {
       return(paste0("F(", ..rxOptLhs(x[[2]]), ")"))
-    } else if (identical(x[[1]], quote(`rate`))){
+    } else if (identical(x[[1]], quote(`rate`))) {
       return(paste0("rate(", ..rxOptLhs(x[[2]]), ")"))
-    } else if (identical(x[[1]], quote(`alag`))){
+    } else if (identical(x[[1]], quote(`alag`))) {
       return(paste0("alag(", ..rxOptLhs(x[[2]]), ")"))
-    } else if (identical(x[[1]], quote(`lag`))){
+    } else if (identical(x[[1]], quote(`lag`))) {
       return(paste0("alag(", ..rxOptLhs(x[[2]]), ")"))
-    } else if (identical(x[[1]], quote(`dur`))){
+    } else if (identical(x[[1]], quote(`dur`))) {
       return(paste0("dur(", ..rxOptLhs(x[[2]]), ")"))
-    } else if (identical(x[[1]], quote(`dy`))){
+    } else if (identical(x[[1]], quote(`dy`))) {
       return(paste0("dy(", ..rxOptLhs(x[[2]]), ")"))
-    } else if (identical(x[[1]], quote(`df`))){
+    } else if (identical(x[[1]], quote(`df`))) {
       return(paste0("df(", ..rxOptLhs(x[[2]]), ")"))
     } else if (identical(x[[2]], 0)) {
       return(paste0(as.character(x[[1]]), "(0)"))
@@ -315,19 +315,21 @@
       identical(x[[1]], quote(`<-`))) {
       .rxOptEnv$.new <- NULL
       .x3 <- .rxOptExpr(x[[3]])
-      if (length(.x3) == 3){
-        if (any(.x3[1] == c("/", "*", "+", "-"))){
+      if (length(.x3) == 3) {
+        if (any(.x3[1] == c("/", "*", "+", "-"))) {
           .x3 <- paste0(.x3[2], .x3[1], .x3[3])
         }
       }
-      if (length(.x3) != 1){
+      if (length(.x3) != 1) {
         stop("error optimizing expression, try 'optExpression=FALSE'")
       }
       .ret <- paste0(
         ..rxOptLhs(x[[2]]),
         ifelse(identical(x[[1]], quote(`<-`)),
-          "=", as.character(x[[1]])),
-        .x3)
+          "=", as.character(x[[1]])
+        ),
+        .x3
+      )
       .extra <- NULL
       if (length(.rxOptEnv$.new) > 0) {
         for (.i in seq_along(.rxOptEnv$.rep)) {
