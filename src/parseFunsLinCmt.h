@@ -1,3 +1,5 @@
+#include "needSortDefines.h"
+
 static inline void handleFunctionLinCmtAlag(transFunctions *tf, D_ParseNode *xpn1, D_ParseNode *xpn2) {
   // 10 tlag
   xpn2 = d_get_child(xpn1, 10+tf->isLinB);
@@ -7,7 +9,7 @@ static inline void handleFunctionLinCmtAlag(transFunctions *tf, D_ParseNode *xpn
     // has interesting tlag
     int ixL = tb.ixL;
     int didEq = tb.didEq;
-    if (foundLag == 0) needSort+=2; // & 2 when alag
+    if (foundLag == 0) needSort+=needSortAlag; // & 2 when alag
     foundLag=1;
     aType(ALAG);
     addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
@@ -27,7 +29,7 @@ static inline void handleFunctionLinCmtF1(transFunctions *tf, D_ParseNode *xpn1,
     // has interesting f1
     int ixL = tb.ixL;
     int didEq = tb.didEq;
-    if (foundF == 0) needSort+=1;// & 1 when F
+    if (foundF == 0) needSort+=needSortF;// & 1 when F
     foundF=1;
     aType(FBIO);
     addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
@@ -48,7 +50,7 @@ static inline void handleFunctionLinCmtDur1(transFunctions *tf, D_ParseNode *xpn
     // has interesting rate
     int ixL = tb.ixL;
     int didEq = tb.didEq;
-    if (foundDur == 0) needSort+=4;// & 4 when dur
+    if (foundDur == 0) needSort+= needSortDur;// & 4 when dur
     foundDur=1;
     aType(DUR);
     addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
@@ -69,7 +71,7 @@ static inline void handleFunctionLinCmtRate1(transFunctions *tf, D_ParseNode *xp
     // has interesting rate
     int ixL = tb.ixL;
     int didEq = tb.didEq;
-    if (foundRate == 0) needSort+=8;// & 8 when rate
+    if (foundRate == 0) needSort+= needSortRate;// & 8 when rate
     foundRate=1;
     aType(RATE);
     addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt] = %s;\n", v2);
@@ -98,7 +100,7 @@ static inline void handleFunctionLinCmtKa(transFunctions *tf, D_ParseNode *xpn1,
     // has interesting tlag
     int ixL = tb.ixL;
     int didEq = tb.didEq;
-    if (foundLag == 0) needSort+=2; // & 2 when alag
+    if (foundLag == 0) needSort+= needSortAlag; // & 2 when alag
     foundLag=1;
     aType(ALAG);
     addLine(&sbPm, "_alag[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
@@ -119,7 +121,7 @@ static inline void handleFunctionLinCmtF2(transFunctions *tf, D_ParseNode *xpn1,
     // has interesting f1
     int ixL = tb.ixL;
     int didEq = tb.didEq;
-    if (foundF == 0) needSort+=1;// & 1 when F
+    if (foundF == 0) needSort+= needSortF;// & 1 when F
     foundF=1;
     aType(FBIO);
     addLine(&sbPm, "_f[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
@@ -140,7 +142,7 @@ static inline void handleFunctionLinCmtRate2(transFunctions *tf, D_ParseNode *xp
     // has interesting rate
     int ixL = tb.ixL;
     int didEq = tb.didEq;
-    if (foundRate == 0) needSort+=8;// & 8 when rate
+    if (foundRate == 0) needSort+= needSortRate;// & 8 when rate
     foundRate=1;
     aType(RATE);
     addLine(&sbPm, "_rate[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
@@ -160,7 +162,7 @@ static inline void handleFunctionLinCmtDur2(transFunctions *tf, D_ParseNode *xpn
     // has interesting rate
     int ixL = tb.ixL;
     int didEq = tb.didEq;
-    if (foundDur == 0) needSort+=4;// & 4 when dur
+    if (foundDur == 0) needSort+= needSortDur;// & 4 when dur
     foundDur=1;
     aType(DUR);
     addLine(&sbPm, "_dur[(&_solveData->subjects[_cSub])->linCmt+1] = %s;\n", v2);
