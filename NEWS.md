@@ -54,7 +54,7 @@
   the modeled rate and duration is not included in the event table.
   
 * When the data requires a modeled rate and modeled duration but it is
-  not in the model do not solve, throw an error instead.
+  not in the model, warn about the mismatch in data
 
 # RxODE 1.0.9
 

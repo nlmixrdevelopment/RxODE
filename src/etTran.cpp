@@ -974,7 +974,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	// rate is modeled
 	rateI = 9;
 	if (!(needSort & needSortRate)) {
-	  stop(_("data specified modeled rate (=-1) but no rate() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
+	  warning(_("data specified modeled rate (=-1) but no rate() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
 	rateModeled = true;
       } else if (rate == -2.0){
@@ -983,7 +983,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  stop(_("when using steady state constant infusion modeling duration does not make sense (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
 	if (!(needSort & needSortDur)) {
-	  stop(_("data specified modeled duration (=-2) but no dur() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
+	  warning(_("data specified modeled duration (=-2) but no dur() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
 	rateI = 8;
 	durModeled = true;
