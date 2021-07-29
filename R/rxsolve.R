@@ -1184,6 +1184,10 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
       stop("'iCov' must be an input dataset")
     }
   }
+  if (RxODE.debug) {
+    .rx <- rxNorm(object)
+    qs::qsave(list(.rx, .ctl, .nms, .xtra, params, events, inits, .setupOnly), "last-rxode.qs")
+  }
   .ret <- .collectWarnings(rxSolveSEXP(object, .ctl, .nms, .xtra,
     params, events, inits,
     setupOnlyS = .setupOnly

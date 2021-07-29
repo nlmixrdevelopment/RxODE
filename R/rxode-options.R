@@ -218,7 +218,8 @@ rxOpt <- list(
   RxODE.sympy.run.internal = c(FALSE, FALSE),
   RxODE.syntax.require.ode.first = c(TRUE, TRUE),
   RxODE.compile.O = c("3", "3"),
-  RxODE.unload.unused = c(FALSE, FALSE)
+  RxODE.unload.unused = c(FALSE, FALSE),
+  RxODE.debug=c(FALSE, FALSE)
 )
 
 RxODE.prefer.tbl <- NULL
@@ -242,6 +243,7 @@ RxODE.sympy.run.internal <- NULL
 RxODE.syntax.require.ode.first <- NULL
 RxODE.compile.O <- NULL
 RxODE.unload.unused <- NULL
+RxODE.debug <- NULL
 
 .isTestthat <- function() {
   return(regexpr("/tests/testthat/", getwd(), fixed = TRUE) != -1) # nolint
@@ -311,7 +313,7 @@ rxSyncOptions <- function(setDefaults = c("none", "permissive", "strict")) {
   if (x > 0) {
     op.rx <- list()
     for (v in names(rxOpt)) {
-      op.rx[[v]] <- rxOpt[[v]][x]
+      op.rx[[v]] <- getOption(v, rxOpt[[v]][x])
     }
     options(op.rx) # nolint
   }
