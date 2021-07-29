@@ -71,72 +71,72 @@ rxodeTest(
           Kin = 1, Kout = 1, EC50 = 200, eta1 = 0, theta1 = 1
         ) # effects
 
-        ev <- eventTable(amount.units = "mg", time.units = "hours")
-        ev$add.dosing(dose = 10000, nbr.doses = 10, dosing.interval = 12)
-        ev$add.dosing(dose = 20000, nbr.doses = 5, start.time = 120, dosing.interval = 24)
-        ev$add.sampling(0:240)
+      ev <- eventTable(amount.units = "mg", time.units = "hours")
+      ev$add.dosing(dose = 10000, nbr.doses = 10, dosing.interval = 12)
+      ev$add.dosing(dose = 20000, nbr.doses = 5, start.time = 120, dosing.interval = 24)
+      ev$add.sampling(0:240)
 
-        s <- fini %>% solve(theta, ev)
+      s <- fini %>% solve(theta, ev)
 
-        expect_equal(as.data.frame(s)[1, "eff"], 1)
+      expect_equal(as.data.frame(s)[1, "eff"], 1)
 
-        rxDelete(fini)
+      rxDelete(fini)
 
-        fini <- RxODE({
-          C2 <- centr / V2
-          C3 <- peri / V3
-          d / dt(depot) <- -KA * depot
-          d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-          d / dt(peri) <- Q * C2 - Q * C3
-          d / dt(eff) <- Kin - Kout * (1 - C2 / (EC50 + C2)) * eff
-          eff(0) <- theta1 + eta1
-        })
+      fini <- RxODE({
+        C2 <- centr / V2
+        C3 <- peri / V3
+        d / dt(depot) <- -KA * depot
+        d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+        d / dt(peri) <- Q * C2 - Q * C3
+        d / dt(eff) <- Kin - Kout * (1 - C2 / (EC50 + C2)) * eff
+        eff(0) <- theta1 + eta1
+      })
 
-        theta <-
-          c(
-            KA = 2.94E-01, CL = 1.86E+01, V2 = 4.02E+01, # central
-            Q = 1.05E+01, V3 = 2.97E+02, # peripheral
-            Kin = 1, Kout = 1, EC50 = 200, eta1 = 0, theta1 = 1
-          ) # effects
+      theta <-
+        c(
+          KA = 2.94E-01, CL = 1.86E+01, V2 = 4.02E+01, # central
+          Q = 1.05E+01, V3 = 2.97E+02, # peripheral
+          Kin = 1, Kout = 1, EC50 = 200, eta1 = 0, theta1 = 1
+        ) # effects
 
-          ev <- eventTable(amount.units = "mg", time.units = "hours")
-          ev$add.dosing(dose = 10000, nbr.doses = 10, dosing.interval = 12)
-          ev$add.dosing(dose = 20000, nbr.doses = 5, start.time = 120, dosing.interval = 24)
-          ev$add.sampling(0:240)
+      ev <- eventTable(amount.units = "mg", time.units = "hours")
+      ev$add.dosing(dose = 10000, nbr.doses = 10, dosing.interval = 12)
+      ev$add.dosing(dose = 20000, nbr.doses = 5, start.time = 120, dosing.interval = 24)
+      ev$add.sampling(0:240)
 
-          s <- fini %>% solve(theta, ev)
+      s <- fini %>% solve(theta, ev)
 
-          expect_equal(as.data.frame(s)[1, "eff"], 1)
+      expect_equal(as.data.frame(s)[1, "eff"], 1)
 
-          theta["eta1"] <- 0.5
+      theta["eta1"] <- 0.5
 
-          s <- fini %>% solve(theta, ev)
-          expect_equal(as.data.frame(s)[1, "eff"], 1.5)
+      s <- fini %>% solve(theta, ev)
+      expect_equal(as.data.frame(s)[1, "eff"], 1.5)
 
-          theta["eta1"] <- -0.5
+      theta["eta1"] <- -0.5
 
-          s <- fini %>% solve(theta, ev)
-          expect_equal(as.data.frame(s)[1, "eff"], 0.5)
+      s <- fini %>% solve(theta, ev)
+      expect_equal(as.data.frame(s)[1, "eff"], 0.5)
 
 
 
-          ## Now with rxGetModel
-          m1 <- rxGetModel({
-            C2 <- centr / V2
-            C3 <- peri / V3
-            d / dt(depot) <- -KA * depot
-            d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
-            d / dt(peri) <- Q * C2 - Q * C3
-            d / dt(eff) <- Kin - Kout * (1 - C2 / (EC50 + C2)) * eff
-          })
+      ## Now with rxGetModel
+      m1 <- rxGetModel({
+        C2 <- centr / V2
+        C3 <- peri / V3
+        d / dt(depot) <- -KA * depot
+        d / dt(centr) <- KA * depot - CL * C2 - Q * C2 + Q * C3
+        d / dt(peri) <- Q * C2 - Q * C3
+        d / dt(eff) <- Kin - Kout * (1 - C2 / (EC50 + C2)) * eff
+      })
 
-          test_that(
-            "blank names works",
-            expect_equal(
-              suppressWarnings(rxInits(m1, c(0, 0, 0, 1), rxState(m1), 0)),
-              structure(c(0, 0, 0, 1), .Names = c("depot", "centr", "peri", "eff"))
-            )
-          )
+      test_that(
+        "blank names works",
+        expect_equal(
+          suppressWarnings(rxInits(m1, c(0, 0, 0, 1), rxState(m1), 0)),
+          structure(c(0, 0, 0, 1), .Names = c("depot", "centr", "peri", "eff"))
+        )
+      )
     })
 
     .rxWithOptions(list(RxODE.syntax.allow.ini = TRUE), {
@@ -163,7 +163,6 @@ rxodeTest(
         expect_equal(rxModelVars(tmp)$ini, structure(numeric(0), .Names = character(0)))
       })
     })
-
   },
   silent = TRUE,
   test = "cran"

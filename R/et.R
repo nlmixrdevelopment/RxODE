@@ -269,30 +269,30 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl,
     .lst <- .lst[names(.lst) != "envir"]
     if (.isPipe) {
       if (length(.lst) == 3) {
-        .from <- eval(.lst[[2]], envir=envir)
-        .to <- eval(.lst[[3]], envir=envir)
+        .from <- eval(.lst[[2]], envir = envir)
+        .to <- eval(.lst[[3]], envir = envir)
         .lst <- .lst[-3]
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
         .lst[[2]] <- seq(from = .from, to = .to, by = by)
         return(do.call(et.default, .lst, envir = envir))
       } else {
-        .from <- eval(.lst[[2]], envir=envir)
+        .from <- eval(.lst[[2]], envir = envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         .lst[[2]] <- seq(from = .from, by = by)
         return(do.call(et.default, .lst, envir = envir))
       }
     } else {
       if (length(.lst) == 2) {
-        .from <- eval(.lst[[1]], envir=envir)
-        .to <- eval(.lst[[2]], envir=envir)
+        .from <- eval(.lst[[1]], envir = envir)
+        .to <- eval(.lst[[2]], envir = envir)
         .lst <- .lst[-2]
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
         .lst[[1]] <- seq(from = .from, to = .to, by = by)
         return(do.call(et.default, .lst, envir = envir))
       } else {
-        .from <- eval(.lst[[1]], envir=envir)
+        .from <- eval(.lst[[1]], envir = envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         .lst[[1]] <- seq(from = .from, by = by)
         return(do.call(et.default, .lst, envir = envir))
@@ -306,29 +306,29 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl,
     if (.isPipe) {
       if (length(.lst) == 3) {
         .from <- eval(.lst[[2]], envir = envir)
-        .to <- eval(.lst[[3]], envir=envir)
+        .to <- eval(.lst[[3]], envir = envir)
         .lst <- .lst[-3]
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
         .lst[[2]] <- seq(from = .from, to = .to, length.out = length.out)
         return(do.call(et.default, .lst, envir = envir))
       } else {
-        .from <- eval(.lst[[2]], envir=envir)
+        .from <- eval(.lst[[2]], envir = envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         .lst[[2]] <- seq(from = .from, length.out = length.out)
         return(do.call(et.default, .lst, envir = envir))
       }
     } else {
       if (length(.lst) == 2) {
-        .from <- eval(.lst[[1]], envir=envir)
-        .to <- eval(.lst[[2]], envir=envir)
+        .from <- eval(.lst[[1]], envir = envir)
+        .to <- eval(.lst[[2]], envir = envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
-        .lst <- eval(.lst[-2], envir=envir)
+        .lst <- eval(.lst[-2], envir = envir)
         .lst[[1]] <- seq(from = .from, to = .to, length.out = length.out)
         return(do.call(et.default, .lst, envir = envir))
       } else {
-        .from <- eval(.lst[[1]], envir=envir)
+        .from <- eval(.lst[[1]], envir = envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         .lst[[1]] <- seq(from = .from, length.out = length.out)
         return(do.call(et.default, .lst, envir = envir))
@@ -339,8 +339,8 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl,
     if (all(names(.lst) == "") && length(.lst) == 2) {
       if ((is(.lst[[1]], "numeric") || is(.lst[[1]], "integer")) &&
         (is(.lst[[2]], "numeric") || is(.lst[[2]], "integer"))) {
-        .from <- eval(.lst[[1]], envir=envir)
-        .to <- eval(.lst[[2]], envir=envir)
+        .from <- eval(.lst[[1]], envir = envir)
+        .to <- eval(.lst[[2]], envir = envir)
         .lst <- .lst[-2]
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
@@ -357,8 +357,8 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl,
     if (all(names(.lst)[-1] == "") && length(.lst) == 3) {
       if ((is(.lst[[2]], "numeric") || is(.lst[[2]], "integer")) &&
         (is(.lst[[3]], "numeric") || is(.lst[[3]], "integer"))) {
-        .from <- eval(.lst[[2]], envir=envir)
-        .to <- eval(.lst[[3]], envir=envir)
+        .from <- eval(.lst[[2]], envir = envir)
+        .to <- eval(.lst[[3]], envir = envir)
         checkmate::assertNumeric(.from, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "from")
         checkmate::assertNumeric(.to, finite = TRUE, max.len = 1, any.missing = FALSE, .var.name = "to")
         .lst <- .lst[-3]
@@ -428,9 +428,9 @@ et.default <- function(x, ..., time, amt, evid, cmt, ii, addl,
       .et$import.EventTable(.df)
       if (.isPipe) {
         .tmp <- eval(.lst[[1]], envir = envir)
-        if (nrow(.et) == 0){
+        if (nrow(.et) == 0) {
           return(.tmp)
-        } else if (nrow(.tmp) == 0){
+        } else if (nrow(.tmp) == 0) {
           return(.et)
         } else {
           return(etRbind(.tmp, .et))
@@ -661,14 +661,14 @@ simulate.rxEt <- # nolint
 
 drop_units.rxEt <- function(x) {
   if (requireNamespace("units", quietly = TRUE)) {
-    stop("requires package 'units'", call.=FALSE)
+    stop("requires package 'units'", call. = FALSE)
   }
   .Call(`_RxODE_et_`, list(amountUnits = NA_character_, timeUnits = NA_character_), x)
 }
 
 set_units.rxEt <- function(x, value, ..., mode = .setUnitsMode()) {
   if (is.null(mode)) {
-    stop("requires package 'units'", call.=FALSE)
+    stop("requires package 'units'", call. = FALSE)
   }
   if (missing(value)) {
     value <- .unitless()
@@ -735,9 +735,9 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L,
                        rate = NULL, amount.units = NA_character_,
                        start.time = 0.0, do.sampling = FALSE,
                        time.units = NA_character_, ...) {
-  checkmate::assertDouble(dose, any.missing=FALSE, finite=TRUE, max.len=1)
-  checkmate::assertDouble(dosing.interval, lower=0, any.missing=FALSE, finite=TRUE, max.len=1)
-  checkmate::assertDouble(start.time, any.missing=FALSE, finite=TRUE, max.len=1)
+  checkmate::assertDouble(dose, any.missing = FALSE, finite = TRUE, max.len = 1)
+  checkmate::assertDouble(dosing.interval, lower = 0, any.missing = FALSE, finite = TRUE, max.len = 1)
+  checkmate::assertDouble(start.time, any.missing = FALSE, finite = TRUE, max.len = 1)
   .lst <- list(
     dose = dose,
     nbr.doses = nbr.doses,
@@ -754,7 +754,7 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L,
   } else {
     .lst$dosing.interval <- 0.0
   }
-  checkmate::assertIntegerish(nbr.doses, lower=1L, any.missing=FALSE, max.len=1)
+  checkmate::assertIntegerish(nbr.doses, lower = 1L, any.missing = FALSE, max.len = 1)
   .Call(`_RxODE_et_`, .lst, eventTable)
 }
 
@@ -846,44 +846,47 @@ add.sampling <- function(eventTable, time, time.units = NA) {
 #' #
 #' qd <- eventTable(amount.units = "mg", time.units = "days")
 #' #
-#' qd$add.dosing(dose=50, nbr.doses=5, dosing.interval = 1, do.sampling=FALSE)
+#' qd$add.dosing(dose = 50, nbr.doses = 5, dosing.interval = 1, do.sampling = FALSE)
 #' #
 #' # sample the system's drug amounts hourly the first day, then every 12 hours
 #' # for the next 4 days
-#' qd$add.sampling(seq(from = 0, to = 1, by = 1/24))
-#' qd$add.sampling(seq(from = 1, to = 5, by = 12/24))
+#' qd$add.sampling(seq(from = 0, to = 1, by = 1 / 24))
+#' qd$add.sampling(seq(from = 1, to = 5, by = 12 / 24))
 #' #
-#' #print(qd$get.dosing())     # table of dosing records
-#' print(qd$get.nobs())   # number of observation (not dosing) records
+#' # print(qd$get.dosing())     # table of dosing records
+#' print(qd$get.nobs()) # number of observation (not dosing) records
 #' #
 #' # BID dosing, 5 days
-#' bid <- eventTable("mg", "days")  # only dosing
-#' bid$add.dosing(dose=10000, nbr.doses=2*5,
-#'                dosing.interval = 12, do.sampling=FALSE)
+#' bid <- eventTable("mg", "days") # only dosing
+#' bid$add.dosing(
+#'   dose = 10000, nbr.doses = 2 * 5,
+#'   dosing.interval = 12, do.sampling = FALSE
+#' )
 #' #
 #' # Use the copy() method to create a copy (clone) of an existing
 #' # event table (simple assignments just create a new reference to
 #' # the same event table object (closure)).
 #' #
-#' bid.ext <- bid$copy()      # three-day extension for a 2nd cohort
-#' bid.ext$add.dosing(dose = 5000, nbr.doses = 2*3,
-#'                    start.time = 120, dosing.interval = 12, do.sampling = FALSE)
+#' bid.ext <- bid$copy() # three-day extension for a 2nd cohort
+#' bid.ext$add.dosing(
+#'   dose = 5000, nbr.doses = 2 * 3,
+#'   start.time = 120, dosing.interval = 12, do.sampling = FALSE
+#' )
 #'
 #' # You can also use the Piping operator to create a table
 #'
-#' qd2 <- eventTable(amount.units="mg", time.units="days") %>%
-#'     add.dosing(dose=50, nbr.doses=5, dosing.interval=1, do.sampling=FALSE) %>%
-#'     add.sampling(seq(from=0, to=1, by=1 / 24)) %>%
-#'     add.sampling(seq(from=1, to=5, by=12 / 24))
-#' #print(qd2$get.dosing())     # table of dosing records
-#' print(qd2$get.nobs())   # number of observation (not dosing) records
+#' qd2 <- eventTable(amount.units = "mg", time.units = "days") %>%
+#'   add.dosing(dose = 50, nbr.doses = 5, dosing.interval = 1, do.sampling = FALSE) %>%
+#'   add.sampling(seq(from = 0, to = 1, by = 1 / 24)) %>%
+#'   add.sampling(seq(from = 1, to = 5, by = 12 / 24))
+#' # print(qd2$get.dosing())     # table of dosing records
+#' print(qd2$get.nobs()) # number of observation (not dosing) records
 #'
 #' # Note that piping with %>% will update the original table.
 #'
-#' qd3 <- qd2 %>% add.sampling(seq(from=5, to=10, by=6 / 24))
+#' qd3 <- qd2 %>% add.sampling(seq(from = 5, to = 10, by = 6 / 24))
 #' print(qd2$get.nobs())
 #' print(qd3$get.nobs())
-#'
 #' @keywords models data
 #' @concept ordinary differential equations
 #' @concept Nonlinear regression
@@ -1103,7 +1106,7 @@ as.data.table.rxEt <- function(x, keep.rownames = FALSE, ...) {
 #' @return tibble of event table
 #'
 #' @export as_tibble.rxEt
-#'@export as_tibble.rxEt
+#' @export as_tibble.rxEt
 as_tibble.rxEt <- function(x, ...) {
   rxReq("tibble")
   if (rxIs(x, "rxEt")) {
@@ -1137,7 +1140,7 @@ is.rxEt <- function(x) {
 #' @return New event table with `addl` doses expanded
 #' @author Matthew Fidler
 #' @examples
-#' ev <- et(amt=3,ii=24,until=240);
+#' ev <- et(amt = 3, ii = 24, until = 240)
 #' print(ev)
 #' etExpand(ev) # expands event table, but doesn't modify it
 #'
@@ -1168,7 +1171,6 @@ magrittr::`%>%`
 #' @examples
 #'
 #' rxEvid(1:7)
-#'
 #' @export
 rxEvid <- function(x) {
   return(structure(x, class = "rxEvid"))
@@ -1372,7 +1374,7 @@ as.data.frame.rxRateDur <- base::as.data.frame.difftime
 
 set_units.rxRateDur <- function(x, value, ..., mode = .setUnitsMode()) {
   if (is.null(mode)) {
-    stop("requires package 'units'", call.=FALSE)
+    stop("requires package 'units'", call. = FALSE)
   }
   if (inherits(x, "units")) {
     .ret <- x

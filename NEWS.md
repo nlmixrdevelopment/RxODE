@@ -50,6 +50,21 @@
 
 * Check arguments for `add.dosing()` more strictly. See Issue #441
 
+* Issue a warning when either `dur()` or `rate()` is in the model but
+  the modeled rate and duration is not included in the event table.
+  
+* When the data requires a modeled rate and modeled duration but it is
+  not in the model, warn about the mismatch in data
+  
+* Added a back-door for debugging. If you specify
+  `options(RxODE.debug=TRUE)` then each solve saves the solving
+  information to the file `"last-rxode.qs"` before actually solving
+  the system.
+  
+* Only will try to solve RxODE problems on compatible models; If the
+  model is not supported it will throw an error instead of crashing
+  (See #449)
+
 # RxODE 1.0.9
 
 * At the request of CRAN, stripping the debugging symbols for the CRAN

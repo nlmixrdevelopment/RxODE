@@ -17,5 +17,4 @@ Unloads all RxODE compiled DLLs
 \examples{
 
 print(rxUnloadAll())
-
 }

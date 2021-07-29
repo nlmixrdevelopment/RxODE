@@ -46,13 +46,12 @@ can run the same number of cores as you are running so they can
 reproduce your results.
 }
 \examples{
-
 \donttest{
 
 ## Use threefry engine
 
-rxcauchy(0, 1, n=10) # with rxcauchy you have to explicitly state n
-rxcauchy(0.5, n=10, ncores=2) # You can parallelize the simulation using openMP
+rxcauchy(0, 1, n = 10) # with rxcauchy you have to explicitly state n
+rxcauchy(0.5, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
 rxcauchy(3)
 
@@ -60,13 +59,12 @@ rxcauchy(3)
 ## This example uses `rxcauchy` directly in the model
 
 rx <- RxODE({
-  a = rxcauchy(2)
+  a <- rxcauchy(2)
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
-
+s <- rxSolve(rx, et)
 }
 
 }

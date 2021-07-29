@@ -192,11 +192,13 @@ plot.rxSolve <- function(x, y, ..., log = "",
   if (length(.w) > 0) {
     .call <- .call[-.w]
   }
-  .cmts <- c(as.character(substitute(y)),
-             names(sapply(as.character(.call), `c`)))
+  .cmts <- c(
+    as.character(substitute(y)),
+    names(sapply(as.character(.call), `c`))
+  )
 
   .cmts <- .cmts[!duplicated(.cmts)]
-  .cmts <- intersect(.cmts, c(rxState(x),rxLhs(x)))
+  .cmts <- intersect(.cmts, c(rxState(x), rxLhs(x)))
   if (length(.cmts) == 0) {
     .cmts <- NULL
   }

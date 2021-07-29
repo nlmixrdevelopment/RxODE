@@ -25,11 +25,10 @@ With one sink, then release
 \examples{
 
 t <- tempfile()
-.rxWithSink(t,cat("message\n"))
+.rxWithSink(t, cat("message\n"))
 cat("cat2\n") # now you can see the cat2
 lines <- readLines(t)
 unlink(t)
-
 }
 \author{
 Matthew Fidler

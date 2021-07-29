@@ -26,8 +26,6 @@ by adding the derivatives to RxODE's internal derivative table
 with \code{\link[=rxD]{rxD()}}
 }
 \examples{
-
-
 \donttest{
 ## Right now RxODE is not aware of the function f
 ## Therefore it cannot translate it to symengine or
@@ -45,7 +43,7 @@ double fun(double a, double b, double c) {
 }
 " ## C-code for function
 
-rxFun("fun",c("a","b","c"), fun) ## Added function
+rxFun("fun", c("a", "b", "c"), fun) ## Added function
 
 ## Now RxODE knows how to translate this function to symengine
 
@@ -56,22 +54,23 @@ rxToSE("fun(a,b,c)")
 rxFromSE("Derivative(fun(a,b,c),a)")
 
 ## Of course, you could specify the derivative table manually
-rxD("fun", list(function(a,b,c){
-  paste0("2*",a,"+",b);
-},
-    function(a,b,c){
-     return(a)
-    },
-    function(a,b,c){
-      return("0.0")
-} ))
+rxD("fun", list(
+  function(a, b, c) {
+    paste0("2*", a, "+", b)
+  },
+  function(a, b, c) {
+    return(a)
+  },
+  function(a, b, c) {
+    return("0.0")
+  }
+))
 
 rxFromSE("Derivative(fun(a,b,c),a)")
 
 # You can also remove the functions by `rxRmFun`
 
 rxRmFun("fun")
-
 }
 }
 \author{

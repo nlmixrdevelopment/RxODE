@@ -16,10 +16,10 @@ rxValidate <- function(type = NULL) {
   }
   if (type == TRUE) {
     .oldCran <- Sys.getenv("NOT_CRAN")
-    Sys.setenv("NOT_CRAN"="true")
-    on.exit(Sys.setenv("NOT_CRAN"=.oldCran))
+    Sys.setenv("NOT_CRAN" = "true")
+    on.exit(Sys.setenv("NOT_CRAN" = .oldCran))
   }
-  .rxWithOptions(list(testthat.progress.max_fails=10000000000), {
+  .rxWithOptions(list(testthat.progress.max_fails = 10000000000), {
     path <- file.path(system.file("tests", package = "RxODE"), "testthat")
     .rxWithWd(path, {
       try(testthat::test_dir(path, filter = .filter))
@@ -45,7 +45,7 @@ rxTest <- rxValidate
 #' @keywords internal
 #' @author Matthew Fidler
 #' @export
-rxodeTest <- function(code, test="cran", silent="ignore") {
+rxodeTest <- function(code, test = "cran", silent = "ignore") {
   on.exit({
     rxUnloadAll()
   })

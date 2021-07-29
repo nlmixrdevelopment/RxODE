@@ -667,11 +667,11 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
                     sumType = c("pairwise", "fsum", "kahan", "neumaier", "c"),
                     prodType = c("long double", "double", "logify"),
                     sensType = c("advan", "autodiff", "forward", "central"),
-                    linDiff=c(tlag=1.5e-5, f=1.5e-5, rate=1.5e-5, dur=1.5e-5, tlag2=1.5e-5, f2=1.5e-5, rate2=1.5e-5, dur2=1.5e-5),
-                    linDiffCentral=c(tlag=TRUE, f=TRUE, rate=TRUE, dur=TRUE, tlag2=TRUE, f2=TRUE, rate2=TRUE, dur2=TRUE),
-                    resample=NULL,
-                    resampleID=TRUE,
-                    maxwhile=100000) {
+                    linDiff = c(tlag = 1.5e-5, f = 1.5e-5, rate = 1.5e-5, dur = 1.5e-5, tlag2 = 1.5e-5, f2 = 1.5e-5, rate2 = 1.5e-5, dur2 = 1.5e-5),
+                    linDiffCentral = c(tlag = TRUE, f = TRUE, rate = TRUE, dur = TRUE, tlag2 = TRUE, f2 = TRUE, rate2 = TRUE, dur2 = TRUE),
+                    resample = NULL,
+                    resampleID = TRUE,
+                    maxwhile = 100000) {
   if (is.null(object)) {
     .xtra <- list(...)
     if (inherits(sigmaXform, "numeric") || inherits(sigmaXform, "integer")) {
@@ -767,20 +767,20 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       ))
       if (covsInterpolation == "constant") covsInterpolation <- "locf"
       covsInterpolation <- as.integer(which(covsInterpolation ==
-                                              c("linear", "locf", "nocb", "midpoint")) - 1)
+        c("linear", "locf", "nocb", "midpoint")) - 1)
     }
     if (any(duplicated(names(.xtra)))) {
       stop("duplicate arguments do not make sense", .call = FALSE)
     }
     if (any(names(.xtra) == "covs")) {
       stop("covariates can no longer be specified by 'covs' include them in the event dataset",
-           .call = FALSE
-           )
+        .call = FALSE
+      )
     }
-    if (missing(cores)){
+    if (missing(cores)) {
       cores <- 0L
     } else if (!missing(cores)) {
-      checkmate::assert_integerish(cores, lower =0L, len = 1)
+      checkmate::assert_integerish(cores, lower = 0L, len = 1)
       cores <- as.integer(cores)
     }
     if (inherits(sigma, "character")) {
@@ -796,7 +796,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       .omega <- lotri(omega)
     }
     if (inherits(indLinMatExpType, "numeric") ||
-          inherits(indLinMatExpType, "integer")) {
+      inherits(indLinMatExpType, "integer")) {
       .indLinMatExpType <- as.integer(indLinMatExpType)
     } else {
       .indLinMatExpTypeIdx <- c("Al-Mohy" = 3, "arma" = 1, "expokit" = 2)
@@ -804,20 +804,20 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       .indLinMatExpType <- as.integer(.indLinMatExpTypeIdx[match.arg(indLinMatExpType)])
     }
     if (inherits(sumType, "numeric") ||
-          inherits(sumType, "integer")) {
+      inherits(sumType, "integer")) {
       .sum <- as.integer(sumType)
     } else {
       .sum <- which(match.arg(sumType) == c("pairwise", "fsum", "kahan", "neumaier", "c"))
     }
     if (inherits(prodType, "numeric") ||
-          inherits(prodType, "integer")) {
+      inherits(prodType, "integer")) {
       .prod <- as.integer(prodType)
     } else {
       .prod <- which(match.arg(prodType) == c("long double", "double", "logify"))
     }
 
     if (inherits(sensType, "numeric") ||
-          inherits(sensType, "integer")) {
+      inherits(sensType, "integer")) {
       .sensType <- as.integer(sensType)
     } else {
       .sensType <- as.integer(which(match.arg(sensType) == c("autodiff", "forward", "central", "advan")))
@@ -891,22 +891,21 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
       sumType = as.integer(.sum),
       prodType = as.integer(.prod),
       sensType = as.integer(.sensType),
-      linDiff=linDiff,
-      linDiffCentral=linDiffCentral,
-      resample=resample,
-      resampleID=resampleID,
-      maxwhile=maxwhile,
-      cores=cores
+      linDiff = linDiff,
+      linDiffCentral = linDiffCentral,
+      resample = resample,
+      resampleID = resampleID,
+      maxwhile = maxwhile,
+      cores = cores
     )
     return(.ret)
-
   }
   UseMethod("rxSolve")
 }
 #' @rdname rxSolve
 #' @export
 rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, ...,
-                            theta=NULL, eta=NULL) {
+                            theta = NULL, eta = NULL) {
   on.exit({
     .clearPipe()
   })
@@ -1098,35 +1097,35 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
     .eta <- eta
     if (!is.null(.theta)) {
       if (inherits(.theta, "data.frame")) {
-        stop("'theta' cannot be a data.frame", call.=FALSE)
+        stop("'theta' cannot be a data.frame", call. = FALSE)
       } else if (inherits(.theta, "matrix")) {
         .dn <- dim(.theta)
         if (.dn[1] != 1) {
-          stop("'theta' can only have 1 row", call.=FALSE)
+          stop("'theta' can only have 1 row", call. = FALSE)
         }
         .theta <- as.vector(theta)
       }
       if (is.null(attr(theta, "names"))) {
         .theta <- setNames(theta, paste0("THETA[", seq_along(theta), "]"))
       } else {
-        warning("name specification for 'theta' is ignored", call.=FALSE)
+        warning("name specification for 'theta' is ignored", call. = FALSE)
         .theta <- setNames(theta, paste0("THETA[", seq_along(theta), "]"))
       }
     }
     if (!is.null(.eta)) {
       if (inherits(.eta, "data.frame")) {
-        stop("'eta' cannot be a data.frame", call.=FALSE)
+        stop("'eta' cannot be a data.frame", call. = FALSE)
       } else if (inherits(.eta, "matrix")) {
         .dn <- dim(.eta)
         if (.dn[1] != 1) {
-          stop("'eta' can only have 1 row", call.=FALSE)
+          stop("'eta' can only have 1 row", call. = FALSE)
         }
         .eta <- as.vector(eta)
       }
       if (is.null(attr(eta, "names"))) {
         .eta <- setNames(eta, paste0("ETA[", seq_along(eta), "]"))
       } else {
-        warning("name specification for 'eta' is ignored", call.=FALSE)
+        warning("name specification for 'eta' is ignored", call. = FALSE)
         .eta <- setNames(eta, paste0("ETA[", seq_along(eta), "]"))
       }
     }
@@ -1136,11 +1135,12 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
       events <- c(.theta, .eta)
     } else {
       stop("cannot specify 'params' and 'theta'/'eta' at the same time",
-           call.=FALSE)
+        call. = FALSE
+      )
     }
   }
 
-  if (!is.null(.ctl$iCov)){
+  if (!is.null(.ctl$iCov)) {
     if (inherits(.ctl$iCov, "data.frame")) {
       .icovId <- which(tolower(names(.ctl$iCov)) == "id")
       .useEvents <- FALSE
@@ -1168,7 +1168,7 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
       }
       names(.ctl$iCov)[.icovId] <- .by
       .lEvents <- length(.events[, 1])
-      .events <- merge(.events, .ctl$iCov, by=.by)
+      .events <- merge(.events, .ctl$iCov, by = .by)
       if (.lEvents != length(.events[, 1])) {
         warning("combining iCov and events dropped some event information")
       }
@@ -1183,6 +1183,13 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
     } else {
       stop("'iCov' must be an input dataset")
     }
+  }
+  if (RxODE.debug) {
+    .rx <- rxNorm(object)
+    qs::qsave(list(.rx, .ctl, .nms, .xtra, params, events, inits, .setupOnly), "last-rxode.qs")
+  }
+  if (!any(class(object) %in% c("rxSolve", "RxODE", "character", "rxModelVars", "rxDll"))) {
+    stop("Unsupported type of model trying to be solved")
   }
   .ret <- .collectWarnings(rxSolveSEXP(object, .ctl, .nms, .xtra,
     params, events, inits,
@@ -1332,32 +1339,32 @@ dimnames.rxSolve <- function(x) {
 }
 
 #' @export
-"dimnames<-.rxSolve" <- function(x, value){
-    class(x) <- "data.frame"
-    "dimnames<-.data.frame"(x, value)
+"dimnames<-.rxSolve" <- function(x, value) {
+  class(x) <- "data.frame"
+  "dimnames<-.data.frame"(x, value)
 }
 
-#'@export
-"[<-.rxSolve" <- function(x, i, j, value){
-  if (missing(i) && !missing(j)){
+#' @export
+"[<-.rxSolve" <- function(x, i, j, value) {
+  if (missing(i) && !missing(j)) {
     if (rxIs(j, "character")) {
       ret <- .Call(`_RxODE_rxSolveUpdate`, x, j, value)
-      if (is.null(ret)){
+      if (is.null(ret)) {
         class(x) <- "data.frame"
-        return(`[<-.data.frame`(x,, j, value = value))
+        return(`[<-.data.frame`(x, , j, value = value))
       } else {
         return(ret)
       }
     }
   }
   class(x) <- "data.frame"
-  if (nargs() < 4){
-    if (missing(j)){
+  if (nargs() < 4) {
+    if (missing(j)) {
       return(`[<-.data.frame`(x, i, value = value))
     } else {
-      return(`[<-.data.frame`(x,, j, value = value))
+      return(`[<-.data.frame`(x, , j, value = value))
     }
-  } else{
+  } else {
     return(`[<-.data.frame`(x, i, j, value))
   }
   class(x) <- "data.frame"
@@ -1437,6 +1444,6 @@ drop_units.rxSolve <- function(x) {
 
 #' @rdname rxSolve
 #' @export
-rxControl <- function(..., params=NULL, events=NULL, inits=NULL) {
-  rxSolve(object=NULL, params = params, events = events, inits = inits, ...)
+rxControl <- function(..., params = NULL, events = NULL, inits = NULL) {
+  rxSolve(object = NULL, params = params, events = events, inits = inits, ...)
 }

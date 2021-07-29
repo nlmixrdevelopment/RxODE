@@ -26,10 +26,9 @@ gammap = lowergamma(a, z)/gamma(a)
 }
 \examples{
 
-gammap(1,3)
-gammap(1:3,3)
-gammap(1,1:3)
-
+gammap(1, 3)
+gammap(1:3, 3)
+gammap(1, 1:3)
 }
 \author{
 Matthew L. Fidler

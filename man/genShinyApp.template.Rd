@@ -70,7 +70,7 @@ genShinyApp.template(appDir = "myapp")
 # run the shiny app
 library(shiny)
 # runApp("myapp") # Won't launch in environments without browsers
-unlink("myapp", recursive=TRUE, force=TRUE) # remove myapp
+unlink("myapp", recursive = TRUE, force = TRUE) # remove myapp
 }
 }
 \seealso{

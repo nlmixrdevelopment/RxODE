@@ -26,12 +26,11 @@ The lowergamma function is given by:
 }
 \examples{
 
-lowergamma(1,3)
+lowergamma(1, 3)
 
-lowergamma(1:3,3)
+lowergamma(1:3, 3)
 
-lowergamma(1,1:3)
-
+lowergamma(1, 1:3)
 }
 \author{
 Matthew L. Fidler

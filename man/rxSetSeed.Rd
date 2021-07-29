@@ -76,7 +76,6 @@ set.seed(42)
 rxnorm()
 
 rnorm(1)
-
 }
 \references{
 JD Cook. (2016). Random number generator seed mistakes.

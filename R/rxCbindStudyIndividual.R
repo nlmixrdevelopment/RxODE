@@ -39,21 +39,21 @@
 ##' rxCbindStudyIndividual(tmat, ev1)
 ##'
 ##' @export
-rxCbindStudyIndividual <- function(studyParameters, individualParameters)  {
+rxCbindStudyIndividual <- function(studyParameters, individualParameters) {
   if (!inherits(individualParameters, "data.frame")) {
-    stop("'individualParameters' must  be a data frame", call.=FALSE)
+    stop("'individualParameters' must  be a data frame", call. = FALSE)
   }
   if (inherits(studyParameters, "matrix")) {
     .dimnames <- dimnames(studyParameters)
     if (is.null(.dimnames)) {
-      stop("'studyParameters' must be matrix with named columns", call.=FALSE)
+      stop("'studyParameters' must be matrix with named columns", call. = FALSE)
     }
     .dimnames <- .dimnames[[2]]
     if (is.null(.dimnames)) {
-      stop("'studyParameters' must be matrix with named columns", call.=FALSE)
+      stop("'studyParameters' must be matrix with named columns", call. = FALSE)
     }
   } else if (!inherits(studyParameters, "data.frame")) {
-    stop("'studyParameters' needs to be either a data frame or a matrix", call.=FALSE)
+    stop("'studyParameters' needs to be either a data frame or a matrix", call. = FALSE)
   }
   .Call(`_rxCbindStudyIndividual`, studyParameters, individualParameters)
 }

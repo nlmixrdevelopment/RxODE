@@ -29,9 +29,9 @@ rxParams.RxODE <- function(obj, constants = TRUE, ...,
                            thetaMat = NULL,
                            omega = NULL, dfSub = NULL,
                            sigma = NULL, dfObs = NULL,
-                           nSub = NULL, nStud = NULL)  {
+                           nSub = NULL, nStud = NULL) {
   if (!is.null(iCov)) {
-    stop("'iCov' in a pipline is no longer supported", call.=FALSE)
+    stop("'iCov' in a pipline is no longer supported", call. = FALSE)
   }
   .ret <- list(
     params = params, inits = inits, keep = keep,
@@ -88,7 +88,7 @@ rxParams.rxSolve <- function(obj, constants = TRUE, ...,
                              sigma = NULL, dfObs = NULL,
                              nSub = NULL, nStud = NULL) {
   if (!is.null(iCov)) {
-    stop("'iCov' in a pipline is no longer supported", call.=FALSE)
+    stop("'iCov' in a pipline is no longer supported", call. = FALSE)
   }
   .ret <- list(
     params = params, inits = inits, keep = keep,
@@ -154,7 +154,7 @@ rxParams.rxEt <- function(obj, ...,
                           sigma = NULL, dfObs = NULL,
                           nSub = NULL, nStud = NULL) {
   if (!is.null(iCov)) {
-    stop("'iCov' in a pipline is no longer supported", call.=FALSE)
+    stop("'iCov' in a pipline is no longer supported", call. = FALSE)
   }
   # et() %>% rxParams() %>%
   assignInMyNamespace(".pipelineEvents", obj)
@@ -162,8 +162,8 @@ rxParams.rxEt <- function(obj, ...,
   if (length(.lst) > 0) {
     .clearPipe()
     stop(sprintf(gettext("unknown arguments in 'rxParams': %s\ntry piping to 'rxSolve'"), paste(names(.lst), collapse = ", ")),
-         call. = FALSE
-         )
+      call. = FALSE
+    )
   }
   .ret <- list(
     params = params, inits = inits, keep = keep,

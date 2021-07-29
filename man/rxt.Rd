@@ -45,13 +45,12 @@ can run the same number of cores as you are running so they can
 reproduce your results.
 }
 \examples{
-
 \donttest{
 
 ## Use threefry engine
 
-rxt(df=3, n=10) # with rxt you have to explicitly state n
-rxt(df=3, n=10, ncores=2) # You can parallelize the simulation using openMP
+rxt(df = 3, n = 10) # with rxt you have to explicitly state n
+rxt(df = 3, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
 rxt(4) ## The first argument is the df parameter
 
@@ -59,12 +58,11 @@ rxt(4) ## The first argument is the df parameter
 ## This example uses `rxt` directly in the model
 
 rx <- RxODE({
-  a = rxt(3)
+  a <- rxt(3)
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
-
+s <- rxSolve(rx, et)
 }
 }

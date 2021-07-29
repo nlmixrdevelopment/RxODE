@@ -29,8 +29,7 @@ probit(0.25)
 
 probitInv(-0.674)
 
-probitNormInfo(probit(0.25),sd=0.1)
+probitNormInfo(probit(0.25), sd = 0.1)
 
-probitNormInfo(probit(1,0,10), sd=1, low=0, high=10)
-
+probitNormInfo(probit(1, 0, 10), sd = 1, low = 0, high = 10)
 }

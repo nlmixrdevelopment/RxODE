@@ -54,21 +54,22 @@ Simulate a from a Poisson process
 \examples{
 
 ## Sample homogenous Poisson process of rate 1/10
-rxPp(10, 1/10)
+rxPp(10, 1 / 10)
 
 ## Sample inhomogenous Poisson rate of 1/10
 
-rxPp(10, 1/10,gamma=2,tmax=100)
+rxPp(10, 1 / 10, gamma = 2, tmax = 100)
 
 ## Typically the Poisson process times are in a sequential order,
 ## using randomOrder gives the Poisson process in random order
 
-rxPp(10, 1/10,gamma=2,tmax=10, randomOrder=TRUE)
+rxPp(10, 1 / 10, gamma = 2, tmax = 10, randomOrder = TRUE)
 
 ## This uses an arbitrary function to sample a non-homogenous Poisson process
 
-rxPp(10, 1/10, prob=function(x){1/x})
-
+rxPp(10, 1 / 10, prob = function(x) {
+  1 / x
+})
 }
 \author{
 Matthew Fidler

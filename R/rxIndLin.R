@@ -203,19 +203,23 @@ rxIndLinState <- function(preferred = NULL) {
   .ret1 <- .ret[, "_rxF", drop = FALSE]
   .code <- c(paste0("_rxM=", as.vector(.ret0), ";"))
   if (all(.ret1 == "0")) {
-    .ret <- list(A=.ret0,
-                 f=NULL,
-                 fullIndLin=.fullIndLin,
-                 wIndLin=.w)
+    .ret <- list(
+      A = .ret0,
+      f = NULL,
+      fullIndLin = .fullIndLin,
+      wIndLin = .w
+    )
   } else {
-    .ret <- list(A=.ret0,
-                 f=.ret1,
-                 fullIndLin=.fullIndLin,
-                 wIndLin=.w)
+    .ret <- list(
+      A = .ret0,
+      f = .ret1,
+      fullIndLin = .fullIndLin,
+      wIndLin = .w
+    )
     .code <- c(.code, paste("_rxF=", as.vector(.ret1)))
   }
   assignInMyNamespace(".indLinInfo", .ret)
   rxProgressStop()
   .malert("indLin is in development and results subject to change")
-  return(paste(.code, collapse="\n"))
+  return(paste(.code, collapse = "\n"))
 }

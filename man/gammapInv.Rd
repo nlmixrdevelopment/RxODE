@@ -38,14 +38,13 @@ NOTE: gammapInva is slow
 }
 \examples{
 
-gammapInv(1:3,0.5)
+gammapInv(1:3, 0.5)
 
-gammapInv(1,1:3/3.1)
+gammapInv(1, 1:3 / 3.1)
 
-gammapInv(1:3,1:3/3.1)
+gammapInv(1:3, 1:3 / 3.1)
 
-gammapInva(1:3,1:3/3.1)
-
+gammapInva(1:3, 1:3 / 3.1)
 }
 \author{
 Matthew L. Fidler

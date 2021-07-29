@@ -25,10 +25,14 @@ Add to RxODE's derivative tables
 ## Add an arbitrary list of derivative functions
 ## In this case the fun(x,y) is assumed to be 0.5*x^2+0.5*y^2
 
-rxD("fun", list(function(x,y){return(x)},
-                function(x,y){return(y)}
-                ))
-
+rxD("fun", list(
+  function(x, y) {
+    return(x)
+  },
+  function(x, y) {
+    return(y)
+  }
+))
 }
 \author{
 Matthew Fidler

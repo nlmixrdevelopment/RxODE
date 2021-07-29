@@ -105,7 +105,6 @@ rxodeTest(
     })
 
     test_that("truncated normal simulation", {
-
       set.seed(414)
       d <- 5
       mu <- 1:d
@@ -114,29 +113,27 @@ rxodeTest(
       tmp <- matrix(rnorm(d^2), d, d)
       mcov <- tcrossprod(tmp, tmp)
 
-      a <- rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
+      a <- rxRmvn(10, 1:d, mcov, lower = 1:d - 1, upper = 1:d + 1)
 
-      for (i in 1:d){
+      for (i in 1:d) {
         expect_false(all(a[, i] == i))
         expect_false(any(a[, i] < i - 1))
         expect_false(any(a[, i] > i + 1))
       }
 
       set.seed(10)
-      a1 <- rxRmvn(1, 10, matrix(2),10,11)
-      a2 <- rxRmvn(1, 10, matrix(2),10,11)
+      a1 <- rxRmvn(1, 10, matrix(2), 10, 11)
+      a2 <- rxRmvn(1, 10, matrix(2), 10, 11)
 
       expect_false(all(a1 == a2))
 
       set.seed(10)
-      a1 <- rxRmvn(1, 10, matrix(2),10,11)
+      a1 <- rxRmvn(1, 10, matrix(2), 10, 11)
 
       set.seed(10)
-      a2 <- rxRmvn(1, 10, matrix(2),10,11)
+      a2 <- rxRmvn(1, 10, matrix(2), 10, 11)
 
       expect_equal(a1, a2)
-
-
     })
   },
   test = "norm"

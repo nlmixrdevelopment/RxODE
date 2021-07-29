@@ -67,25 +67,24 @@ in a data frame or arguments
 
 ## Note that RxODE parses the names to figure out the best PK parameter
 
-params <- rxDerived(cl=29.4, v=23.4, Vp=114, vp2=4614, q=270, q2=73)
+params <- rxDerived(cl = 29.4, v = 23.4, Vp = 114, vp2 = 4614, q = 270, q2 = 73)
 
 ## That is why this gives the same results as the value before
 
-params <- rxDerived(CL=29.4, V1=23.4, V2=114, V3=4614, Q2=270, Q3=73)
+params <- rxDerived(CL = 29.4, V1 = 23.4, V2 = 114, V3 = 4614, Q2 = 270, Q3 = 73)
 
 ## You may also use micro-constants alpha/beta etc.
 
-params <- rxDerived(k12=0.1, k21=0.2, k13=0.3, k31=0.4, kel=10, v=10)
+params <- rxDerived(k12 = 0.1, k21 = 0.2, k13 = 0.3, k31 = 0.4, kel = 10, v = 10)
 
 ## or you can mix vectors and scalars
 
-params <- rxDerived(CL=29.4, V=1:3)
+params <- rxDerived(CL = 29.4, V = 1:3)
 
 ## If you want, you can round to a number of significant digits
 ## with the `digits` argument:
 
-params <- rxDerived(CL=29.4, V=1:3, digits=2)
-
+params <- rxDerived(CL = 29.4, V = 1:3, digits = 2)
 }
 \references{
 Shafer S. L. \code{CONVERT.XLS}

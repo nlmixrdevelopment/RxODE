@@ -10,15 +10,17 @@
 .onLoad <- function(libname, pkgname) { ## nocov start
   if (!identical(.dparserVersion, utils::packageVersion("dparser"))) {
     stop("RxODE compiled with dparser '", as.character(.dparserVersion),
-         "' but dparser '", as.character(utils::packageVersion("dparser")),
-         "' is loaded\nRecompile RxODE with the this version of dparser",
-         call.=FALSE)
+      "' but dparser '", as.character(utils::packageVersion("dparser")),
+      "' is loaded\nRecompile RxODE with the this version of dparser",
+      call. = FALSE
+    )
   }
   if (!identical(.PreciseSumsVersion, utils::packageVersion("PreciseSums"))) {
     stop("RxODE compiled with PreciseSums '", as.character(.PreciseSumsVersion),
-         "' but PreciseSums '", as.character(utils::packageVersion("PreciseSums")),
-         "' is loaded\nRecompile RxODE with the this version of PreciseSums",
-         call.=FALSE)
+      "' but PreciseSums '", as.character(utils::packageVersion("PreciseSums")),
+      "' is loaded\nRecompile RxODE with the this version of PreciseSums",
+      call. = FALSE
+    )
   }
   if (requireNamespace("pillar", quietly = TRUE)) {
     .s3register("pillar::type_sum", "rxEvid")
@@ -37,12 +39,12 @@
   if (requireNamespace("data.table", quietly = TRUE)) {
     .s3register("data.table::as.data.table", "rxEt")
   }
-  if (requireNamespace("units", quietly=TRUE)) {
+  if (requireNamespace("units", quietly = TRUE)) {
     .s3register("units::set_units", "rxEt")
     .s3register("units::set_units", "rxRateDur")
     .s3register("units::drop_units", "rxEt")
     .s3register("units::drop_units", "rxSolve")
-    .s3register("units::units<-","rxEvid")
+    .s3register("units::units<-", "rxEvid")
     assignInMyNamespace(".hasUnits", TRUE)
     .units <- loadNamespace("units")
     assignInMyNamespace("type_sum.units", .units$type_sum.units)
@@ -82,17 +84,22 @@
   .getDTEnv()
   .ggplot2Fix()
   v <- utils::packageVersion("RxODE")
-  packageStartupMessage("RxODE ", v, " using ", getRxThreads(verbose=FALSE),
-                        " threads (see ?getRxThreads)",
-                        ifelse(.cacheIsTemp, "\n  no cache: create with `rxCreateCache()`", ""))
+  packageStartupMessage(
+    "RxODE ", v, " using ", getRxThreads(verbose = FALSE),
+    " threads (see ?getRxThreads)",
+    ifelse(.cacheIsTemp, "\n  no cache: create with `rxCreateCache()`", "")
+  )
   if (!.Call(`_rxHasOpenMp`)) {
-    packageStartupMessage("========================================\n",
-        "RxODE has not detected OpenMP support and will run in single-threaded mode\n",
-        if (Sys.info()["sysname"]=="Darwin")
-          "This is a Mac. Please read https://mac.r-project.org/openmp/"
-        else
-          paste0("The system is ", Sys.info()["sysname"], "; To get best performance enable OpenMP"),
-        "\n========================================\n")
+    packageStartupMessage(
+      "========================================\n",
+      "RxODE has not detected OpenMP support and will run in single-threaded mode\n",
+      if (Sys.info()["sysname"] == "Darwin") {
+        "This is a Mac. Please read https://mac.r-project.org/openmp/"
+      } else {
+        paste0("The system is ", Sys.info()["sysname"], "; To get best performance enable OpenMP")
+      },
+      "\n========================================\n"
+    )
   }
 }
 
@@ -109,7 +116,7 @@
     dir.create(.tmp, recursive = TRUE)
   } else if (!file.exists(file.path(.tmp, paste0(RxODE.md5, ".md5")))) {
     if (!.cacheIsTemp) packageStartupMessage("detected new version of RxODE, cleaning cache")
-    unlink(.tmp, recursive=TRUE, force=TRUE)
+    unlink(.tmp, recursive = TRUE, force = TRUE)
     dir.create(.tmp, recursive = TRUE)
     writeLines("RxODE", file.path(.tmp, paste0(RxODE.md5, ".md5")))
   }
@@ -128,7 +135,7 @@ rxTempDir <- function() {
     .rxUserDir <- R_user_dir("RxODE", "cache")
     assignInMyNamespace(".cacheIsTemp", FALSE)
     if (!file.exists(.rxUserDir)) {
-      .rxUserDir <- file.path(tempdir(),"RxODE")
+      .rxUserDir <- file.path(tempdir(), "RxODE")
       assignInMyNamespace(".cacheIsTemp", TRUE)
     }
     if (.tmp == "") {
@@ -211,7 +218,8 @@ rxOpt <- list(
   RxODE.sympy.run.internal = c(FALSE, FALSE),
   RxODE.syntax.require.ode.first = c(TRUE, TRUE),
   RxODE.compile.O = c("3", "3"),
-  RxODE.unload.unused = c(FALSE, FALSE)
+  RxODE.unload.unused = c(FALSE, FALSE),
+  RxODE.debug=c(FALSE, FALSE)
 )
 
 RxODE.prefer.tbl <- NULL
@@ -235,6 +243,7 @@ RxODE.sympy.run.internal <- NULL
 RxODE.syntax.require.ode.first <- NULL
 RxODE.compile.O <- NULL
 RxODE.unload.unused <- NULL
+RxODE.debug <- NULL
 
 .isTestthat <- function() {
   return(regexpr("/tests/testthat/", getwd(), fixed = TRUE) != -1) # nolint
@@ -254,11 +263,11 @@ RxODE.unload.unused <- NULL
 #'
 #' # Note the errors are output to the console
 #'
-#' try(RxODE("d/dt(matt)=/3"),silent=TRUE)
+#' try(RxODE("d/dt(matt)=/3"), silent = TRUE)
 #'
 #' # When using suppressMessages, the output is suppressed
 #'
-#' suppressMessages(try(RxODE("d/dt(matt)=/3"),silent=TRUE))
+#' suppressMessages(try(RxODE("d/dt(matt)=/3"), silent = TRUE))
 #'
 #' # In RxODE, we use REprintf so that interrupted threads do not crash R
 #' # if there is a user interrupt. This isn't captured by R's messages, but
@@ -269,13 +278,13 @@ RxODE.unload.unused <- NULL
 #' # this function
 rxSuppressMsg <- function() {
   if (requireNamespace("knitr", quietly = TRUE)) {
-    if (!is.null(knitr::opts_knit$get('rmarkdown.pandoc.to'))) {
+    if (!is.null(knitr::opts_knit$get("rmarkdown.pandoc.to"))) {
       return(invisible(NULL))
     } else {
-      rxSetSilentErr(as.integer(length(capture.output(message(" "),type="message")) == 0L))
+      rxSetSilentErr(as.integer(length(capture.output(message(" "), type = "message")) == 0L))
     }
   } else {
-    rxSetSilentErr(as.integer(length(capture.output(message(" "),type="message")) == 0L))
+    rxSetSilentErr(as.integer(length(capture.output(message(" "), type = "message")) == 0L))
   }
   invisible(NULL)
 }
@@ -296,13 +305,15 @@ rxSuppressMsg <- function() {
 #' @author Matthew L. Fidler
 #' @return nothing; called for side effects
 #' @export
-rxSyncOptions <- function(setDefaults=c("none", "permissive", "strict")) {
-  x <- c("none" = 0L, "permissive" = 2L,
-         "strict" = 1L)[match.arg(setDefaults)]
+rxSyncOptions <- function(setDefaults = c("none", "permissive", "strict")) {
+  x <- c(
+    "none" = 0L, "permissive" = 2L,
+    "strict" = 1L
+  )[match.arg(setDefaults)]
   if (x > 0) {
     op.rx <- list()
     for (v in names(rxOpt)) {
-      op.rx[[v]] <- rxOpt[[v]][x]
+      op.rx[[v]] <- getOption(v, rxOpt[[v]][x])
     }
     options(op.rx) # nolint
   }

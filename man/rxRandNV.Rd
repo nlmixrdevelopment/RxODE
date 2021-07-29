@@ -19,9 +19,8 @@ Create a random "normal" matrix using vandercorput generator
 }
 \examples{
 
-rxRandNV(1,1)
-rxRandNV(3,2)
-
+rxRandNV(1, 1)
+rxRandNV(3, 2)
 }
 \author{
 Matthew Fidler

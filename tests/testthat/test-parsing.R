@@ -43,21 +43,26 @@ rxodeTest(
 
     ## Statements don't require ; now.
     .rxWithOptions(list(RxODE.syntax.require.semicolon = FALSE), {
-      goodParse("comments must be outside statements #1",
-                "d/dt(y) = 1   # bad comment;")
+      goodParse(
+        "comments must be outside statements #1",
+        "d/dt(y) = 1   # bad comment;"
+      )
       goodParse(
         'missing end of statement ";" dosen\'t cause errors',
         paste(
           sep = "\n",
           "d/dt(depot) = -ka * depot",
           "d/dt(centr) =  ka * depot - kout * centr;"
-        ))
+        )
+      )
     })
 
     .rxWithOptions(list(RxODE.syntax.require.semicolon = TRUE), {
       rxSyncOptions()
-      badParse("comments must be outside statements #2",
-               "d/dt(y) = 1   # bad comment;")
+      badParse(
+        "comments must be outside statements #2",
+        "d/dt(y) = 1   # bad comment;"
+      )
       badParse(
         'missing end of statement ";"',
         paste(
@@ -78,33 +83,36 @@ rxodeTest(
           "d/dt(y) = -ka;",
           "C1 = /y;"
         )
-      )})
+      )
+    })
 
     ## added ** operator
     .rxWithOptions(list(RxODE.syntax.star.pow = TRUE), {
       goodParse("existing operator **",
-                code = paste(
-                  sep = "\n",
-                  "d/dt(y) = -ka;",
-                  "C1 = ka *  y**2;"
-                ))
+        code = paste(
+          sep = "\n",
+          "d/dt(y) = -ka;",
+          "C1 = ka *  y**2;"
+        )
+      )
     })
 
     .rxWithOptions(list(RxODE.syntax.star.pow = FALSE), {
       badParse("existing operator **",
-               code = paste(
-                 sep = "\n",
-                 "d/dt(y) = -ka;",
-                 "C1 = ka *  y**2;"
-               )
-               )
+        code = paste(
+          sep = "\n",
+          "d/dt(y) = -ka;",
+          "C1 = ka *  y**2;"
+        )
+      )
       badParse("unexistent operator %",
-               code = paste(
-                 sep = "\n",
-                 "remainder = 4 % 3;",
-                 "d/dt(y) = -ka;",
-                 "C1 = ka * y;"
-               ))
+        code = paste(
+          sep = "\n",
+          "remainder = 4 % 3;",
+          "d/dt(y) = -ka;",
+          "C1 = ka * y;"
+        )
+      )
       badParse(
         desc = 'incorrect "if" statement',
         code = paste(
@@ -127,7 +135,6 @@ rxodeTest(
           "d/dt(y) = F * y;"
         )
       )
-
     })
 
     .rxWithOptions(list(RxODE.syntax.allow.dots = TRUE), {
@@ -417,7 +424,7 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 "
-)
+      )
 
       badParse(
         desc = "Defining df(var1)/dy(var2) where var1 is not a state variable.",
@@ -435,7 +442,7 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 "
-)
+      )
 
       goodParse(
         desc = "Defining df(var1)/dy(var2) where var1 is a state variable.",
@@ -452,7 +459,7 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 "
-)
+      )
 
       goodParse(
         desc = "Defining df(var1)/dy(var2) where var2 is a variable.",
@@ -470,7 +477,7 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 "
-)
+      )
 
       badParse(
         desc = "Defining df(var1)/dy(var2) where var2 is a calculated value.",
@@ -488,7 +495,7 @@ dy(0) = 0
 ## mu
 mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
 "
-)
+      )
 
       goodParse(
         desc = "a*b/c^2",
@@ -599,7 +606,6 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     })
 
     .rxWithOptions(list(RxODE.syntax.assign = TRUE), {
-
       goodParse("x=ifelse(!matt,0,1)", "x=ifelse(!matt,0,1)")
       goodParse("x=ifelse(!(matt),0,1)", "x=ifelse(!(matt),0,1)")
       goodParse("x=ifelse((!matt),0,1)", "x=ifelse((!matt),0,1)")
@@ -690,7 +696,7 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     cp <- linCmt()
     d/dt(ce) = keo*(cp-ce)
     effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));"
-    )
+      )
 
       badParse("cmt(depot) doesn't work with linCmt()", "popCl <- 1
     cmt(depot)

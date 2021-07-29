@@ -38,7 +38,6 @@ rxodeTest(
 
       expect_error(rxSetSum("c"))
       expect_error(rxSetProd("double"))
-
     })
   },
   test = "cran"

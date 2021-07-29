@@ -355,7 +355,6 @@ d/dt(blood)     = a*intestine - b*blood
         indLin = TRUE
       )
     })
-
   },
   test = "indLin"
 )

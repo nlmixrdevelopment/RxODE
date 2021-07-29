@@ -46,26 +46,24 @@ can run the same number of cores as you are running so they can
 reproduce your results.
 }
 \examples{
-
 \donttest{
 ## Use threefry engine
 
-rxbinom(10, 0.9, n=10) # with rxbinom you have to explicitly state n
-rxbinom(3, 0.5, n=10, ncores=2) # You can parallelize the simulation using openMP
+rxbinom(10, 0.9, n = 10) # with rxbinom you have to explicitly state n
+rxbinom(3, 0.5, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
-rxbinom(4,0.7)
+rxbinom(4, 0.7)
 
 
 ## This example uses `rxbinom` directly in the model
 
 rx <- RxODE({
-  a = rxbinom(1,0.5)
+  a <- rxbinom(1, 0.5)
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
-
+s <- rxSolve(rx, et)
 }
 
 }

@@ -26,10 +26,9 @@ gammaq = uppergamma(a, z)/gamma(a)
 }
 \examples{
 
-gammaq(1,3)
-gammaq(1:3,3)
-gammaq(1,1:3)
-
+gammaq(1, 3)
+gammaq(1:3, 3)
+gammaq(1, 1:3)
 }
 \author{
 Matthew L. Fidler

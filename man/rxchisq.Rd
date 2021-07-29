@@ -44,13 +44,12 @@ can run the same number of cores as you are running so they can
 reproduce your results.
 }
 \examples{
-
 \donttest{
 
 ## Use threefry engine
 
-rxchisq(0.5, n=10) # with rxchisq you have to explicitly state n
-rxchisq(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+rxchisq(0.5, n = 10) # with rxchisq you have to explicitly state n
+rxchisq(5, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
 rxchisq(1)
 
@@ -58,13 +57,12 @@ rxchisq(1)
 ## This example uses `rxchisq` directly in the model
 
 rx <- RxODE({
-  a = rxchisq(2)
+  a <- rxchisq(2)
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
-
+s <- rxSolve(rx, et)
 }
 
 }

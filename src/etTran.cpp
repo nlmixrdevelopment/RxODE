@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "../inst/include/RxODE.h"
 #include "timsort.h"
+#include "needSortDefines.h"
 #define SORT gfx::timsort
 
 #ifdef ENABLE_NLS
@@ -366,7 +367,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   clock_t _lastT0 = clock();
 #endif
   Environment rx = RxODEenv();
-  bool combineDvidB = false;
+  bool combineDvidB = false, rateModeled=false, durModeled = false;
   Environment b=Rcpp::Environment::base_namespace();
   if (!combineDvid.isNull()){
     combineDvidB = (as<LogicalVector>(combineDvid))[1];
@@ -375,6 +376,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     combineDvidB = as<bool>(getOption("RxODE.combine.dvid", true));
   }
   List mv = rxModelVars_(obj);
+  int needSort = mv[RxMv_needSort];
   IntegerVector curDvid = clone(as<IntegerVector>(mv[RxMv_dvid]));
   CharacterVector trans = mv[RxMv_trans];
   if (rxIs(inData,"rxEtTran")){
@@ -971,12 +973,20 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (rate == -1.0){
 	// rate is modeled
 	rateI = 9;
+	if (!(needSort & needSortRate)) {
+	  warning(_("data specified modeled rate (=-1) but no rate() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
+	}
+	rateModeled = true;
       } else if (rate == -2.0){
 	// duration is modeled
 	if (flg == 40){
 	  stop(_("when using steady state constant infusion modeling duration does not make sense (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
+	if (!(needSort & needSortDur)) {
+	  warning(_("data specified modeled duration (=-2) but no dur() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
+	}
 	rateI = 8;
+	durModeled = true;
       } else if (rate > 0){
 	// Rate is fixed
 	if (evidCol == -1 || inEvid[i] == 1 || inEvid[i] == 4){
@@ -2023,6 +2033,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       Rf_warningcall(R_NilValue, _("\nwith negative times, compartments initialize at first negative observed time\nwith positive times, compartments initialize at time zero\nuse 'rxSetIni0(FALSE)' to initialize at first observed time\nthis warning is displayed once per session"));
       warnedNeg=true;
     }
+  }
+  if (!rateModeled && (needSort & needSortRate)) {
+    Rf_warningcall(R_NilValue, _("rate() specified in model, but no modeled rates (rate=-1) in the dataset"));
+  }
+  if (!durModeled && (needSort & needSortDur)) {
+    Rf_warningcall(R_NilValue, _("dur() specified in model, but no modeled duration (rate=-2) in the dataset"));
   }
 #ifdef rxSolveT
   RSprintf("  Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);

@@ -111,32 +111,43 @@ to use the inverse Wishart.
 \examples{
 
 ## Sample a single covariance.
-draw1 <- cvPost(3, matrix(c(1,.3,.3,1),2,2))
+draw1 <- cvPost(3, matrix(c(1, .3, .3, 1), 2, 2))
 
 ## Sample 3 covariances
 set.seed(42)
-draw3 <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3)
+draw3 <- cvPost(3, matrix(c(1, .3, .3, 1), 2, 2), n = 3)
 
 ## Sample 3 covariances, but return the cholesky decomposition
 set.seed(42)
-draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol=TRUE)
+draw3c <- cvPost(3, matrix(c(1, .3, .3, 1), 2, 2), n = 3, returnChol = TRUE)
 
 ## Sample 3 covariances with lognormal standard deviations via LKJ
 ## correlation sample
-cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj")
+cvPost(3, sapply(1:3, function(...) {
+  rnorm(10)
+}), type = "lkj")
 
 ## or return cholesky decomposition
-cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj",
-  returnChol=TRUE)
+cvPost(3, sapply(1:3, function(...) {
+  rnorm(10)
+}),
+type = "lkj",
+returnChol = TRUE
+)
 
 ## Sample 3 covariances with lognormal standard deviations via separation
 ## strategy using inverse Wishart correlation sample
-cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation")
+cvPost(3, sapply(1:3, function(...) {
+  rnorm(10)
+}), type = "separation")
 
 ## or returning the cholesky decomposition
-cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation",
-  returnChol=TRUE)
-
+cvPost(3, sapply(1:3, function(...) {
+  rnorm(10)
+}),
+type = "separation",
+returnChol = TRUE
+)
 }
 \references{
 Alvarez I, Niemi J and Simpson M. (2014) \emph{Bayesian Inference for a

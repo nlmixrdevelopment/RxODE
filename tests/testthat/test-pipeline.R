@@ -116,7 +116,6 @@ rxodeTest(
     test_that("Can update event table in pipline solve", {
       expect_true(is(ps1, "rxSolve"))
     })
-
   },
   test = "lvl2"
 )
