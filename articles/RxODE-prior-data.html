@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Using Prior Data for ODE solving</h1>
             
-            <h4 data-toc-skip class="date">2021-07-21</h4>
+            <h4 data-toc-skip class="date">2021-07-29</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-prior-data.Rmd" class="external-link"><code>vignettes/RxODE-prior-data.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-prior-data.Rmd</code></div>
@@ -306,7 +306,7 @@
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">solveData</span><span class="op">)</span>
 <span class="co">#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
 <span class="co">#&gt; ── Parameters ($params): ───────────────────────────────────────────────────────</span>
-<span class="co">#&gt; # A tibble: 12 x 1</span>
+<span class="co">#&gt; # A tibble: 12 × 1</span>
 <span class="co">#&gt;    id   </span>
 <span class="co">#&gt;    &lt;fct&gt;</span>
 <span class="co">#&gt;  1 1    </span>
@@ -325,7 +325,7 @@
 <span class="co">#&gt;  depot center </span>
 <span class="co">#&gt;      0      0 </span>
 <span class="co">#&gt; ── First part of data (object): ────────────────────────────────────────────────</span>
-<span class="co">#&gt; # A tibble: 132 x 8</span>
+<span class="co">#&gt; # A tibble: 132 × 8</span>
 <span class="co">#&gt;      id  time    ka    cl     v    cp     depot center</span>
 <span class="co">#&gt;   &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;</span>
 <span class="co">#&gt; 1     1  0     2.86  3.67  34.8  0    320.          0 </span>
@@ -345,7 +345,7 @@
 <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/tbl_df.html" class="external-link">as.tbl</a></span><span class="op">(</span><span class="va">solveData</span><span class="op">)</span>
 <span class="co">#&gt; Warning: `as.tbl()` was deprecated in dplyr 1.0.0.</span>
 <span class="co">#&gt; Please use `tibble::as_tibble()` instead.</span>
-<span class="co">#&gt; # A tibble: 132 x 8</span>
+<span class="co">#&gt; # A tibble: 132 × 8</span>
 <span class="co">#&gt;       id  time    ka    cl     v    cp   depot center</span>
 <span class="co">#&gt;    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;</span>
 <span class="co">#&gt;  1     1  0     2.86  3.67  34.8  0    3.20e+2    0  </span>
