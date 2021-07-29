@@ -4,28 +4,30 @@
   }
   if (!any(names(data) == "x")) {
     if (any(names(data) == "time")) {
-      data$x <-data$time
+      data$x <- data$time
     } else {
       stop("need 'x' aesthetic")
     }
   }
-  #.range <- range(data$y,na.rm=TRUE)
+  # .range <- range(data$y,na.rm=TRUE)
   .dat <- data
-  .dat <- data[,c("x","amt")]
-  .dat <- data[!is.na(.dat$amt),]
-  ret <- data.frame(x=.dat$x,xend=.dat$x,y=-Inf,yend=Inf,amt=.dat$amt)
+  .dat <- data[, c("x", "amt")]
+  .dat <- data[!is.na(.dat$amt), ]
+  ret <- data.frame(x = .dat$x, xend = .dat$x, y = -Inf, yend = Inf, amt = .dat$amt)
   return(ret)
 }
 
 GeomAmt <- ggplot2::ggproto("GeomAmt", ggplot2::GeomSegment,
-                            required_aes = c("x", "y", "xend", "yend"),
-                            default_aes = ggplot2::aes(colour="black", linetype="dotted",size=0.5, alpha = 1, fill="black"))
+  required_aes = c("x", "y", "xend", "yend"),
+  default_aes = ggplot2::aes(colour = "black", linetype = "dotted", size = 0.5, alpha = 1, fill = "black")
+)
 
 StatAmt <- ggplot2::ggproto("StatAmt", ggplot2::Stat,
-                            compute_group = function(data, scales) {
-                              .amtTrans(data)
-                            },
-                            required_aes=c("x","amt"))
+  compute_group = function(data, scales) {
+    .amtTrans(data)
+  },
+  required_aes = c("x", "amt")
+)
 
 
 ##' Dosing/Amt geom/stat
@@ -49,7 +51,7 @@ stat_amt <- function(mapping = NULL, data = NULL,
   ggplot2::layer(
     stat = StatAmt, data = data, mapping = mapping, geom = GeomAmt,
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
-    params = list(na.rm = TRUE,  ...)
+    params = list(na.rm = TRUE, ...)
   )
 }
 

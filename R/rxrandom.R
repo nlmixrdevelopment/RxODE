@@ -26,39 +26,39 @@ rxnorm <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
 #' \donttest{
 #' ## Use threefry engine
 #'
-#' rxnorm(n=10) # with rxnorm you have to explicitly state n
-#' rxnorm(n=10,ncores=2) # You can parallelize the simulation using openMP
+#' rxnorm(n = 10) # with rxnorm you have to explicitly state n
+#' rxnorm(n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
-#' rxnorm(2,3) ## The first 2 arguments are the mean and standard deviation
+#' rxnorm(2, 3) ## The first 2 arguments are the mean and standard deviation
 #'
 #'
 #' ## This example uses `rxnorm` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxnorm()
+#'   a <- rxnorm()
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
+#' s <- rxSolve(rx, et)
 #'
 #' ## Use vandercorput generator
 #'
-#' rxnormV(n=10) # with rxnorm you have to explicitly state n
-#' rxnormV(n=10,ncores=2) # You can parallelize the simulation using openMP
+#' rxnormV(n = 10) # with rxnorm you have to explicitly state n
+#' rxnormV(n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
-#' rxnormV(2,3) ## The first 2 arguments are the mean and standard deviation
+#' rxnormV(2, 3) ## The first 2 arguments are the mean and standard deviation
 #'
 #'
 #' ## This example uses `rxnormV` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxnormV()
+#'   a <- rxnormV()
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
+#' s <- rxSolve(rx, et)
 #' }
 #' @export
 rxnormV <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
@@ -81,8 +81,8 @@ rxnormV <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
 #' \donttest{
 #' ## Use threefry engine
 #'
-#' rxpois(lambda=3, n=10) # with rxpois you have to explicitly state n
-#' rxpois(lambda=3, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxpois(lambda = 3, n = 10) # with rxpois you have to explicitly state n
+#' rxpois(lambda = 3, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxpois(4) ## The first arguments are the lambda parameter
 #'
@@ -90,12 +90,12 @@ rxnormV <- function(mean = 0, sd = 1, n = 1L, ncores = 1L) {
 #' ## This example uses `rxpois` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxpois(3)
+#'   a <- rxpois(3)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
+#' s <- rxSolve(rx, et)
 #' }
 #' @export
 rxpois <- function(lambda, n = 1L, ncores = 1L) {
@@ -115,13 +115,12 @@ rxpois <- function(lambda, n = 1L, ncores = 1L) {
 #' @template birthdayProblem
 #' @return t-distribution random numbers
 #' @examples
-#'
 #' \donttest{
 #'
 #' ## Use threefry engine
 #'
-#' rxt(df=3, n=10) # with rxt you have to explicitly state n
-#' rxt(df=3, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxt(df = 3, n = 10) # with rxt you have to explicitly state n
+#' rxt(df = 3, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxt(4) ## The first argument is the df parameter
 #'
@@ -129,13 +128,12 @@ rxpois <- function(lambda, n = 1L, ncores = 1L) {
 #' ## This example uses `rxt` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxt(3)
+#'   a <- rxt(3)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
-#'
+#' s <- rxSolve(rx, et)
 #' }
 #' @export
 rxt <- function(df, n = 1L, ncores = 1L) {
@@ -155,13 +153,12 @@ rxt <- function(df, n = 1L, ncores = 1L) {
 #' @template birthdayProblem
 #' @return uniform random numbers
 #' @examples
-#'
 #' \donttest{
 #'
 #' ## Use threefry engine
 #'
-#' rxunif(min=0, max=4, n=10) # with rxunif you have to explicitly state n
-#' rxunif(min=0, max=4, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxunif(min = 0, max = 4, n = 10) # with rxunif you have to explicitly state n
+#' rxunif(min = 0, max = 4, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxunif()
 #'
@@ -169,13 +166,12 @@ rxt <- function(df, n = 1L, ncores = 1L) {
 #' ## This example uses `rxunif` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxunif(0,3)
+#'   a <- rxunif(0, 3)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
-#'
+#' s <- rxSolve(rx, et)
 #' }
 #'
 #' @export
@@ -197,13 +193,12 @@ rxunif <- function(min = 0, max = 1, n = 1L, ncores = 1L) {
 #' @template birthdayProblem
 #' @return Weibull random deviates
 #' @examples
-#'
 #' \donttest{
 #'
 #' ## Use threefry engine
 #'
-#' rxweibull(shape=1, scale=4, n=10) # with rxweibull you have to explicitly state n
-#' rxweibull(shape=1, scale=4, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxweibull(shape = 1, scale = 4, n = 10) # with rxweibull you have to explicitly state n
+#' rxweibull(shape = 1, scale = 4, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxweibull(3)
 #'
@@ -211,13 +206,12 @@ rxunif <- function(min = 0, max = 1, n = 1L, ncores = 1L) {
 #' ## This example uses `rxweibull` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxweibull(1,3)
+#'   a <- rxweibull(1, 3)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
-#'
+#' s <- rxSolve(rx, et)
 #' }
 #' @export
 rxweibull <- function(shape, scale = 1, n = 1L, ncores = 1L) {
@@ -238,13 +232,12 @@ rxweibull <- function(shape, scale = 1, n = 1L, ncores = 1L) {
 #' @template birthdayProblem
 #' @return geometric random deviates
 #' @examples
-#'
 #' \donttest{
 #'
 #' ## Use threefry engine
 #'
-#' rxgeom(0.5, n=10) # with rxgeom you have to explicitly state n
-#' rxgeom(0.25, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxgeom(0.5, n = 10) # with rxgeom you have to explicitly state n
+#' rxgeom(0.25, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxgeom(0.75)
 #'
@@ -252,12 +245,12 @@ rxweibull <- function(shape, scale = 1, n = 1L, ncores = 1L) {
 #' ## This example uses `rxgeom` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxgeom(0.24)
+#'   a <- rxgeom(0.24)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
+#' s <- rxSolve(rx, et)
 #' }
 #'
 #' @export
@@ -280,13 +273,12 @@ rxgeom <- function(prob, n = 1L, ncores = 1L) {
 #' @return beta random deviates
 #'
 #' @examples
-#'
 #' \donttest{
 #'
 #' ## Use threefry engine
 #'
-#' rxbeta(0.5, 0.5, n=10) # with rxbeta you have to explicitly state n
-#' rxbeta(5, 1, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxbeta(0.5, 0.5, n = 10) # with rxbeta you have to explicitly state n
+#' rxbeta(5, 1, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxbeta(1, 3)
 #'
@@ -294,12 +286,12 @@ rxgeom <- function(prob, n = 1L, ncores = 1L) {
 #' ## This example uses `rxbeta` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxbeta(2, 2)
+#'   a <- rxbeta(2, 2)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
+#' s <- rxSolve(rx, et)
 #' }
 #' @export
 rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
@@ -323,13 +315,12 @@ rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
 #' @return gamma random deviates
 #'
 #' @examples
-#'
 #' \donttest{
 #'
 #' ## Use threefry engine
 #'
-#' rxgamma(0.5, n=10) # with rxgamma you have to explicitly state n
-#' rxgamma(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxgamma(0.5, n = 10) # with rxgamma you have to explicitly state n
+#' rxgamma(5, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxgamma(1)
 #'
@@ -337,13 +328,12 @@ rxbeta <- function(shape1, shape2, n = 1L, ncores = 1L) {
 #' ## This example uses `rxbeta` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxgamma(2)
+#'   a <- rxgamma(2)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
-#'
+#' s <- rxSolve(rx, et)
 #' }
 #'
 #' @export
@@ -376,13 +366,12 @@ rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
 #' @return f random deviates
 #'
 #' @examples
-#'
 #' \donttest{
 #'
 #' ## Use threefry engine
 #'
-#' rxf(0.5, 0.5, n=10) # with rxf you have to explicitly state n
-#' rxf(5, 1, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxf(0.5, 0.5, n = 10) # with rxf you have to explicitly state n
+#' rxf(5, 1, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxf(1, 3)
 #'
@@ -390,13 +379,12 @@ rxgamma <- function(shape, rate = 1 / scale, scale = 1, n = 1L, ncores = 1L) {
 #' ## This example uses `rxf` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxf(2, 2)
+#'   a <- rxf(2, 2)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
-#'
+#' s <- rxSolve(rx, et)
 #' }
 #'
 #' @export
@@ -422,13 +410,12 @@ rxf <- function(df1, df2, n = 1L, ncores = 1L) {
 #' @return exponential random deviates
 #'
 #' @examples
-#'
 #' \donttest{
 #'
 #' ## Use threefry engine
 #'
-#' rxexp(0.5, n=10) # with rxexp you have to explicitly state n
-#' rxexp(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxexp(0.5, n = 10) # with rxexp you have to explicitly state n
+#' rxexp(5, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxexp(1)
 #'
@@ -436,13 +423,12 @@ rxf <- function(df1, df2, n = 1L, ncores = 1L) {
 #' ## This example uses `rxexp` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxexp(2)
+#'   a <- rxexp(2)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
-#'
+#' s <- rxSolve(rx, et)
 #' }
 #'
 #' @export
@@ -466,13 +452,12 @@ rxexp <- function(rate, n = 1L, ncores = 1L) {
 #' @return chi squared random deviates
 #'
 #' @examples
-#'
 #' \donttest{
 #'
 #' ## Use threefry engine
 #'
-#' rxchisq(0.5, n=10) # with rxchisq you have to explicitly state n
-#' rxchisq(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxchisq(0.5, n = 10) # with rxchisq you have to explicitly state n
+#' rxchisq(5, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxchisq(1)
 #'
@@ -480,13 +465,12 @@ rxexp <- function(rate, n = 1L, ncores = 1L) {
 #' ## This example uses `rxchisq` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxchisq(2)
+#'   a <- rxchisq(2)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
-#'
+#' s <- rxSolve(rx, et)
 #' }
 #'
 #' @export
@@ -509,13 +493,12 @@ rxchisq <- function(df, n = 1L, ncores = 1L) {
 #' @return Cauchy random deviates
 #'
 #' @examples
-#'
 #' \donttest{
 #'
 #' ## Use threefry engine
 #'
-#' rxcauchy(0, 1, n=10) # with rxcauchy you have to explicitly state n
-#' rxcauchy(0.5, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxcauchy(0, 1, n = 10) # with rxcauchy you have to explicitly state n
+#' rxcauchy(0.5, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
 #' rxcauchy(3)
 #'
@@ -523,13 +506,12 @@ rxchisq <- function(df, n = 1L, ncores = 1L) {
 #' ## This example uses `rxcauchy` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxcauchy(2)
+#'   a <- rxcauchy(2)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
-#'
+#' s <- rxSolve(rx, et)
 #' }
 #'
 #' @export
@@ -553,26 +535,24 @@ rxcauchy <- function(location = 0, scale = 1, n = 1L, ncores = 1L) {
 #' @return binomial random deviates
 #'
 #' @examples
-#'
 #' \donttest{
 #' ## Use threefry engine
 #'
-#' rxbinom(10, 0.9, n=10) # with rxbinom you have to explicitly state n
-#' rxbinom(3, 0.5, n=10, ncores=2) # You can parallelize the simulation using openMP
+#' rxbinom(10, 0.9, n = 10) # with rxbinom you have to explicitly state n
+#' rxbinom(3, 0.5, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 #'
-#' rxbinom(4,0.7)
+#' rxbinom(4, 0.7)
 #'
 #'
 #' ## This example uses `rxbinom` directly in the model
 #'
 #' rx <- RxODE({
-#'   a = rxbinom(1,0.5)
+#'   a <- rxbinom(1, 0.5)
 #' })
 #'
-#' et <- et(1,id=1:2)
+#' et <- et(1, id = 1:2)
 #'
-#' s <- rxSolve(rx,et)
-#'
+#' s <- rxSolve(rx, et)
 #' }
 #'
 #' @export
@@ -628,21 +608,22 @@ rxbinom <- function(size, prob, n = 1L, ncores = 1L) {
 #' @examples
 #'
 #' ## Sample homogenous Poisson process of rate 1/10
-#' rxPp(10, 1/10)
+#' rxPp(10, 1 / 10)
 #'
 #' ## Sample inhomogenous Poisson rate of 1/10
 #'
-#' rxPp(10, 1/10,gamma=2,tmax=100)
+#' rxPp(10, 1 / 10, gamma = 2, tmax = 100)
 #'
 #' ## Typically the Poisson process times are in a sequential order,
 #' ## using randomOrder gives the Poisson process in random order
 #'
-#' rxPp(10, 1/10,gamma=2,tmax=10, randomOrder=TRUE)
+#' rxPp(10, 1 / 10, gamma = 2, tmax = 10, randomOrder = TRUE)
 #'
 #' ## This uses an arbitrary function to sample a non-homogenous Poisson process
 #'
-#' rxPp(10, 1/10, prob=function(x){1/x})
-#'
+#' rxPp(10, 1 / 10, prob = function(x) {
+#'   1 / x
+#' })
 rxPp <- function(n, lambda, gamma = 1.0, prob = NULL, t0 = 0.0, tmax = Inf, randomOrder = FALSE) {
   checkmate::assertNumeric(t0, len = 1, any.missing = FALSE)
   checkmate::assertNumeric(tmax, len = 1, any.missing = FALSE, lower = t0)
@@ -668,10 +649,9 @@ rxPp <- function(n, lambda, gamma = 1.0, prob = NULL, t0 = 0.0, tmax = Inf, rand
 #' @export
 #' @examples
 #'
-#' rxRandNV(1,1)
-#' rxRandNV(3,2)
-#'
-rxRandNV <- function(nrow=1, ncol=1){
+#' rxRandNV(1, 1)
+#' rxRandNV(3, 2)
+rxRandNV <- function(nrow = 1, ncol = 1) {
   checkmate::assertIntegerish(nrow, len = 1, any.missing = FALSE, lower = 1L)
   checkmate::assertIntegerish(ncol, len = 1, any.missing = FALSE, lower = 1L)
   .Call(`_RxODE_rxrandnV`, as.integer(nrow), as.integer(ncol))

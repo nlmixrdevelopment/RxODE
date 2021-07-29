@@ -2,21 +2,18 @@ rxodeTest({
   context("param order")
 
   test_that("param order", {
-
     mod <- RxODE({
       a <- 6
       b <- 0.6
       cmt(blood) # cmt = 1 now
-      d/dt(intestine) <- -a * intestine
-      d/dt(blood) <- a * intestine - b * blood
+      d / dt(intestine) <- -a * intestine
+      d / dt(blood) <- a * intestine - b * blood
     })
 
     expect_equal(rxModelVars(mod)$param, c("a", "b"))
-
   })
 
   test_that("param order rev", {
-
     mod2 <- RxODE({
       param(b, a)
       a <- 6
@@ -27,7 +24,6 @@ rxodeTest({
     })
 
     expect_equal(rxModelVars(mod2)$param, c("b", "a"))
-
   })
 
   test_that("large params()", {
@@ -51,9 +47,9 @@ cmt(cp)
 cmt(pca)
 dvid(5, 6)"), NA)
 
-    expect_equal(rxModelVars(tmp)$param, c("tktr", "tka", "tcl", "tv", "poplogit", "tec50", "tkout", "te0",
-                                           "CMT"))
+    expect_equal(rxModelVars(tmp)$param, c(
+      "tktr", "tka", "tcl", "tv", "poplogit", "tec50", "tkout", "te0",
+      "CMT"
+    ))
   })
-
-
 })

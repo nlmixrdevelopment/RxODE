@@ -52,7 +52,7 @@
 #' # run the shiny app
 #' library(shiny)
 #' # runApp("myapp") # Won't launch in environments without browsers
-#' unlink("myapp", recursive=TRUE, force=TRUE) # remove myapp
+#' unlink("myapp", recursive = TRUE, force = TRUE) # remove myapp
 #' }
 #' @keywords simulation nonlinear
 #' @concept PK/PD
@@ -71,13 +71,11 @@ genShinyApp.template <-
    d/dt(peri)  =                    Q*C2 - Q*C3;
    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
    ",
-
         params =
           c(
             KA = .294, CL = 18.6, V2 = 40.2, Q = 10.5, V3 = 297.0,
             Kin = 1.0, Kout = 1.0, EC50 = 200.0
           ),
-
         inits = c(depot = 0, centr = 0, pari = 0, eff = 1),
         method = "lsoda",
         atol = 1e-08,

@@ -1,6 +1,6 @@
 rxodeTest(
-{
-  .rx <- loadNamespace("RxODE")
+  {
+    .rx <- loadNamespace("RxODE")
 
     test_that("simple expression optimization", {
       context("Expression optimization tests")
@@ -24,7 +24,6 @@ rxodeTest(
     test_that("simple expression optimization", {
       expect_equal(length(.rx$..rxOpt(quote(exp(ETA[1] + THETA[4]) + 0))), 1L)
     })
-
   },
   test = "parsing"
 )

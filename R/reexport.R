@@ -2,11 +2,11 @@ type_sum.units <- function(x, ...) {
   stop("needs units")
 }
 
-format_type_sum.type_sum_units <- function(x, width, ...){
+format_type_sum.type_sum_units <- function(x, width, ...) {
   stop("needs units")
 }
 
-pillar_shaft.units <- function(x, ...){
+pillar_shaft.units <- function(x, ...) {
   stop("needs units")
 }
 

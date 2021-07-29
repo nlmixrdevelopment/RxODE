@@ -1,7 +1,6 @@
 rxodeTest(
-{
-
-  .rx <- loadNamespace("RxODE")
+  {
+    .rx <- loadNamespace("RxODE")
 
     context("Nesting tests")
 
@@ -32,8 +31,10 @@ rxodeTest(
     et(amountUnits = "mg", timeUnits = "hours") %>%
       et(amt = 10000, addl = 9, ii = 12, cmt = "depot") %>%
       et(time = 120, amt = 2000, addl = 4, ii = 14, cmt = "depot") %>%
-      et(seq(0, 240, by = 4)) %>% # Assumes sampling when there is no dosing information
-      et(seq(0, 240, by = 4) + 0.1) %>% ## adds 0.1 for separate eye
+      et(seq(0, 240, by = 4)) %>%
+      # Assumes sampling when there is no dosing information
+      et(seq(0, 240, by = 4) + 0.1) %>%
+      ## adds 0.1 for separate eye
       et(id = 1:20) %>%
       ## Add an occasion per dose
       dplyr::mutate(occ = cumsum(!is.na(amt))) %>%

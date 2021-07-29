@@ -18,16 +18,17 @@
 #' @return All return NULL invisibly.
 #' @author Matthew L. Fidler
 #' @examples
-#' f <- function(){
-#'   on.exit({rxProgressAbort()});
+#' f <- function() {
+#'   on.exit({
+#'     rxProgressAbort()
+#'   })
 #'   rxProgress(100)
-#'     for (i in 1:100) {
-#'        rxTick()
-#'        Sys.sleep(1 / 100)
-#'     }
-#'   rxProgressStop();
-#'  }
-#'
+#'   for (i in 1:100) {
+#'     rxTick()
+#'     Sys.sleep(1 / 100)
+#'   }
+#'   rxProgressStop()
+#' }
 #' \donttest{
 #' f()
 #' }

@@ -23,7 +23,6 @@
 #' @examples
 #'
 #' print(rxUnloadAll())
-#'
 #' @export
 rxUnloadAll <- function() {
   .Call(`_RxODE_rxUnloadAll_`) # nolint
@@ -114,7 +113,7 @@ rxCat <- function(a, ...) {
 rxClean <- function(wd) {
   if (!missing(wd)) warning("'wd' is depreciated")
   rxUnloadAll()
-  unlink(rxTempDir(), recursive=TRUE, force=TRUE)
+  unlink(rxTempDir(), recursive = TRUE, force = TRUE)
   suppressMessages(.mkCache(rxTempDir()))
 }
 
@@ -282,32 +281,43 @@ rxSetProgressBar <- function(seconds = 1.0) {
 #' @examples
 #'
 #' ## Sample a single covariance.
-#' draw1 <- cvPost(3, matrix(c(1,.3,.3,1),2,2))
+#' draw1 <- cvPost(3, matrix(c(1, .3, .3, 1), 2, 2))
 #'
 #' ## Sample 3 covariances
 #' set.seed(42)
-#' draw3 <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3)
+#' draw3 <- cvPost(3, matrix(c(1, .3, .3, 1), 2, 2), n = 3)
 #'
 #' ## Sample 3 covariances, but return the cholesky decomposition
 #' set.seed(42)
-#' draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol=TRUE)
+#' draw3c <- cvPost(3, matrix(c(1, .3, .3, 1), 2, 2), n = 3, returnChol = TRUE)
 #'
 #' ## Sample 3 covariances with lognormal standard deviations via LKJ
 #' ## correlation sample
-#' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj")
+#' cvPost(3, sapply(1:3, function(...) {
+#'   rnorm(10)
+#' }), type = "lkj")
 #'
 #' ## or return cholesky decomposition
-#' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="lkj",
-#'   returnChol=TRUE)
+#' cvPost(3, sapply(1:3, function(...) {
+#'   rnorm(10)
+#' }),
+#' type = "lkj",
+#' returnChol = TRUE
+#' )
 #'
 #' ## Sample 3 covariances with lognormal standard deviations via separation
 #' ## strategy using inverse Wishart correlation sample
-#' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation")
+#' cvPost(3, sapply(1:3, function(...) {
+#'   rnorm(10)
+#' }), type = "separation")
 #'
 #' ## or returning the cholesky decomposition
-#' cvPost(3,sapply(1:3,function(...){rnorm(10)}), type="separation",
-#'   returnChol=TRUE)
-#'
+#' cvPost(3, sapply(1:3, function(...) {
+#'   rnorm(10)
+#' }),
+#' type = "separation",
+#' returnChol = TRUE
+#' )
 #' @export
 cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
                    type = c("invWishart", "lkj", "separation"),
@@ -413,7 +423,7 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 #' ## From mvnfast
 #' ## Unlike mvnfast, uses threefry simulation
 #'
-#'  d <- 5
+#' d <- 5
 #' mu <- 1:d
 #'
 #' # Creating covariance matrix
@@ -437,24 +447,23 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE,
 #'
 #' set.seed(414)
 #' rxRmvn(A, 1:d, mcov, ncores = 2) # This returns NULL ...
-#' A                                # ... but the result is here
+#' A # ... but the result is here
 #'
 #' ## You can also simulate from a truncated normal:
 #'
-#' rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
+#' rxRmvn(10, 1:d, mcov, lower = 1:d - 1, upper = 1:d + 1)
 #'
 #'
 #' # You can also simulate from different matrices (if they match
 #' # dimensions) by using a list of matrices.
 #'
-#' matL <- lapply(1:4,function(...){
-#'    tmp <- matrix(rnorm(d^2), d, d)
-#'    tcrossprod(tmp, tmp)
+#' matL <- lapply(1:4, function(...) {
+#'   tmp <- matrix(rnorm(d^2), d, d)
+#'   tcrossprod(tmp, tmp)
 #' })
 #'
 #'
-#' rxRmvn(4, setNames(1:d,paste0("a",1:d)), matL)
-#'
+#' rxRmvn(4, setNames(1:d, paste0("a", 1:d)), matL)
 #' @author Matthew Fidler, Zdravko Botev and some from Matteo Fasiolo
 #'
 #' @references The thread safe multivariate normal was inspired from the `mvnfast` package by Matteo Fasiolo <https://CRAN.R-project.org/package=mvnfast>
@@ -544,7 +553,6 @@ rxRmvn <- function(n, mu = NULL, sigma, lower = -Inf, upper = Inf, ncores = 1, i
 #' pnorm(3)
 #'
 #' # This is provided for NONMEM-like compatibility in RxODE models
-#'
 #' @export
 phi <- function(q) {
   .Call(`_phi`, q, PACKAGE = "RxODE")
@@ -569,10 +577,9 @@ phi <- function(q) {
 #' @author Matthew L. Fidler
 #' @examples
 #'
-#' gammap(1,3)
-#' gammap(1:3,3)
-#' gammap(1,1:3)
-#'
+#' gammap(1, 3)
+#' gammap(1:3, 3)
+#' gammap(1, 1:3)
 #' @export
 gammap <- function(a, z) {
   .Call(`_gammap`, a, z, PACKAGE = "RxODE")
@@ -598,10 +605,9 @@ gammap <- function(a, z) {
 #' @author Matthew L. Fidler
 #' @examples
 #'
-#' gammaq(1,3)
-#' gammaq(1:3,3)
-#' gammaq(1,1:3)
-#'
+#' gammaq(1, 3)
+#' gammaq(1:3, 3)
+#' gammaq(1, 1:3)
 #' @export
 gammaq <- function(a, z) {
   .Call(`_gammaq`, a, z, PACKAGE = "RxODE")
@@ -628,12 +634,11 @@ gammaq <- function(a, z) {
 #'
 #' @examples
 #'
-#' uppergamma(1,3)
+#' uppergamma(1, 3)
 #'
-#' uppergamma(1:3,3)
+#' uppergamma(1:3, 3)
 #'
-#' uppergamma(1,1:3)
-#'
+#' uppergamma(1, 1:3)
 #' @export
 uppergamma <- function(a, z) {
   .Call(`_uppergamma`, a, z, PACKAGE = "RxODE")
@@ -661,12 +666,11 @@ uppergamma <- function(a, z) {
 #'
 #' @examples
 #'
-#' lowergamma(1,3)
+#' lowergamma(1, 3)
 #'
-#' lowergamma(1:3,3)
+#' lowergamma(1:3, 3)
 #'
-#' lowergamma(1,1:3)
-#'
+#' lowergamma(1, 1:3)
 #' @export
 lowergamma <- function(a, z) {
   .Call(`_lowergamma`, a, z, PACKAGE = "RxODE")
@@ -688,10 +692,9 @@ lowergamma <- function(a, z) {
 #'
 #' @examples
 #'
-#' gammapDer(1:3,3)
+#' gammapDer(1:3, 3)
 #'
-#' gammapDer(1,1:3)
-#'
+#' gammapDer(1, 1:3)
 #' @export
 gammapDer <- function(a, z) {
   .Call(`_gammapDer`, a, z, PACKAGE = "RxODE")
@@ -727,14 +730,13 @@ gammapDer <- function(a, z) {
 #'
 #' @examples
 #'
-#' gammaqInv(1:3,0.5)
+#' gammaqInv(1:3, 0.5)
 #'
-#' gammaqInv(1,1:3/3)
+#' gammaqInv(1, 1:3 / 3)
 #'
-#' gammaqInv(1:3,1:3/3.1)
+#' gammaqInv(1:3, 1:3 / 3.1)
 #'
-#' gammaqInva(1:3,1:3/3.1)
-#'
+#' gammaqInva(1:3, 1:3 / 3.1)
 #' @export
 gammaqInv <- function(a, q) {
   .Call(`_gammaqInv`, a, q, PACKAGE = "RxODE")
@@ -776,14 +778,13 @@ gammaqInva <- function(x, q) {
 #'
 #' @examples
 #'
-#' gammapInv(1:3,0.5)
+#' gammapInv(1:3, 0.5)
 #'
-#' gammapInv(1,1:3/3.1)
+#' gammapInv(1, 1:3 / 3.1)
 #'
-#' gammapInv(1:3,1:3/3.1)
+#' gammapInv(1:3, 1:3 / 3.1)
 #'
-#' gammapInva(1:3,1:3/3.1)
-#'
+#' gammapInva(1:3, 1:3 / 3.1)
 #' @export
 gammapInv <- function(a, p) {
   .Call(`_gammapInv`, a, p, PACKAGE = "RxODE")
@@ -840,10 +841,9 @@ gammapInva <- function(x, p) {
 #'
 #' expit(-1.09)
 #'
-#' logitNormInfo(logit(0.25),sd=0.1)
+#' logitNormInfo(logit(0.25), sd = 0.1)
 #'
-#' logitNormInfo(logit(1,0,10), sd=1, low=0, high=10)
-#'
+#' logitNormInfo(logit(1, 0, 10), sd = 1, low = 0, high = 10)
 #' @export
 logit <- function(x, low = 0, high = 1) {
   .Call(`_logit`, x, low, high, PACKAGE = "RxODE")
@@ -856,12 +856,12 @@ expit <- function(alpha, low = 0, high = 1) {
 
 #' @rdname logit
 #' @export
-logitNormInfo <- function(mean=0, sd=1, low=0, high=1,  abs.tol=1e-6, ...) {
-  .fM1 <- function(x) .Call(`_expit`, x, low, high, PACKAGE = "RxODE") * dnorm(x, mean=mean, sd=sd)
-  .m <- integrate(.fM1,-Inf,Inf, abs.tol = abs.tol, ...)$value
-  .fV <- function(x) (.Call(`_expit`, x, low, high, PACKAGE = "RxODE") - .m)^2 * dnorm(x, mean=mean, sd=sd)
-  .v <- integrate(.fV,-Inf,Inf, abs.tol = abs.tol, ...)$value
-  c(mean=.m, var=.v, cv=sqrt(.v) / .m)
+logitNormInfo <- function(mean = 0, sd = 1, low = 0, high = 1, abs.tol = 1e-6, ...) {
+  .fM1 <- function(x) .Call(`_expit`, x, low, high, PACKAGE = "RxODE") * dnorm(x, mean = mean, sd = sd)
+  .m <- integrate(.fM1, -Inf, Inf, abs.tol = abs.tol, ...)$value
+  .fV <- function(x) (.Call(`_expit`, x, low, high, PACKAGE = "RxODE") - .m)^2 * dnorm(x, mean = mean, sd = sd)
+  .v <- integrate(.fV, -Inf, Inf, abs.tol = abs.tol, ...)$value
+  c(mean = .m, var = .v, cv = sqrt(.v) / .m)
 }
 
 #' probit and inverse probit functions
@@ -874,30 +874,29 @@ logitNormInfo <- function(mean=0, sd=1, low=0, high=1,  abs.tol=1e-6, ...) {
 #'
 #' probitInv(-0.674)
 #'
-#' probitNormInfo(probit(0.25),sd=0.1)
+#' probitNormInfo(probit(0.25), sd = 0.1)
 #'
-#' probitNormInfo(probit(1,0,10), sd=1, low=0, high=10)
-#'
+#' probitNormInfo(probit(1, 0, 10), sd = 1, low = 0, high = 10)
 #' @export
-probit <- function(x, low=0, high=1) {
+probit <- function(x, low = 0, high = 1) {
   .Call(`_probit`, x, low, high, PACKAGE = "RxODE")
 }
 
-#'@rdname probit
-#'@export
-probitInv <- function(x, low=0, high=1) {
+#' @rdname probit
+#' @export
+probitInv <- function(x, low = 0, high = 1) {
   .Call(`_probitInv`, x, low, high, PACKAGE = "RxODE")
 }
 
 
 #' @rdname logit
 #' @export
-probitNormInfo <- function(mean=0, sd=1, low=0, high=1,  abs.tol=1e-6, ...) {
-  .fM1 <- function(x) .Call(`_probitInv`, x, low, high, PACKAGE = "RxODE") * dnorm(x, mean=mean, sd=sd)
-  .m <- integrate(.fM1,-Inf,Inf, abs.tol = abs.tol, ...)$value
-  .fV <- function(x) (.Call(`_probitInv`, x, low, high, PACKAGE = "RxODE") - .m)^2 * dnorm(x, mean=mean, sd=sd)
-  .v <- integrate(.fV,-Inf,Inf, abs.tol = abs.tol, ...)$value
-  c(mean=.m, var=.v, cv=sqrt(.v) / .m)
+probitNormInfo <- function(mean = 0, sd = 1, low = 0, high = 1, abs.tol = 1e-6, ...) {
+  .fM1 <- function(x) .Call(`_probitInv`, x, low, high, PACKAGE = "RxODE") * dnorm(x, mean = mean, sd = sd)
+  .m <- integrate(.fM1, -Inf, Inf, abs.tol = abs.tol, ...)$value
+  .fV <- function(x) (.Call(`_probitInv`, x, low, high, PACKAGE = "RxODE") - .m)^2 * dnorm(x, mean = mean, sd = sd)
+  .v <- integrate(.fV, -Inf, Inf, abs.tol = abs.tol, ...)$value
+  c(mean = .m, var = .v, cv = sqrt(.v) / .m)
 }
 
 #' Get/Set the number of threads that RxODE uses
@@ -936,33 +935,32 @@ probitNormInfo <- function(mean=0, sd=1, low=0, high=1,  abs.tol=1e-6, ...) {
 #' @param verbose Display the value of relevant OpenMP settings
 #' @return number of threads that RxODE uses
 #' @export
-getRxThreads <- function(verbose=FALSE){
+getRxThreads <- function(verbose = FALSE) {
   .Call(`getRxThreads_R`, verbose)
 }
 
-#'@rdname getRxThreads
-#'@export
-setRxThreads <- function(threads = NULL, percent = NULL, throttle=NULL)
-{
+#' @rdname getRxThreads
+#' @export
+setRxThreads <- function(threads = NULL, percent = NULL, throttle = NULL) {
   if (!missing(percent)) {
     if (!missing(threads)) stop("provide either threads= or percent= but not both")
-    if (length(percent)!=1) stop("percent= is provided but is length ", length(percent))
-    percent=as.integer(percent)
-    if (is.na(percent) || percent<2L || percent>100L) stop("percent==",percent," but should be a number between 2 and 100")
-    invisible(.Call(`setRxthreads`, percent,  TRUE, as.integer(throttle)))
+    if (length(percent) != 1) stop("percent= is provided but is length ", length(percent))
+    percent <- as.integer(percent)
+    if (is.na(percent) || percent < 2L || percent > 100L) stop("percent==", percent, " but should be a number between 2 and 100")
+    invisible(.Call(`setRxthreads`, percent, TRUE, as.integer(throttle)))
   } else {
     invisible(.Call(`setRxthreads`, as.integer(threads), FALSE, as.integer(throttle)))
   }
 }
 
-#'@rdname getRxThreads
-#'@export
+#' @rdname getRxThreads
+#' @export
 rxCores <- getRxThreads
 
-#'@export
-#'@rdname rxUnloadAll_
-rxUnloadAll <- function(){
-    try(rxUnloadAll_(), silent=TRUE)
+#' @export
+#' @rdname rxUnloadAll_
+rxUnloadAll <- function() {
+  try(rxUnloadAll_(), silent = TRUE)
 }
 #' With one sink, then release
 #'
@@ -987,14 +985,13 @@ rxUnloadAll <- function(){
 #' @examples
 #'
 #' t <- tempfile()
-#' .rxWithSink(t,cat("message\n"))
+#' .rxWithSink(t, cat("message\n"))
 #' cat("cat2\n") # now you can see the cat2
 #' lines <- readLines(t)
 #' unlink(t)
-#'
 .rxWithSink <- function(file, code) {
-  sink(file) #nolint
-  on.exit(sink()) #nolint
+  sink(file) # nolint
+  on.exit(sink()) # nolint
   force(code)
 }
 
@@ -1025,8 +1022,8 @@ rxUnloadAll <- function(){
 #' @export
 #' @examples
 #'
-#' .rxWithOptions(list(digits=21), {
-#'    print(pi)
+#' .rxWithOptions(list(digits = 21), {
+#'   print(pi)
 #' })
 #'
 #' print(pi)
@@ -1055,21 +1052,21 @@ rxUnloadAll <- function(){
 #' @examples
 #'
 #' .rxWithWd(tempdir(), {
-#'    getwd()
+#'   getwd()
 #' })
 #'
 #' getwd()
 .rxWithWd <- function(wd, code) {
   .old <- getwd() # nolint
   on.exit({
-    setwd(.old) #nolint
+    setwd(.old) # nolint
   })
   setwd(wd) # nolint
   force(code)
 }
 
-.qassert <- function(x, rules, .var.name=checkmate::vname(x)) {
-  .val <- try(checkmate::qassert(x, rules, .var.name=.var.name), silent=TRUE)
+.qassert <- function(x, rules, .var.name = checkmate::vname(x)) {
+  .val <- try(checkmate::qassert(x, rules, .var.name = .var.name), silent = TRUE)
   if (inherits(.val, "try-error")) {
     return(attr(.val, "condition")$message)
   }
@@ -1146,7 +1143,6 @@ rxUnloadAll <- function(){
 #' rxnorm()
 #'
 #' rnorm(1)
-#'
 #' @references
 #'
 #' JD Cook. (2016). Random number generator seed mistakes.
