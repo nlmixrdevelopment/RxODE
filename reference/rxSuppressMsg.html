@@ -313,12 +313,12 @@ they can be suppressed with <code><a href='https://rdrr.io/r/base/message.html'>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'># Note the errors are output to the console</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='kw'><a href='https://rdrr.io/r/base/try.html'>try</a></span><span class='op'>(</span><span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='st'>"d/dt(matt)=/3"</span><span class='op'>)</span>,silent<span class='op'>=</span><span class='cn'>TRUE</span><span class='op'>)</span></span>
+<span class='r-in'><span class='kw'><a href='https://rdrr.io/r/base/try.html'>try</a></span><span class='op'>(</span><span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='st'>"d/dt(matt)=/3"</span><span class='op'>)</span>, silent <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></span>
 <span class='r-msg co'><span class='r-pr'>#&gt;</span>  </span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'># When using suppressMessages, the output is suppressed</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/message.html'>suppressMessages</a></span><span class='op'>(</span><span class='kw'><a href='https://rdrr.io/r/base/try.html'>try</a></span><span class='op'>(</span><span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='st'>"d/dt(matt)=/3"</span><span class='op'>)</span>,silent<span class='op'>=</span><span class='cn'>TRUE</span><span class='op'>)</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/message.html'>suppressMessages</a></span><span class='op'>(</span><span class='kw'><a href='https://rdrr.io/r/base/try.html'>try</a></span><span class='op'>(</span><span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='st'>"d/dt(matt)=/3"</span><span class='op'>)</span>, silent <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span><span class='op'>)</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'># In RxODE, we use REprintf so that interrupted threads do not crash R</span></span>
 <span class='r-in'><span class='co'># if there is a user interrupt. This isn't captured by R's messages, but</span></span>

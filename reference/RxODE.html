@@ -495,52 +495,23 @@ provided: a required set of time points for querying the state of
 the ODE system and an optional set of doses (input amounts).  These
 inputs are combined into a single <em>event table</em> object created
 with the function <code><a href='eventTable.html'>eventTable()</a></code> or <code><a href='et.html'>et()</a></code>.</p>
-<p>An <code>RxODE</code> model specification consists of one or more statements
-optionally terminated by semi-colons <code>;</code> and optional comments (comments
-are delimited by <code>#</code> and an end-of-line).</p>
-<p>A block of statements is a set of statements delimited by curly braces,
-<code>{ ... }</code>.</p>
-<p>Statements can be either assignments, conditional <code>if</code>/<code>else if</code>/<code>else</code>,
-<code>while</code> loops (can be exited by <code><a href='https://rdrr.io/r/base/Control.html'>break</a></code>), special statements, or
-printing statements (for debugging/testing)</p>
+<p>An <code>RxODE</code> model specification consists of one or more statements optionally terminated by semi-colons <code>;</code> and optional comments (comments are delimited by <code>#</code> and an end-of-line).</p>
+<p>A block of statements is a set of statements delimited by curly braces, <code>{ ... }</code>.</p>
+<p>Statements can be either assignments, conditional <code>if</code>/<code>else if</code>/<code>else</code>, <code>while</code> loops (can be exited by <code><a href='https://rdrr.io/r/base/Control.html'>break</a></code>), special statements, or printing statements (for debugging/testing)</p>
 <p>Assignment statements can be:</p><ul>
-<li><p><strong>simple</strong> assignments, where the left hand is an identifier (i.e.,
-variable)</p></li>
-<li><p>special <strong>time-derivative</strong> assignments, where the left hand
-specifies the change of the amount in the corresponding state
-variable (compartment) with respect to time e.g., <code>d/dt(depot)</code>:</p></li>
-<li><p>special <strong>initial-condition</strong> assignments where the left hand
-specifies the compartment of the initial condition being specified,
-e.g. <code>depot(0) = 0</code></p></li>
-<li><p>special model event changes including <strong>bioavailability</strong>
-(<code>f(depot)=1</code>), <strong>lag time</strong> (<code>alag(depot)=0</code>), <strong>modeled rate</strong>
-(<code>rate(depot)=2</code>) and <strong>modeled duration</strong> (<code>dur(depot)=2</code>). An
-example of these model features and the event specification for the
-modeled infusions the RxODE data specification is found in <a href='https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html'>RxODE events vignette</a>.</p></li>
-<li><p>special <strong>change point syntax, or model times</strong>. These model times
-are specified by <code>mtime(var)=time</code></p></li>
-<li><p>special <strong>Jacobian-derivative</strong> assignments, where the left hand
-specifies the change in the compartment ode with respect to a
-variable. For example, if <code>d/dt(y) = dy</code>, then a Jacobian for this
-compartment can be specified as <code>df(y)/dy(dy) = 1</code>. There may be
-some advantage to obtaining the solution or specifying the Jacobian
-for very stiff ODE systems. However, for the few stiff systems we
-tried with LSODA, this actually slightly slowed down the solving.</p></li>
+<li><p><strong>simple</strong> assignments, where the left hand is an identifier (i.e., variable)</p></li>
+<li><p>special <strong>time-derivative</strong> assignments, where the left hand specifies the change of the amount in the corresponding state variable (compartment) with respect to time e.g., <code>d/dt(depot)</code>:</p></li>
+<li><p>special <strong>initial-condition</strong> assignments where the left hand specifies the compartment of the initial condition being specified, e.g. <code>depot(0) = 0</code></p></li>
+<li><p>special model event changes including <strong>bioavailability</strong> (<code>f(depot)=1</code>), <strong>lag time</strong> (<code>alag(depot)=0</code>), <strong>modeled rate</strong> (<code>rate(depot)=2</code>) and <strong>modeled duration</strong> (<code>dur(depot)=2</code>). An example of these model features and the event specification for the modeled infusions the RxODE data specification is found in <a href='https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html'>RxODE events vignette</a>.</p></li>
+<li><p>special <strong>change point syntax, or model times</strong>. These model times are specified by <code>mtime(var)=time</code></p></li>
+<li><p>special <strong>Jacobian-derivative</strong> assignments, where the left hand specifies the change in the compartment ode with respect to a variable. For example, if <code>d/dt(y) = dy</code>, then a Jacobian for this compartment can be specified as <code>df(y)/dy(dy) = 1</code>. There may be some advantage to obtaining the solution or specifying the Jacobian for very stiff ODE systems. However, for the few stiff systems we tried with LSODA, this actually slightly slowed down the solving.</p></li>
 </ul>
 
 <p>Note that assignment can be done by <code>=</code>, <code>&lt;-</code> or <code>~</code>.</p>
-<p>When assigning with the <code>~</code> operator, the <strong>simple assignments</strong> and
-<strong>time-derivative</strong> assignments will not be output.</p>
+<p>When assigning with the <code>~</code> operator, the <strong>simple assignments</strong> and <strong>time-derivative</strong> assignments will not be output.</p>
 <p>Special statements can be:</p><ul>
-<li><p><strong>Compartment declaration statements</strong>, which can change the default
-dosing compartment and the assumed compartment number(s) as well as
-add extra compartment names at the end (useful for multiple-endpoint
-nlmixr models); These are specified by <code>cmt(compartmentName)</code></p></li>
-<li><p><strong>Parameter declaration statements</strong>, which can make sure the input
-parameters are in a certain order instead of ordering the parameters
-by the order they are parsed. This is useful for keeping the
-parameter order the same when using 2 different ODE models. These
-are specified by <code>param(par1, par2,...)</code></p></li>
+<li><p><strong>Compartment declaration statements</strong>, which can change the default dosing compartment and the assumed compartment number(s) as well as add extra compartment names at the end (useful for multiple-endpoint nlmixr models); These are specified by <code>cmt(compartmentName)</code></p></li>
+<li><p><strong>Parameter declaration statements</strong>, which can make sure the input parameters are in a certain order instead of ordering the parameters by the order they are parsed. This is useful for keeping the parameter order the same when using 2 different ODE models. These are specified by <code>param(par1, par2,...)</code></p></li>
 </ul>
 
 <p>An example model is shown below:</p><pre class='sourceCode r'><code>   <span class='co'># simple assignment</span>
@@ -550,41 +521,23 @@ are specified by <code>param(par1, par2,...)</code></p></li>
    <span class='va'>d</span><span class='op'>/</span><span class='fu'><a href='https://rdrr.io/r/stats/TDist.html'>dt</a></span><span class='op'>(</span><span class='va'>centr</span><span class='op'>)</span> <span class='op'>=</span> <span class='cn'>F</span><span class='op'>*</span><span class='va'>KA</span><span class='op'>*</span><span class='va'>depot</span> <span class='op'>-</span> <span class='va'>CL</span><span class='op'>*</span><span class='va'>C2</span> <span class='op'>-</span> <span class='va'>Q</span><span class='op'>*</span><span class='va'>C2</span> <span class='op'>+</span> <span class='va'>Q</span><span class='op'>*</span><span class='va'>C3</span>; 
 </code></pre>
 
-<p>Expressions in assignment and <code>if</code> statements can be numeric or logical,
-however, no character nor integer expressions are currently supported.</p>
-<p>Numeric expressions can include the following numeric operators <code>+, -, *, /, ^</code> and those mathematical functions defined in the C or the R math
-libraries (e.g., <code>fabs</code>, <code>exp</code>, <code>log</code>, <code>sin</code>, <code>abs</code>).</p>
-<p>You may also access the R’s functions in the <a href='https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines'>R math libraries</a>,
-like <code>lgammafn</code> for the log gamma function.</p>
-<p>The <code>RxODE</code> syntax is case-sensitive, i.e., <code>ABC</code> is different than
-<code>abc</code>, <code>Abc</code>, <code>ABc</code>, etc.</p><h3 class='hasAnchor' id='identifiers'><a class='anchor' aria-hidden='true' href='#identifiers'></a>Identifiers</h3>
+<p>Expressions in assignment and <code>if</code> statements can be numeric or logical, however, no character nor integer expressions are currently supported.</p>
+<p>Numeric expressions can include the following numeric operators <code>+, -, *, /, ^</code> and those mathematical functions defined in the C or the R math libraries (e.g., <code>fabs</code>, <code>exp</code>, <code>log</code>, <code>sin</code>, <code>abs</code>).</p>
+<p>You may also access the R's functions in the <a href='https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines'>R math libraries</a>, like <code>lgammafn</code> for the log gamma function.</p>
+<p>The <code>RxODE</code> syntax is case-sensitive, i.e., <code>ABC</code> is different than <code>abc</code>, <code>Abc</code>, <code>ABc</code>, etc.</p><h3 class='hasAnchor' id='identifiers'><a class='anchor' aria-hidden='true' href='#identifiers'></a>Identifiers</h3>
 
 
-<p>Like R, Identifiers (variable names) may consist of one or more
-alphanumeric, underscore <code>_</code> or period <code>.</code> characters, but the first
-character cannot be a digit or underscore <code>_</code>.</p>
+<p>Like R, Identifiers (variable names) may consist of one or more alphanumeric, underscore <code>_</code> or period <code>.</code> characters, but the first character cannot be a digit or underscore <code>_</code>.</p>
 <p>Identifiers in a model specification can refer to:</p><ul>
-<li><p>State variables in the dynamic system (e.g., compartments in a
-pharmacokinetics model).</p></li>
-<li><p>Implied input variable, <code>t</code> (time), <code>tlast</code> (last time point), and
-<code>podo</code> (oral dose, in the undocumented case of absorption transit
-models).</p></li>
-<li><p>Special constants like <code>pi</code> or <a href='https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Mathematical-constants'>R’s predefined constants</a>.</p></li>
-<li><p>Model parameters (e.g., <code>ka</code> rate of absorption, <code>CL</code> clearance,
-etc.)</p></li>
-<li><p>Others, as created by assignments as part of the model
-specification; these are referred as <em>LHS</em> (left-hand side)
-variable.</p></li>
+<li><p>State variables in the dynamic system (e.g., compartments in a pharmacokinetics model).</p></li>
+<li><p>Implied input variable, <code>t</code> (time), <code>tlast</code> (last time point), and <code>podo</code> (oral dose, in the undocumented case of absorption transit models).</p></li>
+<li><p>Special constants like <code>pi</code> or <a href='https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Mathematical-constants'>R's predefined constants</a>.</p></li>
+<li><p>Model parameters (e.g., <code>ka</code> rate of absorption, <code>CL</code> clearance, etc.)</p></li>
+<li><p>Others, as created by assignments as part of the model specification; these are referred as <em>LHS</em> (left-hand side) variable.</p></li>
 </ul>
 
-<p>Currently, the <code>RxODE</code> modeling language only recognizes system state
-variables and “parameters”, thus, any values that need to be passed from
-R to the ODE model (e.g., <code>age</code>) should be either passed in the <code>params</code>
-argument of the integrator function <code><a href='rxSolve.html'>rxSolve()</a></code> or be in the supplied
-event data-set.</p>
-<p>There are certain variable names that are in the <code>RxODE</code> event tables.
-To avoid confusion, the following event table-related items cannot be
-assigned, or used as a state but can be accessed in the RxODE code:</p><ul>
+<p>Currently, the <code>RxODE</code> modeling language only recognizes system state variables and "parameters", thus, any values that need to be passed from R to the ODE model (e.g., <code>age</code>) should be either passed in the <code>params</code> argument of the integrator function <code><a href='rxSolve.html'>rxSolve()</a></code> or be in the supplied event data-set.</p>
+<p>There are certain variable names that are in the <code>RxODE</code> event tables. To avoid confusion, the following event table-related items cannot be assigned, or used as a state but can be accessed in the RxODE code:</p><ul>
 <li><p><code>cmt</code></p></li>
 <li><p><code>dvid</code></p></li>
 <li><p><code>addl</code></p></li>
@@ -593,32 +546,20 @@ assigned, or used as a state but can be accessed in the RxODE code:</p><ul>
 <li><p><code>id</code></p></li>
 </ul>
 
-<p>However the following variables are cannot be used in a model
-specification:</p><ul>
+<p>However the following variables are cannot be used in a model specification:</p><ul>
 <li><p><code>evid</code></p></li>
 <li><p><code>ii</code></p></li>
 </ul>
 
-<p>Sometimes RxODE generates variables that are fed back to RxODE.
-Similarly, nlmixr generates some variables that are used in nlmixr
-estimation and simulation. These variables start with the either the
-<code>rx</code> or <code>nlmixr</code> prefixes. To avoid any problems, it is suggested to not
-use these variables starting with either the <code>rx</code> or <code>nlmixr</code> prefixes.</p>
+<p>Sometimes RxODE generates variables that are fed back to RxODE. Similarly, nlmixr generates some variables that are used in nlmixr estimation and simulation. These variables start with the either the <code>rx</code> or <code>nlmixr</code> prefixes. To avoid any problems, it is suggested to not use these variables starting with either the <code>rx</code> or <code>nlmixr</code> prefixes.</p>
 
 <h3 class='hasAnchor' id='logical-operators'><a class='anchor' aria-hidden='true' href='#logical-operators'></a>Logical Operators</h3>
 
 
-<p>Logical operators support the standard R operators <code>==</code>, <code>!=</code> <code>&gt;=</code> <code>&lt;=</code>
-<code>&gt;</code> and <code>&lt;</code>. Like R these can be in <code>if()</code> or <code>while()</code> statements,
-<code><a href='https://rdrr.io/r/base/ifelse.html'>ifelse()</a></code> expressions. Additionally they can be in a standard
-assignment. For instance, the following is valid:</p><pre class='sourceCode r'><code><span class='va'>cov1</span> <span class='op'>=</span> <span class='va'>covm</span><span class='op'>*</span><span class='op'>(</span><span class='va'>sexf</span> <span class='op'>==</span> <span class='st'>"female"</span><span class='op'>)</span> <span class='op'>+</span> <span class='va'>covm</span><span class='op'>*</span><span class='op'>(</span><span class='va'>sexf</span> <span class='op'>!=</span> <span class='st'>"female"</span><span class='op'>)</span>
+<p>Logical operators support the standard R operators <code>==</code>, <code>!=</code> <code>&gt;=</code> <code>&lt;=</code> <code>&gt;</code> and <code>&lt;</code>. Like R these can be in <code>if()</code> or <code>while()</code> statements, <code><a href='https://rdrr.io/r/base/ifelse.html'>ifelse()</a></code> expressions. Additionally they can be in a standard assignment. For instance, the following is valid:</p><pre class='sourceCode r'><code><span class='va'>cov1</span> <span class='op'>=</span> <span class='va'>covm</span><span class='op'>*</span><span class='op'>(</span><span class='va'>sexf</span> <span class='op'>==</span> <span class='st'>"female"</span><span class='op'>)</span> <span class='op'>+</span> <span class='va'>covm</span><span class='op'>*</span><span class='op'>(</span><span class='va'>sexf</span> <span class='op'>!=</span> <span class='st'>"female"</span><span class='op'>)</span>
 </code></pre>
 
-<p>Notice that you can also use character expressions in comparisons. This
-convenience comes at a cost since character comparisons are slower than
-numeric expressions. Unlike R, <code>as.numeric</code> or <code>as.integer</code> for these
-logical statements is not only not needed, but will cause an syntax
-error if you try to use the function.</p>
+<p>Notice that you can also use character expressions in comparisons. This convenience comes at a cost since character comparisons are slower than numeric expressions. Unlike R, <code>as.numeric</code> or <code>as.integer</code> for these logical statements is not only not needed, but will cause an syntax error if you try to use the function.</p>
 
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
@@ -648,8 +589,7 @@ Springer-Verlag (1993).</p>
     <p>Melissa Hallow, Wenping Wang and Matthew Fidler</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'></span>
-<span class='r-in'><span class='co'># \donttest{</span></span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='co'># \donttest{</span></span>
 <span class='r-in'><span class='co'># Step 1 - Create a model specification</span></span>
 <span class='r-in'><span class='va'>ode</span> <span class='op'>&lt;-</span> <span class='st'>"</span>
 <span class='r-in'>   # A 4-compartment model, 3 PK and a PD (effect) compartment</span>
@@ -683,19 +623,20 @@ Springer-Verlag (1993).</p>
 <span class='r-in'><span class='co'># then after</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='va'>qd</span><span class='op'>$</span><span class='fu'>add.sampling</span><span class='op'>(</span><span class='fl'>0</span><span class='op'>:</span><span class='fl'>24</span><span class='op'>)</span></span>
-<span class='r-in'><span class='va'>qd</span><span class='op'>$</span><span class='fu'>add.sampling</span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span><span class='op'>(</span>from <span class='op'>=</span> <span class='fl'>24</span><span class='op'>+</span><span class='fl'>8</span>, to <span class='op'>=</span> <span class='fl'>5</span><span class='op'>*</span><span class='fl'>24</span>, by <span class='op'>=</span> <span class='fl'>8</span><span class='op'>)</span><span class='op'>)</span></span>
+<span class='r-in'><span class='va'>qd</span><span class='op'>$</span><span class='fu'>add.sampling</span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span><span class='op'>(</span>from <span class='op'>=</span> <span class='fl'>24</span> <span class='op'>+</span> <span class='fl'>8</span>, to <span class='op'>=</span> <span class='fl'>5</span> <span class='op'>*</span> <span class='fl'>24</span>, by <span class='op'>=</span> <span class='fl'>8</span><span class='op'>)</span><span class='op'>)</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'># Step 3 - set starting parameter estimates and initial</span></span>
 <span class='r-in'><span class='co'># values of the state</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='va'>theta</span> <span class='op'>&lt;-</span></span>
-<span class='r-in'>    <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span>KA <span class='op'>=</span> <span class='fl'>.291</span>, CL <span class='op'>=</span> <span class='fl'>18.6</span>,</span>
-<span class='r-in'>      V2 <span class='op'>=</span> <span class='fl'>40.2</span>, Q <span class='op'>=</span> <span class='fl'>10.5</span>, V3 <span class='op'>=</span> <span class='fl'>297.0</span>,</span>
-<span class='r-in'>      Kin <span class='op'>=</span> <span class='fl'>1.0</span>, Kout <span class='op'>=</span> <span class='fl'>1.0</span>, EC50 <span class='op'>=</span> <span class='fl'>200.0</span><span class='op'>)</span></span>
+<span class='r-in'>  <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span></span>
+<span class='r-in'>    KA <span class='op'>=</span> <span class='fl'>.291</span>, CL <span class='op'>=</span> <span class='fl'>18.6</span>,</span>
+<span class='r-in'>    V2 <span class='op'>=</span> <span class='fl'>40.2</span>, Q <span class='op'>=</span> <span class='fl'>10.5</span>, V3 <span class='op'>=</span> <span class='fl'>297.0</span>,</span>
+<span class='r-in'>    Kin <span class='op'>=</span> <span class='fl'>1.0</span>, Kout <span class='op'>=</span> <span class='fl'>1.0</span>, EC50 <span class='op'>=</span> <span class='fl'>200.0</span></span>
+<span class='r-in'>  <span class='op'>)</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'># init state variable</span></span>
-<span class='r-in'><span class='va'>inits</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>1</span><span class='op'>)</span>;</span>
-<span class='r-in'></span>
+<span class='r-in'><span class='va'>inits</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>1</span><span class='op'>)</span></span>
 <span class='r-in'><span class='co'># Step 4 - Fit the model to the data</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='va'>qd.cp</span> <span class='op'>&lt;-</span> <span class='va'>m1</span><span class='op'>$</span><span class='fu'>solve</span><span class='op'>(</span><span class='va'>theta</span>, events <span class='op'>=</span> <span class='va'>qd</span>, <span class='va'>inits</span><span class='op'>)</span></span>
@@ -713,10 +654,8 @@ Springer-Verlag (1993).</p>
 <span class='r-in'><span class='co'># This returns a matrix.  Note that you can also</span></span>
 <span class='r-in'><span class='co'># solve using name initial values. For example:</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='va'>inits</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span>eff <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span>;</span>
-<span class='r-in'></span>
-<span class='r-in'><span class='va'>qd.cp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>m1</span>, <span class='va'>theta</span>, events <span class='op'>=</span> <span class='va'>qd</span>, <span class='va'>inits</span><span class='op'>)</span>;</span>
-<span class='r-in'></span>
+<span class='r-in'><span class='va'>inits</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span>eff <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span></span>
+<span class='r-in'><span class='va'>qd.cp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/symengine/man/solve.html'>solve</a></span><span class='op'>(</span><span class='va'>m1</span>, <span class='va'>theta</span>, events <span class='op'>=</span> <span class='va'>qd</span>, <span class='va'>inits</span><span class='op'>)</span></span>
 <span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>qd.cp</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ <span style='font-weight: bold;'>Solved RxODE object</span> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> ── <span style='font-weight: bold;'>Parameters</span> (<span style='color: #0000BB; font-weight: bold;'>$params</span>): ───────────────────────────────────────────────────────</span>
@@ -740,7 +679,6 @@ Springer-Verlag (1993).</p>
 <span class='r-in'></span>
 <span class='r-in'><span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>qd.cp</span><span class='op'>)</span></span>
 <span class='r-plt'><img src='RxODE-1.png' alt='' width='700' height='433' /></span>
-<span class='r-in'></span>
 <span class='r-in'><span class='co'># }</span></span>
 <span class='r-in'></span>
 </code></pre></div>

@@ -343,15 +343,14 @@ can run the same number of cores as you are running so they can
 reproduce your results.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'></span>
-<span class='r-in'><span class='co'># \donttest{</span></span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='co'># \donttest{</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'>## Use threefry engine</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='fu'>rxchisq</span><span class='op'>(</span><span class='fl'>0.5</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxchisq you have to explicitly state n</span></span>
+<span class='r-in'><span class='fu'>rxchisq</span><span class='op'>(</span><span class='fl'>0.5</span>, n <span class='op'>=</span> <span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxchisq you have to explicitly state n</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 2.357198e-04 1.083749e+00 5.174659e-03 9.927023e-04 5.483097e-01</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [6] 6.095223e-01 1.119154e-06 8.335804e-03 4.405175e-01 2.799780e-01</span>
-<span class='r-in'><span class='fu'>rxchisq</span><span class='op'>(</span><span class='fl'>5</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
+<span class='r-in'><span class='fu'>rxchisq</span><span class='op'>(</span><span class='fl'>5</span>, n <span class='op'>=</span> <span class='fl'>10</span>, ncores <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1]  8.318915  3.810269  4.630802  4.396210  6.260119  5.159797  2.104751</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [8]  3.984341 17.238055  2.850380</span>
 <span class='r-in'></span>
@@ -362,14 +361,13 @@ reproduce your results.</p>
 <span class='r-in'><span class='co'>## This example uses `rxchisq` directly in the model</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span></span>
-<span class='r-in'>  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'>rxchisq</span><span class='op'>(</span><span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'>  <span class='va'>a</span> <span class='op'>&lt;-</span> <span class='fu'>rxchisq</span><span class='op'>(</span><span class='fl'>2</span><span class='op'>)</span></span>
 <span class='r-in'><span class='op'>}</span><span class='op'>)</span></span>
 <span class='r-msg co'><span class='r-pr'>#&gt;</span>  </span>
 <span class='r-in'></span>
-<span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>, id <span class='op'>=</span> <span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span></span>
-<span class='r-in'></span>
+<span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>, <span class='va'>et</span><span class='op'>)</span></span>
 <span class='r-in'><span class='co'># }</span></span>
 <span class='r-in'></span>
 </code></pre></div>

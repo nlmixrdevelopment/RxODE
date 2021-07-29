@@ -347,15 +347,14 @@ can run the same number of cores as you are running so they can
 reproduce your results.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'></span>
-<span class='r-in'><span class='co'># \donttest{</span></span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='co'># \donttest{</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'>## Use threefry engine</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>0.5</span>, <span class='fl'>0.5</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxbeta you have to explicitly state n</span></span>
+<span class='r-in'><span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>0.5</span>, <span class='fl'>0.5</span>, n <span class='op'>=</span> <span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxbeta you have to explicitly state n</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 0.29390379 0.59430068 0.66230103 0.57713333 0.45133354 0.86479663</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [7] 0.94102044 0.15672197 0.03530665 0.98476605</span>
-<span class='r-in'><span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>5</span>, <span class='fl'>1</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
+<span class='r-in'><span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>5</span>, <span class='fl'>1</span>, n <span class='op'>=</span> <span class='fl'>10</span>, ncores <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 0.9332316 0.9429135 0.9735325 0.8435174 0.8503392 0.8557479 0.8094574</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [8] 0.9375020 0.9862379 0.9810331</span>
 <span class='r-in'></span>
@@ -366,13 +365,13 @@ reproduce your results.</p>
 <span class='r-in'><span class='co'>## This example uses `rxbeta` directly in the model</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span></span>
-<span class='r-in'>  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'>  <span class='va'>a</span> <span class='op'>&lt;-</span> <span class='fu'>rxbeta</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span></span>
 <span class='r-in'><span class='op'>}</span><span class='op'>)</span></span>
 <span class='r-msg co'><span class='r-pr'>#&gt;</span>  </span>
 <span class='r-in'></span>
-<span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>, id <span class='op'>=</span> <span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span></span>
+<span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>, <span class='va'>et</span><span class='op'>)</span></span>
 <span class='r-in'><span class='co'># }</span></span>
 </code></pre></div>
   </div>

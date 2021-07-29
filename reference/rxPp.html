@@ -360,28 +360,29 @@ dropout is equal to or after tmax.</p>
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'></span>
 <span class='r-in'><span class='co'>## Sample homogenous Poisson process of rate 1/10</span></span>
-<span class='r-in'><span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>10</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span> <span class='op'>/</span> <span class='fl'>10</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1]  15.51811  16.57788  29.57097  52.53117  54.02744  56.15175  72.36297</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [8]  77.23964 100.56238 117.83316</span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'>## Sample inhomogenous Poisson rate of 1/10</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>10</span>,gamma<span class='op'>=</span><span class='fl'>2</span>,tmax<span class='op'>=</span><span class='fl'>100</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span> <span class='op'>/</span> <span class='fl'>10</span>, gamma <span class='op'>=</span> <span class='fl'>2</span>, tmax <span class='op'>=</span> <span class='fl'>100</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 15.34403 53.36726 56.67252 65.27753 67.30450 68.50082 77.79207 81.98523</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [9] 84.35882 85.41290</span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'>## Typically the Poisson process times are in a sequential order,</span></span>
 <span class='r-in'><span class='co'>## using randomOrder gives the Poisson process in random order</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>10</span>,gamma<span class='op'>=</span><span class='fl'>2</span>,tmax<span class='op'>=</span><span class='fl'>10</span>, randomOrder<span class='op'>=</span><span class='cn'>TRUE</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span> <span class='op'>/</span> <span class='fl'>10</span>, gamma <span class='op'>=</span> <span class='fl'>2</span>, tmax <span class='op'>=</span> <span class='fl'>10</span>, randomOrder <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 10 10 10 10 10 10 10 10 10 10</span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'>## This uses an arbitrary function to sample a non-homogenous Poisson process</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>/</span><span class='fl'>10</span>, prob<span class='op'>=</span><span class='kw'>function</span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span><span class='op'>{</span><span class='fl'>1</span><span class='op'>/</span><span class='va'>x</span><span class='op'>}</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'>rxPp</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span> <span class='op'>/</span> <span class='fl'>10</span>, prob <span class='op'>=</span> <span class='kw'>function</span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span> <span class='op'>{</span></span>
+<span class='r-in'>  <span class='fl'>1</span> <span class='op'>/</span> <span class='va'>x</span></span>
+<span class='r-in'><span class='op'>}</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1]   1.806933   2.003025   4.475795  28.739301  38.336540  69.627514</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [7] 106.499605 203.379857 363.115068 420.011966</span>
-<span class='r-in'></span>
 </code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

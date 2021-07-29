@@ -407,7 +407,7 @@ converted to thread safe simulation;</p>
 <span class='r-in'><span class='co'>## From mvnfast</span></span>
 <span class='r-in'><span class='co'>## Unlike mvnfast, uses threefry simulation</span></span>
 <span class='r-in'></span>
-<span class='r-in'> <span class='va'>d</span> <span class='op'>&lt;-</span> <span class='fl'>5</span></span>
+<span class='r-in'><span class='va'>d</span> <span class='op'>&lt;-</span> <span class='fl'>5</span></span>
 <span class='r-in'><span class='va'>mu</span> <span class='op'>&lt;-</span> <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'># Creating covariance matrix</span></span>
@@ -446,7 +446,7 @@ converted to thread safe simulation;</p>
 <span class='r-in'></span>
 <span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span><span class='op'>(</span><span class='fl'>414</span><span class='op'>)</span></span>
 <span class='r-in'><span class='fu'>rxRmvn</span><span class='op'>(</span><span class='va'>A</span>, <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>, <span class='va'>mcov</span>, ncores <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span> <span class='co'># This returns NULL ...</span></span>
-<span class='r-in'><span class='va'>A</span>                                <span class='co'># ... but the result is here</span></span>
+<span class='r-in'><span class='va'>A</span> <span class='co'># ... but the result is here</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>           [,1]      [,2]       [,3]     [,4]     [,5]</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1,] 0.6136552 4.5619767  3.7840009 3.820684 6.181438</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [2,] 0.3652661 2.3724185  5.0871725 4.070487 5.749454</span>
@@ -455,7 +455,7 @@ converted to thread safe simulation;</p>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'>## You can also simulate from a truncated normal:</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='fu'>rxRmvn</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>, <span class='va'>mcov</span>, lower<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span><span class='op'>-</span><span class='fl'>1</span>, upper<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span><span class='op'>+</span><span class='fl'>1</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'>rxRmvn</span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>, <span class='va'>mcov</span>, lower <span class='op'>=</span> <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span> <span class='op'>-</span> <span class='fl'>1</span>, upper <span class='op'>=</span> <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span> <span class='op'>+</span> <span class='fl'>1</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>             [,1]     [,2]     [,3]     [,4]     [,5]</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1,] 1.40194307 2.188182 2.829579 4.998496 4.804913</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [2,] 0.02971623 2.555220 2.694816 4.462161 5.022664</span>
@@ -472,13 +472,13 @@ converted to thread safe simulation;</p>
 <span class='r-in'><span class='co'># You can also simulate from different matrices (if they match</span></span>
 <span class='r-in'><span class='co'># dimensions) by using a list of matrices.</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='va'>matL</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>4</span>,<span class='kw'>function</span><span class='op'>(</span><span class='va'>...</span><span class='op'>)</span><span class='op'>{</span></span>
-<span class='r-in'>   <span class='va'>tmp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='va'>d</span><span class='op'>^</span><span class='fl'>2</span><span class='op'>)</span>, <span class='va'>d</span>, <span class='va'>d</span><span class='op'>)</span></span>
-<span class='r-in'>   <span class='fu'><a href='https://rdrr.io/r/base/crossprod.html'>tcrossprod</a></span><span class='op'>(</span><span class='va'>tmp</span>, <span class='va'>tmp</span><span class='op'>)</span></span>
+<span class='r-in'><span class='va'>matL</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>4</span>, <span class='kw'>function</span><span class='op'>(</span><span class='va'>...</span><span class='op'>)</span> <span class='op'>{</span></span>
+<span class='r-in'>  <span class='va'>tmp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='va'>d</span><span class='op'>^</span><span class='fl'>2</span><span class='op'>)</span>, <span class='va'>d</span>, <span class='va'>d</span><span class='op'>)</span></span>
+<span class='r-in'>  <span class='fu'><a href='https://rdrr.io/r/base/crossprod.html'>tcrossprod</a></span><span class='op'>(</span><span class='va'>tmp</span>, <span class='va'>tmp</span><span class='op'>)</span></span>
 <span class='r-in'><span class='op'>}</span><span class='op'>)</span></span>
 <span class='r-in'></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='fu'>rxRmvn</span><span class='op'>(</span><span class='fl'>4</span>, <span class='fu'><a href='https://rdrr.io/r/stats/setNames.html'>setNames</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>,<span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span><span class='op'>(</span><span class='st'>"a"</span>,<span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span><span class='op'>)</span><span class='op'>)</span>, <span class='va'>matL</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'>rxRmvn</span><span class='op'>(</span><span class='fl'>4</span>, <span class='fu'><a href='https://rdrr.io/r/stats/setNames.html'>setNames</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span>, <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span><span class='op'>(</span><span class='st'>"a"</span>, <span class='fl'>1</span><span class='op'>:</span><span class='va'>d</span><span class='op'>)</span><span class='op'>)</span>, <span class='va'>matL</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>               a1         a2         a3       a4       a5</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1,]  2.1027689 -3.1277802 -1.7058664 3.877449 6.160238</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [2,] -0.1528749  0.3372425  1.4079033 3.204818 6.771887</span>
@@ -496,7 +496,6 @@ converted to thread safe simulation;</p>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [14,]  0.7032309  2.5654064  2.7642640 3.706315 5.057585</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [15,] -3.4067706  2.3051387  4.4260234 6.692458 8.170364</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [16,] -3.7727314  4.2737997 -0.8379328 6.990844 1.255809</span>
-<span class='r-in'></span>
 </code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

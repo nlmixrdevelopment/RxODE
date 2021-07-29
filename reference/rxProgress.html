@@ -338,16 +338,17 @@ wasn't called.</p>
     <p>Matthew L. Fidler</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='va'>f</span> <span class='op'>&lt;-</span> <span class='kw'>function</span><span class='op'>(</span><span class='op'>)</span><span class='op'>{</span></span>
-<span class='r-in'>  <span class='fu'><a href='https://rdrr.io/r/base/on.exit.html'>on.exit</a></span><span class='op'>(</span><span class='op'>{</span><span class='fu'>rxProgressAbort</span><span class='op'>(</span><span class='op'>)</span><span class='op'>}</span><span class='op'>)</span>;</span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='va'>f</span> <span class='op'>&lt;-</span> <span class='kw'>function</span><span class='op'>(</span><span class='op'>)</span> <span class='op'>{</span></span>
+<span class='r-in'>  <span class='fu'><a href='https://rdrr.io/r/base/on.exit.html'>on.exit</a></span><span class='op'>(</span><span class='op'>{</span></span>
+<span class='r-in'>    <span class='fu'>rxProgressAbort</span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-in'>  <span class='op'>}</span><span class='op'>)</span></span>
 <span class='r-in'>  <span class='fu'>rxProgress</span><span class='op'>(</span><span class='fl'>100</span><span class='op'>)</span></span>
-<span class='r-in'>    <span class='kw'>for</span> <span class='op'>(</span><span class='va'>i</span> <span class='kw'>in</span> <span class='fl'>1</span><span class='op'>:</span><span class='fl'>100</span><span class='op'>)</span> <span class='op'>{</span></span>
-<span class='r-in'>       <span class='fu'>rxTick</span><span class='op'>(</span><span class='op'>)</span></span>
-<span class='r-in'>       <span class='fu'><a href='https://rdrr.io/r/base/Sys.sleep.html'>Sys.sleep</a></span><span class='op'>(</span><span class='fl'>1</span> <span class='op'>/</span> <span class='fl'>100</span><span class='op'>)</span></span>
-<span class='r-in'>    <span class='op'>}</span></span>
-<span class='r-in'>  <span class='fu'>rxProgressStop</span><span class='op'>(</span><span class='op'>)</span>;</span>
-<span class='r-in'> <span class='op'>}</span></span>
-<span class='r-in'></span>
+<span class='r-in'>  <span class='kw'>for</span> <span class='op'>(</span><span class='va'>i</span> <span class='kw'>in</span> <span class='fl'>1</span><span class='op'>:</span><span class='fl'>100</span><span class='op'>)</span> <span class='op'>{</span></span>
+<span class='r-in'>    <span class='fu'>rxTick</span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-in'>    <span class='fu'><a href='https://rdrr.io/r/base/Sys.sleep.html'>Sys.sleep</a></span><span class='op'>(</span><span class='fl'>1</span> <span class='op'>/</span> <span class='fl'>100</span><span class='op'>)</span></span>
+<span class='r-in'>  <span class='op'>}</span></span>
+<span class='r-in'>  <span class='fu'>rxProgressStop</span><span class='op'>(</span><span class='op'>)</span></span>
+<span class='r-in'><span class='op'>}</span></span>
 <span class='r-in'><span class='co'># \donttest{</span></span>
 <span class='r-in'><span class='fu'>f</span><span class='op'>(</span><span class='op'>)</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> </span>

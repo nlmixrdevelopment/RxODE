@@ -322,12 +322,11 @@
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'></span>
 <span class='r-in'><span class='va'>t</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/tempfile.html'>tempfile</a></span><span class='op'>(</span><span class='op'>)</span></span>
-<span class='r-in'><span class='fu'>.rxWithSink</span><span class='op'>(</span><span class='va'>t</span>,<span class='fu'><a href='https://rdrr.io/r/base/cat.html'>cat</a></span><span class='op'>(</span><span class='st'>"message\n"</span><span class='op'>)</span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'>.rxWithSink</span><span class='op'>(</span><span class='va'>t</span>, <span class='fu'><a href='https://rdrr.io/r/base/cat.html'>cat</a></span><span class='op'>(</span><span class='st'>"message\n"</span><span class='op'>)</span><span class='op'>)</span></span>
 <span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/cat.html'>cat</a></span><span class='op'>(</span><span class='st'>"cat2\n"</span><span class='op'>)</span> <span class='co'># now you can see the cat2</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> cat2</span>
 <span class='r-in'><span class='va'>lines</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/readLines.html'>readLines</a></span><span class='op'>(</span><span class='va'>t</span><span class='op'>)</span></span>
 <span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/unlink.html'>unlink</a></span><span class='op'>(</span><span class='va'>t</span><span class='op'>)</span></span>
-<span class='r-in'></span>
 </code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

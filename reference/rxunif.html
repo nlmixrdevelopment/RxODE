@@ -347,15 +347,14 @@ can run the same number of cores as you are running so they can
 reproduce your results.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'></span>
-<span class='r-in'><span class='co'># \donttest{</span></span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='co'># \donttest{</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='co'>## Use threefry engine</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='fu'>rxunif</span><span class='op'>(</span>min<span class='op'>=</span><span class='fl'>0</span>, max<span class='op'>=</span><span class='fl'>4</span>, n<span class='op'>=</span><span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxunif you have to explicitly state n</span></span>
+<span class='r-in'><span class='fu'>rxunif</span><span class='op'>(</span>min <span class='op'>=</span> <span class='fl'>0</span>, max <span class='op'>=</span> <span class='fl'>4</span>, n <span class='op'>=</span> <span class='fl'>10</span><span class='op'>)</span> <span class='co'># with rxunif you have to explicitly state n</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 2.134726240 0.007952281 1.279568680 2.254002313 0.841863684 0.325005806</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [7] 2.110872169 0.565347202 3.019588167 3.310655423</span>
-<span class='r-in'><span class='fu'>rxunif</span><span class='op'>(</span>min<span class='op'>=</span><span class='fl'>0</span>, max<span class='op'>=</span><span class='fl'>4</span>, n<span class='op'>=</span><span class='fl'>10</span>, ncores<span class='op'>=</span><span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
+<span class='r-in'><span class='fu'>rxunif</span><span class='op'>(</span>min <span class='op'>=</span> <span class='fl'>0</span>, max <span class='op'>=</span> <span class='fl'>4</span>, n <span class='op'>=</span> <span class='fl'>10</span>, ncores <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] 2.9263972 1.4605170 2.2519018 0.6981295 1.7568379 1.0471301 3.5771028</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [8] 3.5446341 3.7114864 2.0795310</span>
 <span class='r-in'></span>
@@ -366,14 +365,13 @@ reproduce your results.</p>
 <span class='r-in'><span class='co'>## This example uses `rxunif` directly in the model</span></span>
 <span class='r-in'></span>
 <span class='r-in'><span class='va'>rx</span> <span class='op'>&lt;-</span> <span class='fu'><a href='RxODE.html'>RxODE</a></span><span class='op'>(</span><span class='op'>{</span></span>
-<span class='r-in'>  <span class='va'>a</span> <span class='op'>=</span> <span class='fu'>rxunif</span><span class='op'>(</span><span class='fl'>0</span>,<span class='fl'>3</span><span class='op'>)</span></span>
+<span class='r-in'>  <span class='va'>a</span> <span class='op'>&lt;-</span> <span class='fu'>rxunif</span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>3</span><span class='op'>)</span></span>
 <span class='r-in'><span class='op'>}</span><span class='op'>)</span></span>
 <span class='r-msg co'><span class='r-pr'>#&gt;</span>  </span>
 <span class='r-in'></span>
-<span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>,id<span class='op'>=</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-in'><span class='va'>et</span> <span class='op'>&lt;-</span> <span class='fu'><a href='et.html'>et</a></span><span class='op'>(</span><span class='fl'>1</span>, id <span class='op'>=</span> <span class='fl'>1</span><span class='op'>:</span><span class='fl'>2</span><span class='op'>)</span></span>
 <span class='r-in'></span>
-<span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>,<span class='va'>et</span><span class='op'>)</span></span>
-<span class='r-in'></span>
+<span class='r-in'><span class='va'>s</span> <span class='op'>&lt;-</span> <span class='fu'><a href='rxSolve.html'>rxSolve</a></span><span class='op'>(</span><span class='va'>rx</span>, <span class='va'>et</span><span class='op'>)</span></span>
 <span class='r-in'><span class='co'># }</span></span>
 <span class='r-in'></span>
 </code></pre></div>
