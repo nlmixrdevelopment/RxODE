@@ -1188,7 +1188,7 @@ rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, 
     .rx <- rxNorm(object)
     qs::qsave(list(.rx, .ctl, .nms, .xtra, params, events, inits, .setupOnly), "last-rxode.qs")
   }
-  if (!any(class(object) %in% c("rxSolve", "RxODE", "character", "rxModelVars"))) {
+  if (!any(class(object) %in% c("rxSolve", "RxODE", "character", "rxModelVars", "rxDll"))) {
     stop("Unsupported type of model trying to be solved")
   }
   .ret <- .collectWarnings(rxSolveSEXP(object, .ctl, .nms, .xtra,
