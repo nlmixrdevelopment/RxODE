@@ -82,7 +82,7 @@ and can use multiple cores to generate the random deviates.
 ## From mvnfast
 ## Unlike mvnfast, uses threefry simulation
 
- d <- 5
+d <- 5
 mu <- 1:d
 
 # Creating covariance matrix
@@ -106,24 +106,23 @@ class(A) <- "numeric" # This is important. We need the elements of A to be of cl
 
 set.seed(414)
 rxRmvn(A, 1:d, mcov, ncores = 2) # This returns NULL ...
-A                                # ... but the result is here
+A # ... but the result is here
 
 ## You can also simulate from a truncated normal:
 
-rxRmvn(10, 1:d, mcov, lower=1:d-1, upper=1:d+1)
+rxRmvn(10, 1:d, mcov, lower = 1:d - 1, upper = 1:d + 1)
 
 
 # You can also simulate from different matrices (if they match
 # dimensions) by using a list of matrices.
 
-matL <- lapply(1:4,function(...){
-   tmp <- matrix(rnorm(d^2), d, d)
-   tcrossprod(tmp, tmp)
+matL <- lapply(1:4, function(...) {
+  tmp <- matrix(rnorm(d^2), d, d)
+  tcrossprod(tmp, tmp)
 })
 
 
-rxRmvn(4, setNames(1:d,paste0("a",1:d)), matL)
-
+rxRmvn(4, setNames(1:d, paste0("a", 1:d)), matL)
 }
 \references{
 John K. Salmon, Mark A. Moraes, Ron O. Dror, and David

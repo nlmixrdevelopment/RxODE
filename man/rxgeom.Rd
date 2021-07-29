@@ -44,13 +44,12 @@ can run the same number of cores as you are running so they can
 reproduce your results.
 }
 \examples{
-
 \donttest{
 
 ## Use threefry engine
 
-rxgeom(0.5, n=10) # with rxgeom you have to explicitly state n
-rxgeom(0.25, n=10, ncores=2) # You can parallelize the simulation using openMP
+rxgeom(0.5, n = 10) # with rxgeom you have to explicitly state n
+rxgeom(0.25, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
 rxgeom(0.75)
 
@@ -58,12 +57,12 @@ rxgeom(0.75)
 ## This example uses `rxgeom` directly in the model
 
 rx <- RxODE({
-  a = rxgeom(0.24)
+  a <- rxgeom(0.24)
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
+s <- rxSolve(rx, et)
 }
 
 }

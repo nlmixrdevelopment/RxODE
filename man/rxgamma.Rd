@@ -50,13 +50,12 @@ can run the same number of cores as you are running so they can
 reproduce your results.
 }
 \examples{
-
 \donttest{
 
 ## Use threefry engine
 
-rxgamma(0.5, n=10) # with rxgamma you have to explicitly state n
-rxgamma(5, n=10, ncores=2) # You can parallelize the simulation using openMP
+rxgamma(0.5, n = 10) # with rxgamma you have to explicitly state n
+rxgamma(5, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
 rxgamma(1)
 
@@ -64,13 +63,12 @@ rxgamma(1)
 ## This example uses `rxbeta` directly in the model
 
 rx <- RxODE({
-  a = rxgamma(2)
+  a <- rxgamma(2)
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
-
+s <- rxSolve(rx, et)
 }
 
 }

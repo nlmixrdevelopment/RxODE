@@ -55,5 +55,4 @@ be displayed in a tibble.
 \examples{
 
 rxEvid(1:7)
-
 }

@@ -21,7 +21,7 @@ Temporarily set options then restore them while running code
 \examples{
 
 .rxWithWd(tempdir(), {
-   getwd()
+  getwd()
 })
 
 getwd()

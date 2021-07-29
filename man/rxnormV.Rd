@@ -31,38 +31,38 @@ Simulate random normal variable from threefry/vandercorput generator
 \donttest{
 ## Use threefry engine
 
-rxnorm(n=10) # with rxnorm you have to explicitly state n
-rxnorm(n=10,ncores=2) # You can parallelize the simulation using openMP
+rxnorm(n = 10) # with rxnorm you have to explicitly state n
+rxnorm(n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
-rxnorm(2,3) ## The first 2 arguments are the mean and standard deviation
+rxnorm(2, 3) ## The first 2 arguments are the mean and standard deviation
 
 
 ## This example uses `rxnorm` directly in the model
 
 rx <- RxODE({
-  a = rxnorm()
+  a <- rxnorm()
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
+s <- rxSolve(rx, et)
 
 ## Use vandercorput generator
 
-rxnormV(n=10) # with rxnorm you have to explicitly state n
-rxnormV(n=10,ncores=2) # You can parallelize the simulation using openMP
+rxnormV(n = 10) # with rxnorm you have to explicitly state n
+rxnormV(n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
-rxnormV(2,3) ## The first 2 arguments are the mean and standard deviation
+rxnormV(2, 3) ## The first 2 arguments are the mean and standard deviation
 
 
 ## This example uses `rxnormV` directly in the model
 
 rx <- RxODE({
-  a = rxnormV()
+  a <- rxnormV()
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
+s <- rxSolve(rx, et)
 }
 }

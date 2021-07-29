@@ -46,13 +46,12 @@ can run the same number of cores as you are running so they can
 reproduce your results.
 }
 \examples{
-
 \donttest{
 
 ## Use threefry engine
 
-rxf(0.5, 0.5, n=10) # with rxf you have to explicitly state n
-rxf(5, 1, n=10, ncores=2) # You can parallelize the simulation using openMP
+rxf(0.5, 0.5, n = 10) # with rxf you have to explicitly state n
+rxf(5, 1, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
 rxf(1, 3)
 
@@ -60,13 +59,12 @@ rxf(1, 3)
 ## This example uses `rxf` directly in the model
 
 rx <- RxODE({
-  a = rxf(2, 2)
+  a <- rxf(2, 2)
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
-
+s <- rxSolve(rx, et)
 }
 
 }

@@ -26,12 +26,11 @@ The uppergamma function is given by:
 }
 \examples{
 
-uppergamma(1,3)
+uppergamma(1, 3)
 
-uppergamma(1:3,3)
+uppergamma(1:3, 3)
 
-uppergamma(1,1:3)
-
+uppergamma(1, 1:3)
 }
 \author{
 Matthew L. Fidler

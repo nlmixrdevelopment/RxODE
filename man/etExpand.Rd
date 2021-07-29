@@ -16,7 +16,7 @@ New event table with \code{addl} doses expanded
 Expand additional doses
 }
 \examples{
-ev <- et(amt=3,ii=24,until=240);
+ev <- et(amt = 3, ii = 24, until = 240)
 print(ev)
 etExpand(ev) # expands event table, but doesn't modify it
 

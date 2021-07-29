@@ -46,13 +46,12 @@ can run the same number of cores as you are running so they can
 reproduce your results.
 }
 \examples{
-
 \donttest{
 
 ## Use threefry engine
 
-rxweibull(shape=1, scale=4, n=10) # with rxweibull you have to explicitly state n
-rxweibull(shape=1, scale=4, n=10, ncores=2) # You can parallelize the simulation using openMP
+rxweibull(shape = 1, scale = 4, n = 10) # with rxweibull you have to explicitly state n
+rxweibull(shape = 1, scale = 4, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
 rxweibull(3)
 
@@ -60,12 +59,11 @@ rxweibull(3)
 ## This example uses `rxweibull` directly in the model
 
 rx <- RxODE({
-  a = rxweibull(1,3)
+  a <- rxweibull(1, 3)
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
-
+s <- rxSolve(rx, et)
 }
 }

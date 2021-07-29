@@ -62,8 +62,7 @@ logit(0.25)
 
 expit(-1.09)
 
-logitNormInfo(logit(0.25),sd=0.1)
+logitNormInfo(logit(0.25), sd = 0.1)
 
-logitNormInfo(logit(1,0,10), sd=1, low=0, high=10)
-
+logitNormInfo(logit(1, 0, 10), sd = 1, low = 0, high = 10)
 }

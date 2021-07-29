@@ -20,8 +20,8 @@ Temporarily set options then restore them while running code
 }
 \examples{
 
-.rxWithOptions(list(digits=21), {
-   print(pi)
+.rxWithOptions(list(digits = 21), {
+  print(pi)
 })
 
 print(pi)

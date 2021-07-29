@@ -46,8 +46,8 @@ reproduce your results.
 \donttest{
 ## Use threefry engine
 
-rxpois(lambda=3, n=10) # with rxpois you have to explicitly state n
-rxpois(lambda=3, n=10, ncores=2) # You can parallelize the simulation using openMP
+rxpois(lambda = 3, n = 10) # with rxpois you have to explicitly state n
+rxpois(lambda = 3, n = 10, ncores = 2) # You can parallelize the simulation using openMP
 
 rxpois(4) ## The first arguments are the lambda parameter
 
@@ -55,11 +55,11 @@ rxpois(4) ## The first arguments are the lambda parameter
 ## This example uses `rxpois` directly in the model
 
 rx <- RxODE({
-  a = rxpois(3)
+  a <- rxpois(3)
 })
 
-et <- et(1,id=1:2)
+et <- et(1, id = 1:2)
 
-s <- rxSolve(rx,et)
+s <- rxSolve(rx, et)
 }
 }

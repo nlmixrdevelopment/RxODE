@@ -21,10 +21,9 @@ This is the gamma_p_derivative from the boost library
 }
 \examples{
 
-gammapDer(1:3,3)
+gammapDer(1:3, 3)
 
-gammapDer(1,1:3)
-
+gammapDer(1, 1:3)
 }
 \author{
 Matthew L. Fidler

@@ -28,13 +28,14 @@ rxExpandGrid(letters, letters)
 ## Another fast method; See
 ## https://stackoverflow.com/questions/10405637/use-outer-instead-of-expand-grid
 
-expand.grid.jc <- function(seq1,seq2) {
- cbind(Var1 = rep.int(seq1, length(seq2)),
-  Var2 = rep.int(seq2, rep.int(length(seq1),length(seq2))))
+expand.grid.jc <- function(seq1, seq2) {
+  cbind(
+    Var1 = rep.int(seq1, length(seq2)),
+    Var2 = rep.int(seq2, rep.int(length(seq1), length(seq2)))
+  )
 }
-
 \donttest{
- microbenchmark::microbenchmark(rxExpandGrid(letters, letters), expand.grid.jc(letters, letters))
+microbenchmark::microbenchmark(rxExpandGrid(letters, letters), expand.grid.jc(letters, letters))
 }
 }
 \author{
