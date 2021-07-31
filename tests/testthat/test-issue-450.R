@@ -1,8 +1,6 @@
 rxodeTest({
   test_that("Parallel solve", {
 
-    library(dplyr)
-
     TV_CLr=6.54 # L/h, (CLr/F)
     TV_CLnr=2.39 # L/h, (CLnr/F)
     TV_Vc=95.1 # L, (V/F)
@@ -20,9 +18,6 @@ rxodeTest({
     OM_Vp = log((37.6/100)^2+1)
     OM_CLr_CLnr = 0.101
     OM_CLr_Vc = 0.0066
-
-    ######################################################################################
-    library(MASS)
 
     rwishart <- function(df, p = nrow(SqrtSigma), Sigma, SqrtSigma = diag(p)) {
       if (!missing(Sigma)) {
@@ -47,13 +42,12 @@ rxodeTest({
       R.inv = solve(df*R)
       R0 = chol(.5*(R.inv+t(R.inv)))  ## R0 is an upper-diag matrix
       R1 = solve(rwishart(df, SqrtSigma=R0))
-      eta = mvrnorm(n = n,
-                    mu= rep(0, nrow(R)),
-                    Sigma= .5*(R1+t(R1)))
+      eta = MASS::mvrnorm(n = n,
+                          mu= rep(0, nrow(R)),
+                          Sigma= .5*(R1+t(R1)))
       eta
     }
 
-    ###################################################################################
     set.seed(100)
     nsubj <- 200
 
@@ -66,8 +60,9 @@ rxodeTest({
                                                                OM_CLr_Vc, 0, OM_Vc)
                                                 }),
                                                 n = nsubj))
+
     eta_D_trans <- data.frame(eta_D_normal = rnorm(mean=0,sd=sqrt(OM_D_normal),n=nsubj)) %>%
-      mutate(eta_D = ((exp(eta_D_normal))^D_trans-1)/D_trans)
+      dplyr::mutate(eta_D = ((exp(eta_D_normal))^D_trans-1)/D_trans)
 
     par.pk <- data.frame(sim.id = seq(nsubj),
                         D = TV_D * exp(eta_D_trans$eta_D),
@@ -80,15 +75,15 @@ rxodeTest({
 
     # zero-order absorption with lag time 2-compartment
     mod <- RxODE({
-      CL = CLr+CLnr;
-      C2 = central/Vc*1000;
-      all= central+periph+output;
+      CL <- CLr+CLnr
+      C2 <- central/Vc*1000
+      all<- central+periph+output
 
-      d/dt(central) = - CL/Vc*central - Q/Vc*central + Q/Vp*periph;
-      d/dt(periph)  = Q/Vc*central - Q/Vp*periph;
-      d/dt(output)  = CL/Vc*central;
-      alag(central) = alag;
-      dur(central) = D;
+      d/dt(central) <- - CL/Vc*central - Q/Vc*central + Q/Vp*periph
+      d/dt(periph)  <- Q/Vc*central - Q/Vp*periph
+      d/dt(output)  <- CL/Vc*central
+      alag(central) <- alag
+      dur(central) <- D
     })
 
     ev <-  et(amt=2,cmt="central",rate=-2,ii=24,addl=4) %>%
@@ -99,5 +94,6 @@ rxodeTest({
     bar1x <- rxSolve(mod, ev, params=par.pk, cores=1L, returnType="data.frame")
 
     expect_equal(bar1x, bar2x)
+
   })
 }, test="lvl2")
