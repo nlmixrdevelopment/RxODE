@@ -269,9 +269,9 @@ static bool sort_ugrp(uint8_t *x, const int n)
 //  - Keys are stored based on core
 //  - modified so that radix_r is 0 order not 1 order like R (since we are using it in C)
 extern "C" void radix_r(const int from, const int to, const int radix,
-	     rx_solving_options_ind *ind, x_solve *rx) {
-  uint8_t **key = rx->keys[omp_get_thread_num()];
-  int nradix = rx->nradix[omp_get_thread_num()];
+	     rx_solving_options_ind *ind, rx_solve *rx) {
+  uint8_t **key = rx->keys[0];
+  int nradix = rx->nradix[0];
   int *anso = ind->ix;
   const int my_n = to-from+1;
   if (my_n==1) {  // minor TODO: batch up the 1's instead in caller (and that's only needed when retgrp anyway)
@@ -384,7 +384,7 @@ extern "C" void radix_r(const int from, const int to, const int radix,
       // Use https://github.com/Rdatatable/data.table/blob/be6c1fc66a411211c4ca944702c1cab7739445f3/src/forder.c#L991
       // since sortType=1
       for (int i=0, sum=0; i<256; i++) { int tmp=my_counts[i]; my_starts[i]=my_starts_copy[i]=sum; sum+=tmp; ngrp+=(tmp>0);}  // cumulate through 0's too (won't be used)
-      int * my_TMP = rx->TMP + omp_get_thread_num()*UINT16_MAX; // Allocated up front to save malloc calls which i) block internally and ii) could fail
+      int * my_TMP = rx->TMP; // Allocated up front to save malloc calls which i) block internally and ii) could fail
       // Modified nalast not used since NAs cannot occur for a good sort of times
       if (radix==0) {
 	// anso contains 1:n so skip reading and copying it. Only happens when nrow<65535. Saving worth the branch (untested) when user repeatedly calls a small-n small-cardinality order.
