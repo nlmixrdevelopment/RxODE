@@ -1559,10 +1559,35 @@ extern "C" void par_indLin(rx_solve *rx){
   }
 }
 
+extern "C" void ind_liblsoda_iniSubjects(rx_solve *rx, rx_solving_options *op, t_update_inis u_inis) {
+  int nsub = rx->nsub, nsim = rx->nsim;
+  int neq[2];
+  neq[0] = op->neq;
+  rx_solving_options_ind *ind;
+
+  // Here we pick the sorted solveid
+  // rx->ordId[solveid]-1
+  // This -1 is because R is 1 indexed and C/C++ is 0 indexed
+  // This uses data.table for ordering which will return a 1 as the first item
+  // This way we solve based on the item that takes the likely takes most time to solve
+  //
+  // First this is ordered by the number of times needed to solve
+  // If called externally again this is then ordered by the total time that the solver spent in an id.
+  //
+  for (int solveid = 0; solveid < nsim*nsub; solveid++){
+     neq[1] = rx->ordId[solveid]-1;
+     ind = &(rx->subjects[neq[1]]);
+     if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) {
+       ind->badIni = 1;
+     } else {
+       ind->badIni = 0;
+     }
+  }
+}
 // ================================================================================
 // liblsoda
 extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt_t opt, int solveid, 
-			      t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis) {
+			      t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis, bool doIniSubject) {
   clock_t t0 = clock();
   int i;
   int neq[2];
@@ -1596,7 +1621,8 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   ctx->state = 1;
   ctx->error=NULL;
   ind = &(rx->subjects[neq[1]]);
-  if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) {
+  if ((!doIniSubject && ind->badIni == 1) ||
+      (doIniSubject && !iniSubject(neq[1], 0, ind, op, rx, u_inis))) {
     free(ctx);
     ctx = NULL;
     return;
@@ -1678,7 +1704,7 @@ extern "C" void ind_liblsoda(rx_solve *rx, int solveid,
   opt.hmin = op->HMIN;
   opt.hmxi = op->hmxi;
   /* ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis); */
-  ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis);
+  ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis, true);
 }
 
 extern "C" int getRxThreads(const int64_t n, const bool throttle);
@@ -1714,13 +1740,14 @@ extern "C" void par_liblsodaR(rx_solve *rx) {
   // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
   // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
   int abort = 0;
+  ind_liblsoda_iniSubjects(rx, op, update_inis);
 #ifdef _OPENMP
 #pragma omp parallel for num_threads(cores)
 #endif
   for (int thread=0; thread < cores; thread++) {
     for (int solveid = thread; solveid < nsim*nsub; solveid+=cores){
       if (abort == 0){
-	ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis);
+	ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis, false);
 	if (displayProgress && thread == 0) {
 #pragma omp critical
 	  cur++;
@@ -1786,12 +1813,13 @@ extern "C" void par_liblsoda(rx_solve *rx){
   // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
   // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
   int abort = 0;
+  ind_liblsoda_iniSubjects(rx, op, update_inis);
 #ifdef _OPENMP
 #pragma omp parallel for num_threads(op->cores)
 #endif
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){
-      ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis);
+      ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis, false);
       if (displayProgress){
 #pragma omp critical
 	  cur++;
@@ -2411,7 +2439,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
     doDose=doDose0;
   }
   int di = 0;
-  double *dose;
   double *dfp;
   int *dfi;
   int ii=0, jj = 0, ntimes;

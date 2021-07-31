@@ -269,7 +269,7 @@ static bool sort_ugrp(uint8_t *x, const int n)
 //  - Keys are stored based on core
 //  - modified so that radix_r is 0 order not 1 order like R (since we are using it in C)
 extern "C" void radix_r(const int from, const int to, const int radix,
-	     rx_solving_options_ind *ind, rx_solve *rx) {
+	     rx_solving_options_ind *ind, x_solve *rx) {
   uint8_t **key = rx->keys[omp_get_thread_num()];
   int nradix = rx->nradix[omp_get_thread_num()];
   int *anso = ind->ix;
