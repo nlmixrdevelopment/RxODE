@@ -64,6 +64,13 @@
 * Only will try to solve RxODE problems on compatible models; If the
   model is not supported it will throw an error instead of crashing
   (See #449)
+  
+* Add warnings for solving systems with or without the correct modeled
+  rate/duration elements in the model or data
+  
+* Thread based sorting of duration and rates is not currently thread
+  safe (#450).  For threaded routines, the times for each individual
+  are sorted before solving.
 
 # RxODE 1.0.9
 
