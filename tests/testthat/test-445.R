@@ -63,6 +63,6 @@ rxodeTest({
 
     expect_warning(rxSolve(mod, theta2, ev2), "dur()")
 
-    #expect_warning(rxSolve(mod, theta2, ev3), "rate()")
+    expect_warning(rxSolve(mod, theta2, ev3), "rate()")
   })
 })
