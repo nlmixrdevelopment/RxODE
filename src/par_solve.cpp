@@ -2624,6 +2624,11 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
         jj  = 0;
 	int solveId=csim*nsub+csub;
 	if (doDose || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)) {
+	  if (ii+1 > rx->nr) {
+	      UNPROTECT(pro);
+	      Rf_errorcall(R_NilValue, "Corrupted number of columns, trying to add more than requested (submit bug report please)");
+	      return R_NilValue;
+	  }
           // sim.id
           if (sm){
             dfi = INTEGER(VECTOR_ELT(df, jj));
@@ -2992,6 +2997,11 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
           ii++;
         }
 	ind->_newind = 2;
+      }
+      if (ii+1 > rx->nr) {
+	UNPROTECT(pro);
+	Rf_errorcall(R_NilValue, "Corrupted number of rows, trying to add less than requested (submit bug report please)");
+	return R_NilValue;
       }
       curi += ntimes;
       nBadDose = ind->nBadDose;
