@@ -1584,7 +1584,16 @@ extern "C" void ind_liblsoda_iniSubjects(rx_solve *rx, rx_solving_options *op, t
      }
   }
 }
-// ================================================================================
+
+static inline bool liblsodaBadSubjectIni(rx_solve *rx, rx_solving_options *op, rx_solving_options_ind *ind,
+					 int *neq, t_update_inis u_inis, bool doIniSubject) {
+  if ((!doIniSubject && ind->badIni == 1) ||
+      (doIniSubject && !iniSubject(neq[1], 0, ind, op, rx, u_inis)))
+	return true;
+  return true;
+}
+
+// ===============================================================================
 // liblsoda
 extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt_t opt, int solveid, 
 			      t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis, bool doIniSubject) {
@@ -1621,8 +1630,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   ctx->state = 1;
   ctx->error=NULL;
   ind = &(rx->subjects[neq[1]]);
-  if ((!doIniSubject && ind->badIni == 1) ||
-      (doIniSubject && !iniSubject(neq[1], 0, ind, op, rx, u_inis))) {
+  if (liblsodaBadSubjectIni(rx, op, ind, neq, u_inis, doIniSubject)) {
     free(ctx);
     ctx = NULL;
     return;
