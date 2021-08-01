@@ -1,6 +1,5 @@
 rxodeTest({
   test_that("rate and duration data mismatches", {
-
     TV_CLr <- 6.54 # L/h, (CLr/F)
     TV_CLnr <- 2.39 # L/h, (CLnr/F)
     TV_Vc <- 95.1 # L, (V/F)

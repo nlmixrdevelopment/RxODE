@@ -42,9 +42,9 @@ rxodeTest({
       R.inv = solve(df*R)
       R0 = chol(.5*(R.inv+t(R.inv)))  ## R0 is an upper-diag matrix
       R1 = solve(rwishart(df, SqrtSigma=R0))
-      eta = rxRmvn(n = n,
-                   mu= rep(0, nrow(R)),
-                   sigma= .5*(R1+t(R1)))
+      eta = MASS::mvrnorm(n = n,
+                          mu= rep(0, nrow(R)),
+                          Sigma= .5*(R1+t(R1)))
       eta
     }
 

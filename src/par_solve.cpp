@@ -1584,16 +1584,7 @@ extern "C" void ind_liblsoda_iniSubjects(rx_solve *rx, rx_solving_options *op, t
      }
   }
 }
-
-static inline bool liblsodaBadSubjectIni(rx_solve *rx, rx_solving_options *op, rx_solving_options_ind *ind,
-					 int *neq, t_update_inis u_inis, bool doIniSubject) {
-  if ((!doIniSubject && ind->badIni == 1) ||
-      (doIniSubject && !iniSubject(neq[1], 0, ind, op, rx, u_inis)))
-	return true;
-  return true;
-}
-
-// ===============================================================================
+// ================================================================================
 // liblsoda
 extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt_t opt, int solveid, 
 			      t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis, bool doIniSubject) {
@@ -1630,7 +1621,8 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   ctx->state = 1;
   ctx->error=NULL;
   ind = &(rx->subjects[neq[1]]);
-  if (liblsodaBadSubjectIni(rx, op, ind, neq, u_inis, doIniSubject)) {
+  if ((!doIniSubject && ind->badIni == 1) ||
+      (doIniSubject && !iniSubject(neq[1], 0, ind, op, rx, u_inis))) {
     free(ctx);
     ctx = NULL;
     return;
@@ -2624,11 +2616,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
         jj  = 0;
 	int solveId=csim*nsub+csub;
 	if (doDose || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)) {
-	  if (ii+1 > rx->nr) {
-	      UNPROTECT(pro);
-	      Rf_errorcall(R_NilValue, "Corrupted number of columns, trying to add more than requested (submit bug report please)");
-	      return R_NilValue;
-	  }
           // sim.id
           if (sm){
             dfi = INTEGER(VECTOR_ELT(df, jj));
@@ -2997,11 +2984,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
           ii++;
         }
 	ind->_newind = 2;
-      }
-      if (ii+1 > rx->nr) {
-	UNPROTECT(pro);
-	Rf_errorcall(R_NilValue, "Corrupted number of rows, trying to add less than requested (submit bug report please)");
-	return R_NilValue;
       }
       curi += ntimes;
       nBadDose = ind->nBadDose;
