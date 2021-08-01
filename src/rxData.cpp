@@ -2921,7 +2921,6 @@ static inline void rxSolve_parSetup(const RObject &obj,
 				    const RObject &ev1,
 				    const RObject &inits,
 				    rxSolve_t* rxSolveDat){
-  rx_solve* rx = getRxSolve_();
   //  determine which items will be sampled from
   if (rxIsNumInt(rxSolveDat->par1)){
     rxSolveDat->parNumeric = as<NumericVector>(rxSolveDat->par1);
@@ -3659,7 +3658,6 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   // NA, NaN, and -Inf +Inf not supported
   int nbyte=0, nradix=0, spare=0;
   calcNradix(&nbyte, &nradix, &spare, &(rx->maxD), &(rx->minD));
-  int realCores = op->cores;
   if (_globals.nradix != NULL) free(_globals.nradix);
   rx->nradix = _globals.nradix = (int*)malloc(sizeof(int));//nbyte-1 + (rx->spare==0); // lost
   std::fill_n(rx->nradix, 1, nradix);

@@ -197,8 +197,11 @@ rxunif <- function(min = 0, max = 1, n = 1L, ncores = 1L) {
 #'
 #' ## Use threefry engine
 #'
-#' rxweibull(shape = 1, scale = 4, n = 10) # with rxweibull you have to explicitly state n
-#' rxweibull(shape = 1, scale = 4, n = 10, ncores = 2) # You can parallelize the simulation using openMP
+#' # with rxweibull you have to explicitly state n
+#' rxweibull(shape = 1, scale = 4, n = 10)
+#'
+#' # You can parallelize the simulation using openMP
+#' rxweibull(shape = 1, scale = 4, n = 10, ncores = 2)
 #'
 #' rxweibull(3)
 #'
