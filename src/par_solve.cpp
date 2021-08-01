@@ -2471,7 +2471,6 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
   } else {
     rx->nr = (doDose == 1 ? nall : nobs)*nsim;
   }
-  rx->nr += rx->extraRow;
   scale = op->scale;
   neq[0] = op->neq;
   neq[1] = 0;
@@ -2626,8 +2625,9 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
 	int solveId=csim*nsub+csub;
 	if (doDose || (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)) {
 	  if (ii+1 > rx->nr) {
-	    ii++;
-	    continue;
+	      UNPROTECT(pro);
+	      Rf_errorcall(R_NilValue, "Corrupted number of columns, trying to add more than requested (submit bug report please)");
+	      return R_NilValue;
 	  }
           // sim.id
           if (sm){
@@ -2998,17 +2998,10 @@ extern "C" SEXP RxODE_df(int doDose0, int doTBS) {
         }
 	ind->_newind = 2;
       }
-      if (ii != rx->nr) {
+      if (ii+1 > rx->nr) {
 	UNPROTECT(pro);
-	if (rx->extraRow == 0) {
-	  Rf_warningcall(R_NilValue, "Corrupted number of rows (%d/%d), trying to recover; check results carefully (submit bug report please)",
-			 ii, rx->nr);
-	  rx->extraRow = ii - rx->nr;
-	  return RxODE_df(doDose0, doTBS);
-	} else {
-	  Rf_errorcall(R_NilValue, "Could not recover from corrupted row numbers");
-	  return R_NilValue;
-	}
+	Rf_errorcall(R_NilValue, "Corrupted number of rows, trying to add less than requested (submit bug report please)");
+	return R_NilValue;
       }
       curi += ntimes;
       nBadDose = ind->nBadDose;

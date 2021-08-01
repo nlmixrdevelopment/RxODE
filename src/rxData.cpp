@@ -4207,7 +4207,6 @@ static inline void iniRx(rx_solve* rx) {
   rx->linNcmt = 0;
   rx->maxwhile = 100000;
   rx->whileexit= 0;
-  rx->extraRow = 0;
 
   rx_solving_options* op = rx->op;
   op->badSolve = 0;
