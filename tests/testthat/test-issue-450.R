@@ -1,5 +1,5 @@
 rxodeTest({
-  test_that("Parallel solve", {
+  test_that("Parallel solve vs single vs for", {
 
     TV_CLr=6.54 # L/h, (CLr/F)
     TV_CLnr=2.39 # L/h, (CLnr/F)
@@ -91,6 +91,38 @@ rxodeTest({
     bar1x <- rxSolve(mod, ev, params=par.pk, cores=1L, returnType="data.frame")
 
     expect_equal(bar1x, bar2x)
+
+    bar3x <- rxSolve(mod, ev, params=par.pk)
+
+    # add for loop for testing against
+    res.all = NULL
+
+    for (id in seq(nsubj)) {
+
+      ev.new =eventTable() %>%
+        add.dosing(dose = 2, nbr.doses = 5, dosing.interval = 24, dur = par.pk$D[par.pk$sim.id == id]) %>%
+        add.sampling(seq(0,120,0.1))
+      theta <- c(CLr = par.pk$CLr[par.pk$sim.id == id],
+                CLnr = par.pk$CLnr[par.pk$sim.id == id],
+                Vc = par.pk$Vc[par.pk$sim.id == id],
+                Q = par.pk$Q[par.pk$sim.id == id],
+                Vp = par.pk$Vp[par.pk$sim.id == id],
+                alag = par.pk$alag[par.pk$sim.id == id],
+                D = par.pk$D[par.pk$sim.id == id])
+      res.id = data.frame(sim.id=id, expect_warning(rxSolve(mod, theta, ev.new, returnType="data.frame"), "dur()"))
+
+      expect_equal(theta, unlist(bar3x$params[bar3x$params$sim.id == id, -1]))
+
+      ## library(ggplot2)
+      ## tmp  <- rbind(data.frame(res.id, type="for"), data.frame(bar3x[bar3x$sim.id == id,], type="single"))
+      ## ggplot(tmp, aes(time, C2, col=type)) + geom_line()
+
+      expect_equal(res.id, as.data.frame(bar3x[bar3x$sim.id == id,]))
+
+      res.all = rbind(res.all, res.id)
+    }
+
+    expect_equal(bar2x, res.all)
 
   })
 
