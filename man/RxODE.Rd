@@ -179,30 +179,59 @@ the ODE system and an optional set of doses (input amounts).  These
 inputs are combined into a single \emph{event table} object created
 with the function \code{\link[=eventTable]{eventTable()}} or \code{\link[=et]{et()}}.
 
-An \code{RxODE} model specification consists of one or more statements optionally terminated by semi-colons \verb{;} and optional comments (comments are delimited by \verb{#} and an end-of-line).
+An \code{RxODE} model specification consists of one or more statements
+optionally terminated by semi-colons \verb{;} and optional comments (comments
+are delimited by \verb{#} and an end-of-line).
 
-A block of statements is a set of statements delimited by curly braces, \code{{ ... }}.
+A block of statements is a set of statements delimited by curly braces,
+\code{{ ... }}.
 
-Statements can be either assignments, conditional \code{if}/\verb{else if}/\verb{else}, \code{while} loops (can be exited by \code{break}), special statements, or printing statements (for debugging/testing)
+Statements can be either assignments, conditional \code{if}/\verb{else if}/\verb{else},
+\code{while} loops (can be exited by \code{break}), special statements, or
+printing statements (for debugging/testing)
 
 Assignment statements can be:
 \itemize{
-\item \strong{simple} assignments, where the left hand is an identifier (i.e., variable)
-\item special \strong{time-derivative} assignments, where the left hand specifies the change of the amount in the corresponding state variable (compartment) with respect to time e.g., \code{d/dt(depot)}:
-\item special \strong{initial-condition} assignments where the left hand specifies the compartment of the initial condition being specified, e.g. \code{depot(0) = 0}
-\item special model event changes including \strong{bioavailability} (\code{f(depot)=1}), \strong{lag time} (\code{alag(depot)=0}), \strong{modeled rate} (\code{rate(depot)=2}) and \strong{modeled duration} (\code{dur(depot)=2}). An example of these model features and the event specification for the modeled infusions the RxODE data specification is found in \href{https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html}{RxODE events vignette}.
-\item special \strong{change point syntax, or model times}. These model times are specified by \code{mtime(var)=time}
-\item special \strong{Jacobian-derivative} assignments, where the left hand specifies the change in the compartment ode with respect to a variable. For example, if \code{d/dt(y) = dy}, then a Jacobian for this compartment can be specified as \code{df(y)/dy(dy) = 1}. There may be some advantage to obtaining the solution or specifying the Jacobian for very stiff ODE systems. However, for the few stiff systems we tried with LSODA, this actually slightly slowed down the solving.
+\item \strong{simple} assignments, where the left hand is an identifier (i.e.,
+variable)
+\item special \strong{time-derivative} assignments, where the left hand
+specifies the change of the amount in the corresponding state
+variable (compartment) with respect to time e.g., \code{d/dt(depot)}:
+\item special \strong{initial-condition} assignments where the left hand
+specifies the compartment of the initial condition being specified,
+e.g. \code{depot(0) = 0}
+\item special model event changes including \strong{bioavailability}
+(\code{f(depot)=1}), \strong{lag time} (\code{alag(depot)=0}), \strong{modeled rate}
+(\code{rate(depot)=2}) and \strong{modeled duration} (\code{dur(depot)=2}). An
+example of these model features and the event specification for the
+modeled infusions the RxODE data specification is found in \href{https://nlmixrdevelopment.github.io/RxODE/articles/RxODE-event-types.html}{RxODE events vignette}.
+\item special \strong{change point syntax, or model times}. These model times
+are specified by \code{mtime(var)=time}
+\item special \strong{Jacobian-derivative} assignments, where the left hand
+specifies the change in the compartment ode with respect to a
+variable. For example, if \code{d/dt(y) = dy}, then a Jacobian for this
+compartment can be specified as \code{df(y)/dy(dy) = 1}. There may be
+some advantage to obtaining the solution or specifying the Jacobian
+for very stiff ODE systems. However, for the few stiff systems we
+tried with LSODA, this actually slightly slowed down the solving.
 }
 
 Note that assignment can be done by \code{=}, \verb{<-} or \code{~}.
 
-When assigning with the \code{~} operator, the \strong{simple assignments} and \strong{time-derivative} assignments will not be output.
+When assigning with the \code{~} operator, the \strong{simple assignments} and
+\strong{time-derivative} assignments will not be output.
 
 Special statements can be:
 \itemize{
-\item \strong{Compartment declaration statements}, which can change the default dosing compartment and the assumed compartment number(s) as well as add extra compartment names at the end (useful for multiple-endpoint nlmixr models); These are specified by \code{cmt(compartmentName)}
-\item \strong{Parameter declaration statements}, which can make sure the input parameters are in a certain order instead of ordering the parameters by the order they are parsed. This is useful for keeping the parameter order the same when using 2 different ODE models. These are specified by \code{param(par1, par2,...)}
+\item \strong{Compartment declaration statements}, which can change the default
+dosing compartment and the assumed compartment number(s) as well as
+add extra compartment names at the end (useful for multiple-endpoint
+nlmixr models); These are specified by \code{cmt(compartmentName)}
+\item \strong{Parameter declaration statements}, which can make sure the input
+parameters are in a certain order instead of ordering the parameters
+by the order they are parsed. This is useful for keeping the
+parameter order the same when using 2 different ODE models. These
+are specified by \code{param(par1, par2,...)}
 }
 
 An example model is shown below:\preformatted{   # simple assignment
@@ -212,29 +241,47 @@ An example model is shown below:\preformatted{   # simple assignment
    d/dt(centr) = F*KA*depot - CL*C2 - Q*C2 + Q*C3; 
 }
 
-Expressions in assignment and \code{if} statements can be numeric or logical, however, no character nor integer expressions are currently supported.
+Expressions in assignment and \code{if} statements can be numeric or logical,
+however, no character nor integer expressions are currently supported.
 
-Numeric expressions can include the following numeric operators \verb{+, -, *, /, ^} and those mathematical functions defined in the C or the R math libraries (e.g., \code{fabs}, \code{exp}, \code{log}, \code{sin}, \code{abs}).
+Numeric expressions can include the following numeric operators \verb{+, -, *, /, ^} and those mathematical functions defined in the C or the R math
+libraries (e.g., \code{fabs}, \code{exp}, \code{log}, \code{sin}, \code{abs}).
 
-You may also access the R's functions in the \href{https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines}{R math libraries}, like \code{lgammafn} for the log gamma function.
+You may also access the R’s functions in the \href{https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines}{R math libraries},
+like \code{lgammafn} for the log gamma function.
 
-The \code{RxODE} syntax is case-sensitive, i.e., \code{ABC} is different than \code{abc}, \code{Abc}, \code{ABc}, etc.
+The \code{RxODE} syntax is case-sensitive, i.e., \code{ABC} is different than
+\code{abc}, \code{Abc}, \code{ABc}, etc.
 \subsection{Identifiers}{
 
-Like R, Identifiers (variable names) may consist of one or more alphanumeric, underscore \verb{_} or period \code{.} characters, but the first character cannot be a digit or underscore \verb{_}.
+Like R, Identifiers (variable names) may consist of one or more
+alphanumeric, underscore \verb{_} or period \code{.} characters, but the first
+character cannot be a digit or underscore \verb{_}.
 
 Identifiers in a model specification can refer to:
 \itemize{
-\item State variables in the dynamic system (e.g., compartments in a pharmacokinetics model).
-\item Implied input variable, \code{t} (time), \code{tlast} (last time point), and \code{podo} (oral dose, in the undocumented case of absorption transit models).
-\item Special constants like \code{pi} or \href{https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Mathematical-constants}{R's predefined constants}.
-\item Model parameters (e.g., \code{ka} rate of absorption, \code{CL} clearance, etc.)
-\item Others, as created by assignments as part of the model specification; these are referred as \emph{LHS} (left-hand side) variable.
+\item State variables in the dynamic system (e.g., compartments in a
+pharmacokinetics model).
+\item Implied input variable, \code{t} (time), \code{tlast} (last time point), and
+\code{podo} (oral dose, in the undocumented case of absorption transit
+models).
+\item Special constants like \code{pi} or \href{https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Mathematical-constants}{R’s predefined constants}.
+\item Model parameters (e.g., \code{ka} rate of absorption, \code{CL} clearance,
+etc.)
+\item Others, as created by assignments as part of the model
+specification; these are referred as \emph{LHS} (left-hand side)
+variable.
 }
 
-Currently, the \code{RxODE} modeling language only recognizes system state variables and "parameters", thus, any values that need to be passed from R to the ODE model (e.g., \code{age}) should be either passed in the \code{params} argument of the integrator function \code{rxSolve()} or be in the supplied event data-set.
+Currently, the \code{RxODE} modeling language only recognizes system state
+variables and “parameters”, thus, any values that need to be passed from
+R to the ODE model (e.g., \code{age}) should be either passed in the \code{params}
+argument of the integrator function \code{rxSolve()} or be in the supplied
+event data-set.
 
-There are certain variable names that are in the \code{RxODE} event tables. To avoid confusion, the following event table-related items cannot be assigned, or used as a state but can be accessed in the RxODE code:
+There are certain variable names that are in the \code{RxODE} event tables.
+To avoid confusion, the following event table-related items cannot be
+assigned, or used as a state but can be accessed in the RxODE code:
 \itemize{
 \item \code{cmt}
 \item \code{dvid}
@@ -244,21 +291,33 @@ There are certain variable names that are in the \code{RxODE} event tables. To a
 \item \code{id}
 }
 
-However the following variables are cannot be used in a model specification:
+However the following variables are cannot be used in a model
+specification:
 \itemize{
 \item \code{evid}
 \item \code{ii}
 }
 
-Sometimes RxODE generates variables that are fed back to RxODE. Similarly, nlmixr generates some variables that are used in nlmixr estimation and simulation. These variables start with the either the \code{rx} or \code{nlmixr} prefixes. To avoid any problems, it is suggested to not use these variables starting with either the \code{rx} or \code{nlmixr} prefixes.
+Sometimes RxODE generates variables that are fed back to RxODE.
+Similarly, nlmixr generates some variables that are used in nlmixr
+estimation and simulation. These variables start with the either the
+\code{rx} or \code{nlmixr} prefixes. To avoid any problems, it is suggested to not
+use these variables starting with either the \code{rx} or \code{nlmixr} prefixes.
 }
 
 \subsection{Logical Operators}{
 
-Logical operators support the standard R operators \code{==}, \code{!=} \code{>=} \code{<=} \code{>} and \code{<}. Like R these can be in \verb{if()} or \verb{while()} statements, \code{ifelse()} expressions. Additionally they can be in a standard assignment. For instance, the following is valid:\preformatted{cov1 = covm*(sexf == "female") + covm*(sexf != "female")
+Logical operators support the standard R operators \code{==}, \code{!=} \code{>=} \code{<=}
+\code{>} and \code{<}. Like R these can be in \verb{if()} or \verb{while()} statements,
+\code{ifelse()} expressions. Additionally they can be in a standard
+assignment. For instance, the following is valid:\preformatted{cov1 = covm*(sexf == "female") + covm*(sexf != "female")
 }
 
-Notice that you can also use character expressions in comparisons. This convenience comes at a cost since character comparisons are slower than numeric expressions. Unlike R, \code{as.numeric} or \code{as.integer} for these logical statements is not only not needed, but will cause an syntax error if you try to use the function.
+Notice that you can also use character expressions in comparisons. This
+convenience comes at a cost since character comparisons are slower than
+numeric expressions. Unlike R, \code{as.numeric} or \code{as.integer} for these
+logical statements is not only not needed, but will cause an syntax
+error if you try to use the function.
 }
 }
 \examples{

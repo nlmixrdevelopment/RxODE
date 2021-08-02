@@ -232,7 +232,7 @@ typedef struct {
   double *simIni;
   int isIni;
   int _update_par_ptr_in;
-
+  int badIni;
 } rx_solving_options_ind;
 
 typedef struct {

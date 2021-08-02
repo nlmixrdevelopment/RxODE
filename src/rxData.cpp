@@ -2921,7 +2921,6 @@ static inline void rxSolve_parSetup(const RObject &obj,
 				    const RObject &ev1,
 				    const RObject &inits,
 				    rxSolve_t* rxSolveDat){
-  rx_solve* rx = getRxSolve_();
   //  determine which items will be sampled from
   if (rxIsNumInt(rxSolveDat->par1)){
     rxSolveDat->parNumeric = as<NumericVector>(rxSolveDat->par1);
@@ -3660,8 +3659,8 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
   int nbyte=0, nradix=0, spare=0;
   calcNradix(&nbyte, &nradix, &spare, &(rx->maxD), &(rx->minD));
   if (_globals.nradix != NULL) free(_globals.nradix);
-  rx->nradix = _globals.nradix = (int*)malloc(op->cores*sizeof(int));//nbyte-1 + (rx->spare==0); // lost
-  std::fill_n(rx->nradix, op->cores, nradix);
+  rx->nradix = _globals.nradix = (int*)malloc(sizeof(int));//nbyte-1 + (rx->spare==0); // lost
+  std::fill_n(rx->nradix, 1, nradix);
   ////////////////////////////////////////////////////////////////////////////////
   if (_globals.keys!=NULL) {
     int i=0;
@@ -3677,23 +3676,21 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
     free(_globals.keys);
   }
   rx->keys = _globals.keys = NULL;
-  rx->keys = _globals.keys = (uint8_t ***)calloc(op->cores+1, sizeof(uint8_t **)); // lost
-  rx->keys[op->cores] = NULL;
-  for (i = op->cores; i--;){
-    // In RxODE the keyAlloc size IS 9
-    rx->keys[i] = (uint8_t **)calloc(10, sizeof(uint8_t *));
-    for (int j = 0; j < 10; j++) rx->keys[i][j] = NULL;
-    for (int b = 0; b < nbyte; b++){
-      rx->keys[i][b] = (uint8_t *)calloc(rx->maxAllTimes+1, sizeof(uint8_t));
-    }
+  rx->keys = _globals.keys = (uint8_t ***)calloc(2, sizeof(uint8_t **)); // lost
+  rx->keys[1] = NULL;
+  // In RxODE the keyAlloc size IS 9
+  rx->keys[0] = (uint8_t **)calloc(10, sizeof(uint8_t *));
+  for (int j = 0; j < 10; j++) rx->keys[0][j] = NULL;
+  for (int b = 0; b < nbyte; b++){
+    rx->keys[0][b] = (uint8_t *)calloc(rx->maxAllTimes+1, sizeof(uint8_t));
   }
   // Use same variables from data.table
   if (_globals.TMP != NULL) free(_globals.TMP);
   _globals.TMP = NULL;
-  rx->TMP = _globals.TMP =  (int *)malloc(op->cores*UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
+  rx->TMP = _globals.TMP =  (int *)malloc(UINT16_MAX*sizeof(int)); // used by counting sort (my_n<=65536) in radix_r()
   if (_globals.UGRP != NULL) free(_globals.UGRP);
   _globals.UGRP = NULL;
-  rx->UGRP = _globals.UGRP = (uint8_t *)malloc(op->cores*256); // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too)
+  rx->UGRP = _globals.UGRP = (uint8_t *) malloc(256); // TODO: align TMP and UGRP to cache lines (and do the same for stack allocations too)
   // Now there is a key per core
 }
 
