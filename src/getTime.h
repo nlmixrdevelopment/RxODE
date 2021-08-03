@@ -326,6 +326,20 @@ extern "C" {
     }
     return getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
   }
+
+  static inline void resetTimeForModeledInfusionIfNeeded(int i, rx_solving_options_ind *ind) {
+    if (isObs(ind->evid[i])) {
+      int wh, cmt, wh100, whI, wh0;
+      getWh(ind->evid[i], &wh, &cmt, &wh100, &whI, &wh0);
+      if (whI == EVIDF_MODEL_RATE_OFF || whI == EVIDF_MODEL_DUR_OFF) {
+	ind->all_times[i] = ind->all_times[i-1];
+      } else if (i != ind->n_all_times - 1 && (whI == EVIDF_MODEL_RATE_ON ||
+					       whI == EVIDF_MODEL_DUR_ON) ) {
+	ind->all_times[i + 1] = ind->all_times[i];
+      }
+    }
+
+  }
 #if defined(__cplusplus)
 }
 #endif

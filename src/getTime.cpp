@@ -12,7 +12,6 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
   rx_solving_options *op = &op_global;
   uint8_t **key = rx->keys[0];
   // Reset times for infusion
-  int wh, cmt, wh100, whI, wh0;
   int doSort = 1;
   double *time = new double[ind->n_all_times];
   uint64_t *all = new uint64_t[ind->n_all_times];
@@ -23,11 +22,7 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
     ind->ix[i] = i;
     ind->idx = i;
     if (!isObs(ind->evid[i])) {
-      getWh(ind->evid[i], &wh, &cmt, &wh100, &whI, &wh0);
-      if (whI == 6 || whI == 7) {
-	// Reset on every sort (since sorted only once)
-	ind->all_times[i] = ind->all_times[i-1];
-      }
+      resetTimeForModeledInfusionIfNeeded(i, ind);
       time[i] = getTime_(ind->ix[i], ind);
       ind->ixds++;
     } else {
