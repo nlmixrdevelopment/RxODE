@@ -54,7 +54,6 @@ extern "C" void addLine(vLines *sbb, const char *format, ...);
 extern "C" void seedEng(int ncores);
 extern "C" int getRxThreads(const int64_t n, const bool throttle);
 extern "C" void RxODE_assign_fn_pointers_(const char *mv);
-extern "C" double getTime(int idx, rx_solving_options_ind *ind);
 extern "C" void setSilentErr(int silent);
 
 bool useForder();
