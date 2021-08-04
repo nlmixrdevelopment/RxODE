@@ -21,6 +21,10 @@ extern "C" {
   uint64_t dtwiddle(const void *p, int i);
 
   void sortRadix(rx_solving_options_ind *ind);
+#if defined(__cplusplus)
+}
+#endif
+
 
   extern t_dydt dydt;
 
@@ -320,9 +324,6 @@ extern "C" {
     return getTime__(idx, ind, 0);
   }
 
-#if defined(__cplusplus)
-}
-#endif
 
 
 #endif
