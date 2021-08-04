@@ -1,3 +1,4 @@
+rxodeTest({
   test_that("Parallel solve vs single vs for", {
 
     TV_CLr  <- 6.54  # L/h, (CLr/F)
@@ -51,24 +52,24 @@
     n.pts.pk <- 300  # number of subjects in PK model fitting
 
     eta_CLr_CLnr_Vc <- as.data.frame(sample.etas(df = n.pts.pk,
-                                                R = lotri({eta_CLr + eta_CLnr + eta_Vc ~
-                                                             c(OM_CLr,
-                                                               OM_CLr_CLnr, OM_CLnr,
-                                                               OM_CLr_Vc, 0, OM_Vc)
-                                                }),
-                                                n = nsubj))
+                                                 R = lotri({eta_CLr + eta_CLnr + eta_Vc ~
+                                                              c(OM_CLr,
+                                                                OM_CLr_CLnr, OM_CLnr,
+                                                                OM_CLr_Vc, 0, OM_Vc)
+                                                 }),
+                                                 n = nsubj))
 
     eta_D_trans <- data.frame(eta_D_normal = rnorm(mean=0,sd=sqrt(OM_D_normal),n=nsubj)) %>%
       dplyr::mutate(eta_D = ((exp(eta_D_normal))^D_trans-1)/D_trans)
 
     par.pk <- data.frame(sim.id = seq(nsubj),
-                        D = TV_D * exp(eta_D_trans$eta_D),
-                        CLr = TV_CLr * exp(eta_CLr_CLnr_Vc$eta_CLr),
-                        CLnr = TV_CLnr * exp(eta_CLr_CLnr_Vc$eta_CLnr),
-                        Vc = TV_Vc * exp(eta_CLr_CLnr_Vc$eta_Vc),
-                        Vp = TV_Vp * exp(rnorm(nsubj, 0, sqrt(OM_Vp))),
-                        Q = TV_Q * exp(rnorm(nsubj, 0, sqrt(OM_Q))),
-                        alag = TV_alag)
+                         D = TV_D * exp(eta_D_trans$eta_D),
+                         CLr = TV_CLr * exp(eta_CLr_CLnr_Vc$eta_CLr),
+                         CLnr = TV_CLnr * exp(eta_CLr_CLnr_Vc$eta_CLnr),
+                         Vc = TV_Vc * exp(eta_CLr_CLnr_Vc$eta_Vc),
+                         Vp = TV_Vp * exp(rnorm(nsubj, 0, sqrt(OM_Vp))),
+                         Q = TV_Q * exp(rnorm(nsubj, 0, sqrt(OM_Q))),
+                         alag = TV_alag)
 
     # zero-order absorption with lag time 2-compartment
     mod <- RxODE({
@@ -102,12 +103,12 @@
         add.dosing(dose = 2, nbr.doses = 5, dosing.interval = 24, dur = par.pk$D[par.pk$sim.id == id]) %>%
         add.sampling(seq(0,120,0.1))
       theta <- c(CLr = par.pk$CLr[par.pk$sim.id == id],
-                CLnr = par.pk$CLnr[par.pk$sim.id == id],
-                Vc = par.pk$Vc[par.pk$sim.id == id],
-                Q = par.pk$Q[par.pk$sim.id == id],
-                Vp = par.pk$Vp[par.pk$sim.id == id],
-                alag = par.pk$alag[par.pk$sim.id == id],
-                D = par.pk$D[par.pk$sim.id == id])
+                 CLnr = par.pk$CLnr[par.pk$sim.id == id],
+                 Vc = par.pk$Vc[par.pk$sim.id == id],
+                 Q = par.pk$Q[par.pk$sim.id == id],
+                 Vp = par.pk$Vp[par.pk$sim.id == id],
+                 alag = par.pk$alag[par.pk$sim.id == id],
+                 D = par.pk$D[par.pk$sim.id == id])
       res.id = data.frame(sim.id=id, expect_warning(rxSolve(mod, theta, ev.new, returnType="data.frame"), "dur()"))
 
       expect_equal(theta, unlist(bar3x$params[bar3x$params$sim.id == id, -1]))
@@ -122,9 +123,7 @@
       expect_equal(res.id, res2)
 
       res.all = rbind(res.all, res.id)
-
     }
-
     expect_equal(bar2x, res.all)
 
   })
