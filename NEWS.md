@@ -64,6 +64,12 @@
 * Only will try to solve RxODE problems on compatible models; If the
   model is not supported it will throw an error instead of crashing
   (See #449)
+  
+* Turn off parallel ODE solving whenever the system needs to sort
+  times based on model dosing.  Currently this type of solving is not
+  thread safe.
+  
+* Update timsort headers to latest version. 
 
 # RxODE 1.0.9
 

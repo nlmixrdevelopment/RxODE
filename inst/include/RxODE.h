@@ -1,8 +1,17 @@
 #pragma once
 #ifndef __RxODE_H__
 #define __RxODE_H__
-#include <float.h>
 #define STRICT_R_HEADERS
+
+#include <float.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <R.h>
+#include <Rinternals.h>
+#include <Rmath.h>
+#include <stdbool.h>
+#include <R_ext/Rdynload.h>
+
 #define isDose(evid) ((evid) == 3 || (evid) >= 100)
 #define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 9 && (evid) <= 99))
 
@@ -23,17 +32,12 @@
 
 #endif // _isRxODE_
 
+
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <R.h>
-#include <Rinternals.h>
-#include <Rmath.h>
-#include <stdbool.h>
-#include <R_ext/Rdynload.h>
 
 typedef void (*t_dydt)(int *neq, double t, double *A, double *DADT);
 typedef void (*t_calc_jac)(int *neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
