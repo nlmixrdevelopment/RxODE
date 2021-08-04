@@ -82,82 +82,6 @@ extern "C" {
     return ret;
   }
 
-  static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
-    double t = ind->all_times[idx];
-    int oldIdx = ind->idx;
-    ind->idx=idx;
-    if (ind->all_times[idx+1] == t){
-      double dur, rate, amt;
-      // The duration and f cannot depend on state values
-      amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[idx], t, yp);
-      dur  = getDur(ind, ind->id, ind->cmt, amt, t);
-      if (dur > 0){
-	rate = amt/dur;// mg/hr
-	ind->dose[idx+1]      = -rate;
-	ind->all_times[idx+1] = t + dur;
-	ind->idx=oldIdx;
-      } else {
-	rx_solve *rx = &rx_global;
-	rx_solving_options *op = &op_global;
-	if (ind->cmt < op->neq){
-	  if (rx->needSort & 4){
-	    if (!(ind->err & 16)){
-	      ind->err += 16;
-	    }
-	    return;
-	    /* Rf_errorcall(R_NilValue, "Duration is zero/negative (dur=%f; cmt=%d; amt=%f)", dur, ind->cmt+1, amt); */
-	  } else {
-	    if (!(ind->err & 32)){
-	      ind->err += 32;
-	    }
-	    return;
-	    /* Rf_errorcall(R_NilValue, "Modeled duration requested in event table, but not in model; use 'dur(cmt) ='"); */
-	  }
-	}
-      }
-    }
-    ind->idx=oldIdx;
-  }
-
-  static inline void updateRate(int idx, rx_solving_options_ind *ind, double *yp) {
-    double t = ind->all_times[idx];
-    int oldIdx = ind->idx;
-    ind->idx=idx;
-    if (ind->all_times[idx+1] == t){
-      double dur, rate, amt;
-      amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[idx], t, yp);
-      rate  = getRate(ind, ind->id, ind->cmt, amt, t);
-      if (rate > 0){
-	dur = amt/rate; // mg/hr
-	ind->dose[idx+1]      = - rate;
-	ind->all_times[idx+1] = t+dur;
-	ind->idx=oldIdx;
-      } else {
-	rx_solve *rx;
-	rx = &rx_global;
-	rx_solving_options *op = &op_global;
-	if (ind->cmt < op->neq){
-	  if (rx->needSort & 8){
-	    if (!(ind->err & 2)){
-	      ind->err += 2;
-	      /* Rf_errorcall(R_NilValue, "Rate is zero/negative"); */
-	    }
-	    return;
-	  } else {
-	    // FIXME don't error out with linear compartmental model
-	    if (!(ind->err & 4)){
-	      ind->err += 4;
-	    }
-	    return;
-	    /* Rf_errorcall(R_NilValue, "Modeled rate requested in event table, but not in model; use 'rate(cmt) ='"); */
-	  }
-	}
-	// error rate is zero/negative
-      }
-    }
-    ind->idx=oldIdx;
-  }
-
   static inline int isEvidType(int evid, int type) {
     int wh, cmt, wh100, whI, wh0;
     getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
@@ -169,6 +93,76 @@ extern "C" {
 #define isEvidModeledRateStart(evid) isEvidType(evid, EVIDF_MODEL_RATE_ON)
 #define isEvidModeledRateStop(evid) isEvidType(evid, EVIDF_MODEL_RATE_OFF)
 
+  static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
+    double t = ind->all_times[idx];
+    double dur, amt;
+    // The duration and f cannot depend on state values
+    int oldIdx = ind->idx;
+    ind->idx = idx;
+    amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[idx], t, yp);
+    dur  = getDur(ind,  ind->id, ind->cmt, amt, t);
+    ind->idx = oldIdx;
+    if (dur > 0){
+      ind->dose[idx+1]      = -amt/dur;
+      ind->all_times[idx+1] = t + dur;
+    } else {
+      rx_solve *rx = &rx_global;
+      rx_solving_options *op = &op_global;
+      if (ind->cmt < op->neq){
+	if (rx->needSort & 4){
+	  if (!(ind->err & 16)){
+	    ind->err += 16;
+	  }
+	  return;
+	  /* Rf_errorcall(R_NilValue, "Duration is zero/negative (dur=%f; cmt=%d; amt=%f)", dur, ind->cmt+1, amt); */
+	} else {
+	  if (!(ind->err & 32)){
+	    ind->err += 32;
+	  }
+	  return;
+	  /* Rf_errorcall(R_NilValue, "Modeled duration requested in event table, but not in model; use 'dur(cmt) ='"); */
+	}
+      }
+    }
+  }
+
+  static inline void updateRate(int idx, rx_solving_options_ind *ind, double *yp) {
+    double t = ind->all_times[idx];
+    int oldIdx = ind->idx;
+    ind->idx=idx;
+    double dur, rate, amt;
+    amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[idx], t, yp);
+    rate  = getRate(ind, ind->id, ind->cmt, amt, t);
+    if (rate > 0){
+      dur = amt/rate; // mg/hr
+      ind->dose[idx+1]      = - rate;
+      ind->all_times[idx+1] = t+dur;
+      ind->idx=oldIdx;
+    } else {
+      rx_solve *rx;
+      rx = &rx_global;
+      rx_solving_options *op = &op_global;
+      if (ind->cmt < op->neq){
+	if (rx->needSort & 8){
+	  if (!(ind->err & 2)){
+	    ind->err += 2;
+	    /* Rf_errorcall(R_NilValue, "Rate is zero/negative"); */
+	  }
+	  return;
+	} else {
+	  // FIXME don't error out with linear compartmental model
+	  if (!(ind->err & 4)){
+	    ind->err += 4;
+	  }
+	  return;
+	  /* Rf_errorcall(R_NilValue, "Modeled rate requested in event table, but not in model; use 'rate(cmt) ='"); */
+	}
+      }
+      // error rate is zero/negative
+    }
+    ind->idx=oldIdx;
+  }
+
   static inline void handleTurnOffModeledDuration(int idx, rx_solve *rx, rx_solving_options *op, rx_solving_options_ind *ind) {
     if (idx > 0){
       if (!isEvidModeledDurationStart(ind->evid[idx-1])) {
@@ -178,7 +172,7 @@ extern "C" {
 	return;
       }
       // This will update the duration data
-      updateDur(idx-1, ind, rx->ypNA);
+      //updateDur(idx-1, ind, rx->ypNA);
     } else {
       if (!(ind->err & 128)){
 	ind->err += 128;
@@ -217,7 +211,7 @@ extern "C" {
 	/* Rf_errorcall(R_NilValue, "Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
 	return;
       }
-      updateRate(idx-1, ind, rx->ypNA);
+      //updateRate(idx-1, ind, rx->ypNA);
     } else {
       if (!(ind->err & 2048)){
 	ind->err += 2048;
@@ -291,7 +285,7 @@ extern "C" {
     }
   }
 
-  static inline double getTime_(int idx, rx_solving_options_ind *ind) {
+  static inline double getTime__(int idx, rx_solving_options_ind *ind, int update) {
     rx_solving_options *op = &op_global;
     rx_solve *rx = &rx_global;
     int evid = ind->evid[idx];
@@ -306,40 +300,37 @@ extern "C" {
       // Before solving the solve will be zero
       // After solving the yp will contain the solved values
       //
-      switch(ind->whI){
-      case EVIDF_MODEL_DUR_OFF:
-	handleTurnOffModeledDuration(idx, rx, op, ind);
-	break;
-      case EVIDF_MODEL_DUR_ON:
-	handleTurnOnModeledDuration(idx, rx, op, ind);
-	break;
-      case EVIDF_MODEL_RATE_OFF:
-	handleTurnOffModeledRate(idx, rx, op, ind);
-	break;
-      case EVIDF_MODEL_RATE_ON:
-	handleTurnOnModeledRate(idx, rx, op, ind);
-	break;
-      case EVIDF_INF_RATE:
-	return handleInfusionItem(idx, rx, op, ind);
-	break;
+      if (update == 0) {
+	if (ind->whI == EVIDF_INF_RATE) {
+	  return handleInfusionItem(idx, rx, op, ind);
+	}
+      } else {
+	switch(ind->whI){
+	case EVIDF_MODEL_DUR_OFF:
+	  handleTurnOffModeledDuration(idx, rx, op, ind);
+	  break;
+	case EVIDF_MODEL_DUR_ON:
+	  handleTurnOnModeledDuration(idx, rx, op, ind);
+	  break;
+	case EVIDF_MODEL_RATE_OFF:
+	  handleTurnOffModeledRate(idx, rx, op, ind);
+	  break;
+	case EVIDF_MODEL_RATE_ON:
+	  handleTurnOnModeledRate(idx, rx, op, ind);
+	  break;
+	case EVIDF_INF_RATE:
+	  return handleInfusionItem(idx, rx, op, ind);
+	  break;
+	}
       }
     }
     return getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
   }
 
-  static inline void resetTimeForModeledInfusionIfNeeded(int i, rx_solving_options_ind *ind) {
-    if (isObs(ind->evid[i])) {
-      int wh, cmt, wh100, whI, wh0;
-      getWh(ind->evid[i], &wh, &cmt, &wh100, &whI, &wh0);
-      if (whI == EVIDF_MODEL_RATE_OFF || whI == EVIDF_MODEL_DUR_OFF) {
-	ind->all_times[i] = ind->all_times[i-1];
-      } else if (i != ind->n_all_times - 1 && (whI == EVIDF_MODEL_RATE_ON ||
-					       whI == EVIDF_MODEL_DUR_ON) ) {
-	ind->all_times[i + 1] = ind->all_times[i];
-      }
-    }
-
+  static inline double getTime_(int idx, rx_solving_options_ind *ind) {
+    return getTime__(idx, ind, 0);
   }
+
 #if defined(__cplusplus)
 }
 #endif

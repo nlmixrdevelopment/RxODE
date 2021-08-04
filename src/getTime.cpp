@@ -1,7 +1,7 @@
 #include "getTime.h"
 
 extern "C" double getTime(int idx, rx_solving_options_ind *ind) {
-  return getTime_(idx, ind);
+  return getTime__(idx, ind, 0);
 }
 
 
@@ -22,14 +22,13 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
     ind->ix[i] = i;
     ind->idx = i;
     if (!isObs(ind->evid[i])) {
-      resetTimeForModeledInfusionIfNeeded(i, ind);
-      time[i] = getTime_(ind->ix[i], ind);
+      time[i] = getTime__(ind->ix[i], ind, 1);
       ind->ixds++;
     } else {
       if (ind->evid[i] == 3) {
 	ind->curShift -= rx->maxShift;
       }
-      time[i] = getTime_(ind->ix[i], ind);
+      time[i] = getTime__(ind->ix[i], ind, 1);
     }
     all[i]  = dtwiddle(time, i);
     if (i == 0){
