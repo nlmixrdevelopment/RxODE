@@ -4,7 +4,6 @@ extern "C" double getTime(int idx, rx_solving_options_ind *ind) {
   return getTime__(idx, ind, 0);
 }
 
-
 // Adapted from 
 // https://github.com/Rdatatable/data.table/blob/588e0725320eacc5d8fc296ee9da4967cee198af/src/forder.c#L630-L649
 extern "C" void sortRadix(rx_solving_options_ind *ind){
@@ -70,4 +69,3 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
   delete[] time;
   delete[] all;
 }
-

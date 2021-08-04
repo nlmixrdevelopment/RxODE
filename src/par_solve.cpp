@@ -186,7 +186,9 @@ extern "C" SEXP _rxParProgress(SEXP num){
   par_progress__=REAL(num)[0];
   return R_NilValue;
 }
+
 clock_t _lastT0;
+
 extern "C" int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   if (par_progress__ > 0.0){
     float progress =0.0;
@@ -1204,36 +1206,10 @@ extern "C" void par_indLin(rx_solve *rx){
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
   }
 }
-
-extern "C" void ind_liblsoda_iniSubjects(rx_solve *rx, rx_solving_options *op, t_update_inis u_inis) {
-  int nsub = rx->nsub, nsim = rx->nsim;
-  int neq[2];
-  neq[0] = op->neq;
-  rx_solving_options_ind *ind;
-
-  // Here we pick the sorted solveid
-  // rx->ordId[solveid]-1
-  // This -1 is because R is 1 indexed and C/C++ is 0 indexed
-  // This uses data.table for ordering which will return a 1 as the first item
-  // This way we solve based on the item that takes the likely takes most time to solve
-  //
-  // First this is ordered by the number of times needed to solve
-  // If called externally again this is then ordered by the total time that the solver spent in an id.
-  //
-  for (int solveid = 0; solveid < nsim*nsub; solveid++){
-     neq[1] = rx->ordId[solveid]-1;
-     ind = &(rx->subjects[neq[1]]);
-     if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) {
-       ind->badIni = 1;
-     } else {
-       ind->badIni = 0;
-     }
-  }
-}
 // ================================================================================
 // liblsoda
 extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt_t opt, int solveid, 
-			      t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis, bool doIniSubject) {
+			      t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis) {
   clock_t t0 = clock();
   int i;
   int neq[2];
@@ -1266,62 +1242,63 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   ctx->state = 1;
   ctx->error=NULL;
   ind = &(rx->subjects[neq[1]]);
-  if ((!doIniSubject && ind->badIni == 1) ||
-      (doIniSubject && !iniSubject(neq[1], 0, ind, op, rx, u_inis))) {
+#pragma omp critical
+  if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) {
     free(ctx);
     ctx = NULL;
-    return;
   }
-  nx = ind->n_all_times;
-  BadDose = ind->BadDose;
-  InfusionRate = ind->InfusionRate;
-  x = ind->all_times;
-  rc= ind->rc;
-  double xp = x[0];
-  unsigned int j;
-  lsoda_prepare(ctx, &opt);
-  for(i=0; i<nx; i++) {
-    ind->idx=i;
-    yp = getSolve(i);
-    xout = getTime_(ind->ix[i], ind);
-    if(ind->evid[ind->ix[i]] != 3 && !isSameTime(xout, xp)) {
-      if (ind->err){
-	*rc = -1000;
-	// Bad Solve => NA
-	badSolveExit(i);
-      } else {
-	lsoda(ctx, yp, &xp, xout);
-	postSolve(&(ctx->state), rc, &i, yp, NULL, 0, false, ind, op, rx);
-      }
-    }
-    ind->_newind = 2;
-    if (!op->badSolve){
-      ind->idx = i;
-      if (ind->evid[ind->ix[i]] == 3){
-	ind->curShift -= rx->maxShift;
-	for (j = neq[0]; j--;) {
-	  ind->InfusionRate[j] = 0;
-	  ind->on[j] = 1;
-	  ind->cacheME=0;
+  if (ctx != NULL) {
+    nx = ind->n_all_times;
+    BadDose = ind->BadDose;
+    InfusionRate = ind->InfusionRate;
+    x = ind->all_times;
+    rc= ind->rc;
+    double xp = x[0];
+    unsigned int j;
+    lsoda_prepare(ctx, &opt);
+    for(i=0; i<nx; i++) {
+      ind->idx=i;
+      yp = getSolve(i);
+      xout = getTime_(ind->ix[i], ind);
+      if(ind->evid[ind->ix[i]] != 3 && !isSameTime(xout, xp)) {
+	if (ind->err){
+	  *rc = -1000;
+	  // Bad Solve => NA
+	  badSolveExit(i);
+	} else {
+	  lsoda(ctx, yp, &xp, xout);
+	  postSolve(&(ctx->state), rc, &i, yp, NULL, 0, false, ind, op, rx);
 	}
-	memcpy(yp,inits, neq[0]*sizeof(double));
-	u_inis(neq[1], yp); // Update initial conditions @ current time
-	if (rx->istateReset) ctx->state = 1;
-	xp=xout;
-	ind->ixds++;
-      } else if (handleEvid1(&i, rx, neq, yp, &xout)){
-	handleSS(neq, BadDose, InfusionRate, ind->dose, yp, op->do_transit_abs, xout,
-		 xp, ind->id, &i, nx, &(ctx->state), op, ind, u_inis, ctx);
-	if (ind->wh0 == 30){
-	  yp[ind->cmt] = inits[ind->cmt];
-	}
-	if (rx->istateReset) ctx->state = 1;
-	xp = xout;
       }
-      if (i+1 != nx) memcpy(getSolve(i+1), yp, neq[0]*sizeof(double));
-      calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
-      ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
-      /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
+      ind->_newind = 2;
+      if (!op->badSolve){
+	ind->idx = i;
+	if (ind->evid[ind->ix[i]] == 3){
+	  ind->curShift -= rx->maxShift;
+	  for (j = neq[0]; j--;) {
+	    ind->InfusionRate[j] = 0;
+	    ind->on[j] = 1;
+	    ind->cacheME=0;
+	  }
+	  memcpy(yp,inits, neq[0]*sizeof(double));
+	  u_inis(neq[1], yp); // Update initial conditions @ current time
+	  if (rx->istateReset) ctx->state = 1;
+	  xp=xout;
+	  ind->ixds++;
+	} else if (handleEvid1(&i, rx, neq, yp, &xout)){
+	  handleSS(neq, BadDose, InfusionRate, ind->dose, yp, op->do_transit_abs, xout,
+		   xp, ind->id, &i, nx, &(ctx->state), op, ind, u_inis, ctx);
+	  if (ind->wh0 == 30){
+	    yp[ind->cmt] = inits[ind->cmt];
+	  }
+	  if (rx->istateReset) ctx->state = 1;
+	  xp = xout;
+	}
+	if (i+1 != nx) memcpy(getSolve(i+1), yp, neq[0]*sizeof(double));
+	calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
+	ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
+	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
+      }
     }
   }
   // Reset LHS to NA
@@ -1347,8 +1324,7 @@ extern "C" void ind_liblsoda(rx_solve *rx, int solveid,
   opt.hmax = op->hmax2;
   opt.hmin = op->HMIN;
   opt.hmxi = op->hmxi;
-  /* ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis); */
-  ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis, true);
+  ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis);
 }
 
 extern "C" int getRxThreads(const int64_t n, const bool throttle);
@@ -1384,14 +1360,13 @@ extern "C" void par_liblsodaR(rx_solve *rx) {
   // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
   // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
   int abort = 0;
-  ind_liblsoda_iniSubjects(rx, op, update_inis);
 #ifdef _OPENMP
 #pragma omp parallel for num_threads(cores)
 #endif
   for (int thread=0; thread < cores; thread++) {
     for (int solveid = thread; solveid < nsim*nsub; solveid+=cores){
       if (abort == 0){
-	ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis, false);
+	ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis);
 	if (displayProgress && thread == 0) {
 #pragma omp critical
 	  cur++;
@@ -1457,13 +1432,12 @@ extern "C" void par_liblsoda(rx_solve *rx){
   // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
   // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
   int abort = 0;
-  ind_liblsoda_iniSubjects(rx, op, update_inis);
 #ifdef _OPENMP
 #pragma omp parallel for num_threads(op->cores)
 #endif
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){
-      ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis, false);
+      ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis);
       if (displayProgress){
 #pragma omp critical
 	  cur++;

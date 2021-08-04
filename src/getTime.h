@@ -114,13 +114,11 @@ extern "C" {
 	    ind->err += 16;
 	  }
 	  return;
-	  /* Rf_errorcall(R_NilValue, "Duration is zero/negative (dur=%f; cmt=%d; amt=%f)", dur, ind->cmt+1, amt); */
 	} else {
 	  if (!(ind->err & 32)){
 	    ind->err += 32;
 	  }
 	  return;
-	  /* Rf_errorcall(R_NilValue, "Modeled duration requested in event table, but not in model; use 'dur(cmt) ='"); */
 	}
       }
     }
@@ -146,7 +144,6 @@ extern "C" {
 	if (rx->needSort & 8){
 	  if (!(ind->err & 2)){
 	    ind->err += 2;
-	    /* Rf_errorcall(R_NilValue, "Rate is zero/negative"); */
 	  }
 	  return;
 	} else {
@@ -155,10 +152,8 @@ extern "C" {
 	    ind->err += 4;
 	  }
 	  return;
-	  /* Rf_errorcall(R_NilValue, "Modeled rate requested in event table, but not in model; use 'rate(cmt) ='"); */
 	}
       }
-      // error rate is zero/negative
     }
     ind->idx=oldIdx;
   }
@@ -171,14 +166,11 @@ extern "C" {
 	}
 	return;
       }
-      // This will update the duration data
-      //updateDur(idx-1, ind, rx->ypNA);
     } else {
       if (!(ind->err & 128)){
 	ind->err += 128;
       }
       return;
-      /* Rf_errorcall(R_NilValue, "Data Error -6\n"); */
     }
   }
 
@@ -189,7 +181,6 @@ extern "C" {
       if (!(ind->err & 256)){
 	ind->err += 256;
       }
-      /* Rf_errorcall(R_NilValue, "Data Error 9\n"); */
       return;
     } else {
       if (!isEvidModeledDurationStop(ind->evid[idx+1])) {
@@ -197,7 +188,7 @@ extern "C" {
 	  ind->err += 512;
 	}
 	return;
-       }
+      }
       updateDur(idx, ind, rx->ypNA);
     }
   }
@@ -208,15 +199,12 @@ extern "C" {
 	if (!(ind->err & 1024)){
 	  ind->err += 1024;
 	}
-	/* Rf_errorcall(R_NilValue, "Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]); */
 	return;
       }
-      //updateRate(idx-1, ind, rx->ypNA);
     } else {
       if (!(ind->err & 2048)){
 	ind->err += 2048;
       }
-      /* Rf_errorcall(R_NilValue, "Data Error -7\n"); */
       return;
     }
   }
@@ -237,6 +225,7 @@ extern "C" {
 	}
 	return;
        }
+      ind->all_times[idx + 1] = ind->all_times[idx];
       updateRate(idx, ind, rx->ypNA);
     }
   }
@@ -291,7 +280,7 @@ extern "C" {
     int evid = ind->evid[idx];
     if (evid == 9) return 0.0;
     if (evid >= 10 && evid <= 99) return ind->mtime[evid-10];
-    if (isObs(evid))  return ind->all_times[idx];
+    if (isObs(evid)) return ind->all_times[idx];
     getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
     if (ind->wh0 == EVID0_SSINF){
     } else {

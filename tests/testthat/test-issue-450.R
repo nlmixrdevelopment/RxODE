@@ -1,23 +1,23 @@
 rxodeTest({
   test_that("Parallel solve vs single vs for", {
 
-    TV_CLr=6.54 # L/h, (CLr/F)
-    TV_CLnr=2.39 # L/h, (CLnr/F)
-    TV_Vc=95.1 # L, (V/F)
-    TV_alag=0.145 # h,
-    TV_D=0.512 # h,
-    TV_Q=2.1 #L/h, (Q/F)
-    TV_Vp=23.3 #L, (Vp/F)
+    TV_CLr  <- 6.54  # L/h, (CLr/F)
+    TV_CLnr <- 2.39  # L/h, (CLnr/F)
+    TV_Vc   <- 95.1  # L, (V/F)
+    TV_alag <- 0.145 # h,
+    TV_D    <- 0.512 # h,
+    TV_Q    <- 2.1   #L/h, (Q/F)
+    TV_Vp   <- 23.3  #L, (Vp/F)
 
-    OM_D_normal = log((128/100)^2+1)
-    D_trans = 0.0819
-    OM_CLr = log((36.2/100)^2+1)
-    OM_CLnr = log((43.6/100)^2+1)
-    OM_Vc = log((14.4/100)^2+1)
-    OM_Q = log((15.1/100)^2+1)
-    OM_Vp = log((37.6/100)^2+1)
-    OM_CLr_CLnr = 0.101
-    OM_CLr_Vc = 0.0066
+    OM_D_normal <- log((128/100)^2+1)
+    D_trans     <- 0.0819
+    OM_CLr      <- log((36.2/100)^2+1)
+    OM_CLnr     <- log((43.6/100)^2+1)
+    OM_Vc       <- log((14.4/100)^2+1)
+    OM_Q        <- log((15.1/100)^2+1)
+    OM_Vp       <- log((37.6/100)^2+1)
+    OM_CLr_CLnr <- 0.101
+    OM_CLr_Vc   <- 0.0066
 
     rwishart <- function(df, p = nrow(SqrtSigma), Sigma, SqrtSigma = diag(p)) {
       if (!missing(Sigma)) {
@@ -98,8 +98,8 @@ rxodeTest({
     res.all = NULL
 
     for (id in seq(nsubj)) {
-
-      ev.new =eventTable() %>%
+      # now combine
+      ev.new <- eventTable() %>%
         add.dosing(dose = 2, nbr.doses = 5, dosing.interval = 24, dur = par.pk$D[par.pk$sim.id == id]) %>%
         add.sampling(seq(0,120,0.1))
       theta <- c(CLr = par.pk$CLr[par.pk$sim.id == id],
@@ -117,9 +117,13 @@ rxodeTest({
       ## tmp  <- rbind(data.frame(res.id, type="for"), data.frame(bar3x[bar3x$sim.id == id,], type="single"))
       ## ggplot(tmp, aes(time, C2, col=type)) + geom_line()
 
-      expect_equal(res.id, as.data.frame(bar3x[bar3x$sim.id == id,]))
+      row.names(res.id) <- NULL
+      res2 <- as.data.frame(bar3x[bar3x$sim.id == id,])
+      row.names(res2) <- NULL
+      expect_equal(res.id, res2)
 
       res.all = rbind(res.all, res.id)
+
     }
 
     expect_equal(bar2x, res.all)

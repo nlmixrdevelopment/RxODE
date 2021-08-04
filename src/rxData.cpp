@@ -4466,7 +4466,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->safeZero = asInt(rxControl[Rxc_safeZero], "safeZero");
     op->stiff = method;
     rxSolveDat->throttle = false;
-    if (method != 2){
+    if (method != 2 || rx->needSort != 0){
       op->cores = 1;//getRxThreads(1, false);
     } else {
       op->cores = asInt(rxControl[Rxc_cores], "cores");
