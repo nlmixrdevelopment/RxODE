@@ -54,7 +54,6 @@ extern "C" void addLine(vLines *sbb, const char *format, ...);
 extern "C" void seedEng(int ncores);
 extern "C" int getRxThreads(const int64_t n, const bool throttle);
 extern "C" void RxODE_assign_fn_pointers_(const char *mv);
-extern "C" double getTime(int idx, rx_solving_options_ind *ind);
 extern "C" void setSilentErr(int silent);
 
 bool useForder();
@@ -4467,7 +4466,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
     rx->safeZero = asInt(rxControl[Rxc_safeZero], "safeZero");
     op->stiff = method;
     rxSolveDat->throttle = false;
-    if (method != 2){
+    if (method != 2 || rx->needSort != 0){
       op->cores = 1;//getRxThreads(1, false);
     } else {
       op->cores = asInt(rxControl[Rxc_cores], "cores");
