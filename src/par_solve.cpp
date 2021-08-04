@@ -1242,63 +1242,61 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   ctx->state = 1;
   ctx->error=NULL;
   ind = &(rx->subjects[neq[1]]);
-#pragma omp critical
   if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) {
     free(ctx);
     ctx = NULL;
+    return;
   }
-  if (ctx != NULL) {
-    nx = ind->n_all_times;
-    BadDose = ind->BadDose;
-    InfusionRate = ind->InfusionRate;
-    x = ind->all_times;
-    rc= ind->rc;
-    double xp = x[0];
-    unsigned int j;
-    lsoda_prepare(ctx, &opt);
-    for(i=0; i<nx; i++) {
-      ind->idx=i;
-      yp = getSolve(i);
-      xout = getTime_(ind->ix[i], ind);
-      if(ind->evid[ind->ix[i]] != 3 && !isSameTime(xout, xp)) {
-	if (ind->err){
-	  *rc = -1000;
-	  // Bad Solve => NA
-	  badSolveExit(i);
-	} else {
-	  lsoda(ctx, yp, &xp, xout);
-	  postSolve(&(ctx->state), rc, &i, yp, NULL, 0, false, ind, op, rx);
-	}
+  nx = ind->n_all_times;
+  BadDose = ind->BadDose;
+  InfusionRate = ind->InfusionRate;
+  x = ind->all_times;
+  rc= ind->rc;
+  double xp = x[0];
+  unsigned int j;
+  lsoda_prepare(ctx, &opt);
+  for(i=0; i<nx; i++) {
+    ind->idx=i;
+    yp = getSolve(i);
+    xout = getTime_(ind->ix[i], ind);
+    if(ind->evid[ind->ix[i]] != 3 && !isSameTime(xout, xp)) {
+      if (ind->err){
+	*rc = -1000;
+	// Bad Solve => NA
+	badSolveExit(i);
+      } else {
+	lsoda(ctx, yp, &xp, xout);
+	postSolve(&(ctx->state), rc, &i, yp, NULL, 0, false, ind, op, rx);
       }
-      ind->_newind = 2;
-      if (!op->badSolve){
-	ind->idx = i;
-	if (ind->evid[ind->ix[i]] == 3){
-	  ind->curShift -= rx->maxShift;
-	  for (j = neq[0]; j--;) {
-	    ind->InfusionRate[j] = 0;
-	    ind->on[j] = 1;
-	    ind->cacheME=0;
-	  }
-	  memcpy(yp,inits, neq[0]*sizeof(double));
-	  u_inis(neq[1], yp); // Update initial conditions @ current time
-	  if (rx->istateReset) ctx->state = 1;
-	  xp=xout;
-	  ind->ixds++;
-	} else if (handleEvid1(&i, rx, neq, yp, &xout)){
-	  handleSS(neq, BadDose, InfusionRate, ind->dose, yp, op->do_transit_abs, xout,
-		   xp, ind->id, &i, nx, &(ctx->state), op, ind, u_inis, ctx);
-	  if (ind->wh0 == 30){
-	    yp[ind->cmt] = inits[ind->cmt];
-	  }
-	  if (rx->istateReset) ctx->state = 1;
-	  xp = xout;
+    }
+    ind->_newind = 2;
+    if (!op->badSolve){
+      ind->idx = i;
+      if (ind->evid[ind->ix[i]] == 3){
+	ind->curShift -= rx->maxShift;
+	for (j = neq[0]; j--;) {
+	  ind->InfusionRate[j] = 0;
+	  ind->on[j] = 1;
+	  ind->cacheME=0;
 	}
-	if (i+1 != nx) memcpy(getSolve(i+1), yp, neq[0]*sizeof(double));
-	calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
-	ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
-	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
+	memcpy(yp,inits, neq[0]*sizeof(double));
+	u_inis(neq[1], yp); // Update initial conditions @ current time
+	if (rx->istateReset) ctx->state = 1;
+	xp=xout;
+	ind->ixds++;
+      } else if (handleEvid1(&i, rx, neq, yp, &xout)){
+	handleSS(neq, BadDose, InfusionRate, ind->dose, yp, op->do_transit_abs, xout,
+		 xp, ind->id, &i, nx, &(ctx->state), op, ind, u_inis, ctx);
+	if (ind->wh0 == 30){
+	  yp[ind->cmt] = inits[ind->cmt];
+	}
+	if (rx->istateReset) ctx->state = 1;
+	xp = xout;
       }
+      if (i+1 != nx) memcpy(getSolve(i+1), yp, neq[0]*sizeof(double));
+      calc_lhs(neq[1], xout, getSolve(i), ind->lhs);
+      ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
+      /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
   }
   // Reset LHS to NA

@@ -1,4 +1,3 @@
-rxodeTest({
   test_that("Parallel solve vs single vs for", {
 
     TV_CLr  <- 6.54  # L/h, (CLr/F)
