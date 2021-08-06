@@ -332,8 +332,8 @@ uses the vandercorput generator</p></td>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] -2.8807429 -0.1678537  0.6332729  0.7161145  0.4543867 -0.4340744</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [7] -0.2305373  0.3204707  1.6692535  0.3048113</span>
 <span class='r-in'><span class='fu'>rxnorm</span><span class='op'>(</span>n <span class='op'>=</span> <span class='fl'>10</span>, ncores <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] -0.15588539  0.39615046 -0.77780659  0.93694952 -0.68371310  0.30904064</span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7] -1.61158934  0.06501128 -1.16652279  0.16573021</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] -0.1558854  0.3961505 -0.7778066 -0.2628406 -0.6837131 -0.1957431</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7] -1.6115893  0.7430801 -1.1665228 -1.7312264</span>
 <span class='r-in'></span>
 <span class='r-in'><span class='fu'>rxnorm</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>3</span><span class='op'>)</span> <span class='co'>## The first 2 arguments are the mean and standard deviation</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] -0.534782</span>
@@ -356,8 +356,8 @@ uses the vandercorput generator</p></td>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] -0.39234507  0.53917036 -0.09647992  1.72474694 -1.71178296  0.07276450</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span>  [7] -0.53909037  0.38449969 -1.31794264  1.55198378</span>
 <span class='r-in'><span class='fu'>rxnormV</span><span class='op'>(</span>n <span class='op'>=</span> <span class='fl'>10</span>, ncores <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span> <span class='co'># You can parallelize the simulation using openMP</span></span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] -1.8015773  1.8246042  0.7963448  0.9702876 -0.4719304 -0.5150002</span>
-<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7]  0.5166386  0.6415439 -0.4376811 -0.9493275</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [1] -1.8015773  1.8246042  0.7963448 -1.8015773 -0.4719304  0.7963448</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  [7]  0.5166386 -0.4719304 -0.4376811  0.5166386</span>
 <span class='r-in'></span>
 <span class='r-in'><span class='fu'>rxnormV</span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>3</span><span class='op'>)</span> <span class='co'>## The first 2 arguments are the mean and standard deviation</span></span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] -3.214173</span>
