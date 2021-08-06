@@ -31,13 +31,13 @@ void seedEngV(uint32_t seed, int ncores){
 extern "C" double rxnormV(rx_solving_options_ind* ind, double mean, double sd){
   if (!ind->inLhs) return 0;
   std::normal_distribution<double> d(mean, sd);
-  return d(_engV[omp_get_thread_num()]);
+  return d(_engV[rx_get_thread(op_global.cores)]);
 }
 
 extern "C" double rinormV(rx_solving_options_ind* ind, int id, double mean, double sd){
   if (ind->isIni == 1) {
     std::normal_distribution<double> d(mean, sd);
-    ind->simIni[id] = d(_engV[omp_get_thread_num()]);
+    ind->simIni[id] = d(_engV[rx_get_thread(op_global.cores)]);
   }
   return ind->simIni[id];
 }
@@ -48,7 +48,7 @@ arma::mat rxrandnV(unsigned int nrow, unsigned int ncol){
   std::normal_distribution<double> d(0.0, 1.0);
   for (int j = nrow; j--;) {
     for (int i = ncol; i--;) {
-      ret(j,i) = d(_engV[omp_get_thread_num()]);
+      ret(j,i) = d(_engV[rx_get_thread(op_global.cores)]);
     }
   }
   return ret;
@@ -65,7 +65,7 @@ NumericVector rxnormV_(double mean, double sd, int n, int ncores){
   #ifdef _OPENMP
 #pragma omp parallel num_threads(ncores) if(ncores > 1)
   {
-    seed += omp_get_thread_num();
+    seed += rx_get_thread(op_global.cores);
 #endif
     sitmo::vandercorput eng;
     eng.seed(seed);

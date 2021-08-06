@@ -4515,7 +4515,7 @@ SEXP rxSolve_(const RObject &obj, const List &rxControl,
 	}
       }
     }
-    seedEng(op->cores);
+    seedEng(max2(op->cores, 1));
     // Now set up events and parameters
     RObject par0 = params;
     RObject ev0  = events;
