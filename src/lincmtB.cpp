@@ -5,6 +5,7 @@
 #include <RcppEigen.h>
 #include "../inst/include/RxODE.h"
 #include "handle_evid.h"
+#include "getTime.h"
 #ifdef ENABLE_NLS
 #include <libintl.h>
 #define _(String) dgettext ("RxODE", String)
@@ -16,7 +17,6 @@
 extern "C" int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind);
 extern "C" double _getDur(int l, rx_solving_options_ind *ind, int backward, unsigned int *p);
 extern "C" void RSprintf(const char *format, ...);
-extern "C" double getTime(int idx, rx_solving_options_ind *ind);
 
 namespace stan {
   namespace math {

@@ -7,6 +7,7 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 #include "handle_evid.h"
+#include "getTime.h"
 #define safe_zero(a) ((a) == 0 ? DBL_EPSILON : (a))
 #define _as_zero(a) (fabs(a) < sqrt(DBL_EPSILON) ? 0.0 : a)
 #define _as_dbleps(a) (fabs(a) < sqrt(DBL_EPSILON) ? ((a) < 0 ? -sqrt(DBL_EPSILON)  : sqrt(DBL_EPSILON)) : a)
@@ -18,7 +19,6 @@
 #else
 #define _(String) (String)
 #endif
-double getTime(int idx, rx_solving_options_ind *ind);
 #include "lincmtB1.h"
 //#include "lincmtB2.h"
 //#include "lincmtB3d.h"
