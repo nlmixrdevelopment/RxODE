@@ -7,7 +7,6 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 #include "handle_evid.h"
-#include "getTime.h"
 #define safe_zero(a) ((a) == 0 ? DBL_EPSILON : (a))
 #define _as_zero(a) (fabs(a) < sqrt(DBL_EPSILON) ? 0.0 : a)
 #define _as_dbleps(a) (fabs(a) < sqrt(DBL_EPSILON) ? ((a) < 0 ? -sqrt(DBL_EPSILON)  : sqrt(DBL_EPSILON)) : a)
@@ -19,9 +18,8 @@
 #else
 #define _(String) (String)
 #endif
-
+double getTime(int idx, rx_solving_options_ind *ind);
 #include "lincmtB1.h"
-#include "getTime.h"
 //#include "lincmtB2.h"
 //#include "lincmtB3d.h"
 
@@ -70,25 +68,25 @@ extern int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind){
   int i, j, ij;
   i = 0;
   j = ind->n_all_times - 1;
-  if (obs_time < getTime_(ind->ix[i], ind)){
+  if (obs_time < getTime(ind->ix[i], ind)){
     return i;
   }
-  if (obs_time > getTime_(ind->ix[j], ind)){
+  if (obs_time > getTime(ind->ix[j], ind)){
     return j;
   }
   while(i < j - 1) { /* x[i] <= obs_time <= x[j] */
     ij = (i + j)/2; /* i+1 <= ij <= j-1 */
-    if(obs_time < getTime_(ind->ix[ij], ind))
+    if(obs_time < getTime(ind->ix[ij], ind))
       j = ij;
     else
       i = ij;
   }
   /* if (i == 0) return 0; */
-  while(i != 0 && obs_time == getTime_(ind->ix[i], ind)){
+  while(i != 0 && obs_time == getTime(ind->ix[i], ind)){
     i--;
   }
   if (i == 0){
-    while(i < ind->ndoses-2 && fabs(obs_time  - getTime_(ind->ix[i+1], ind))<= sqrt(DBL_EPSILON)){
+    while(i < ind->ndoses-2 && fabs(obs_time  - getTime(ind->ix[i+1], ind))<= sqrt(DBL_EPSILON)){
       i++;
     }
   }
@@ -100,7 +98,7 @@ extern int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind){
 /* Changed as follows:
    - Different Name
    - Use RxODE structure
-   - Use getTime to allow model-based changes to dose timing
+   - Use getTime(to allow model-based changes to dose timing
    - Use getValue to ignore NA values for time-varying covariates
 */
 static inline double getValue(int idx, double *y, rx_solving_options_ind *ind){
@@ -126,7 +124,7 @@ static inline double getValue(int idx, double *y, rx_solving_options_ind *ind){
   }
   return ret;
 }
-#define T(i) getTime_(id->ix[i], id)
+#define T(i) getTime(id->ix[i], id)
 #define V(i) getValue(i, y, id)
 double rx_approxP(double v, double *y, int n,
 		  rx_solving_options *Meth, rx_solving_options_ind *id){
@@ -2772,7 +2770,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double _t, int linCmt,
   double rx_k31=0;
   double *rate = ind->linCmtRate;
   double b1=0, b2=0, r1 = 0, r2 = 0;
-  double curTime = getTime_(ind->ix[idx], ind);
+  double curTime = getTime(ind->ix[idx], ind);
   int sameTime = isSameTime(t, curTime);
   if (sameTime && idx <= ind->solved){
     // Pull from last solved value (cached)
@@ -2786,7 +2784,7 @@ double linCmtA(rx_solve *rx, unsigned int id, double _t, int linCmt,
   while (t < curTime) {
     idx--;
     if (idx < 0) return 0.0;
-    curTime = getTime_(ind->ix[idx], ind);
+    curTime = getTime(ind->ix[idx], ind);
   }
   A = getAdvan(idx);
   if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
@@ -2798,9 +2796,9 @@ double linCmtA(rx_solve *rx, unsigned int id, double _t, int linCmt,
     // Not saved, solve
     if (idx == 0) {
       Alast = Alast0;
-      tlast = getTime_(ind->ix[0], ind);
+      tlast = getTime(ind->ix[0], ind);
     } else {
-      tlast = getTime_(ind->ix[idx-1], ind);
+      tlast = getTime(ind->ix[idx-1], ind);
       Alast = getAdvan(idx-1);
     }
     evid = ind->evid[ind->ix[idx]];
@@ -2878,14 +2876,14 @@ double linCmtC(rx_solve *rx, unsigned int id, double _t, int linCmt,
   double A[4]     = {0, 0, 0, 0};
   int oral0;
   oral0 = (d_ka > 0) ? 1 : 0;
-  double it = getTime_(ind->ix[idxF], ind);
+  double it = getTime(ind->ix[idxF], ind);
   double curTime, tlast;
-  curTime = tlast = getTime_(ind->ix[0], ind); // t0
+  curTime = tlast = getTime(ind->ix[0], ind); // t0
 
   if (t != it) {
     // Try to get another idx by bisection
     idxF = _locateTimeIndex(t, ind);
-    it = getTime_(ind->ix[idxF], ind);
+    it = getTime(ind->ix[idxF], ind);
   }
   unsigned int ncmt = 1;
   double rx_k=0, rx_v=0;
@@ -2909,7 +2907,7 @@ double linCmtC(rx_solve *rx, unsigned int id, double _t, int linCmt,
     }
     for (int idx = 0; idx <= idxF; idx++) {
       ind->idx = idx;
-      curTime = getTime_(ind->ix[idx], ind);
+      curTime = getTime(ind->ix[idx], ind);
       evid = ind->evid[ind->ix[idx]];
       if (op->nlinR == 2){
 	r1 = rate[0];
@@ -3459,11 +3457,11 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
   double *Alast;
   /* A = Alast0; Alast=Alast0; */
   double tlast;
-  double curTime= getTime_(ind->ix[idx], ind); // t0
+  double curTime= getTime(ind->ix[idx], ind); // t0
   while (t < curTime) {
     idx--;
     if (idx < 0) return 0.0;
-    curTime = getTime_(ind->ix[idx], ind);
+    curTime = getTime(ind->ix[idx], ind);
   }
   int sameTime = isSameTime(t, curTime);
   if (idx <= ind->solved && sameTime){
@@ -3492,12 +3490,12 @@ double linCmtF(rx_solve *rx, unsigned int id, double _t, int linCmt,
     A = getAdvan(idx);
     if (idx == 0) {
       Alast = Alast0;
-      tlast = getTime_(ind->ix[0], ind);
+      tlast = getTime(ind->ix[0], ind);
     } else {
-      tlast = getTime_(ind->ix[idx-1], ind);
+      tlast = getTime(ind->ix[idx-1], ind);
       Alast = getAdvan(idx-1);
     }
-    curTime = getTime_(ind->ix[idx], ind);
+    curTime = getTime(ind->ix[idx], ind);
     if (!parTrans(&trans, &p1, &v1, &p2, &p3, &p4, &p5,
 		  &ncmt, &rx_k, &rx_v, &rx_k12,
 		  &rx_k21, &rx_k13, &rx_k31)){
