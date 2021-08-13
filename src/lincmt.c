@@ -277,7 +277,6 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx) {
 
 /* void doSort(rx_solving_options_ind *ind); */
 void sortRadix(rx_solving_options_ind *ind);
-void calcMtime(int solveid, double *mtime);
 // Advan-style linCmt solutions
 
 

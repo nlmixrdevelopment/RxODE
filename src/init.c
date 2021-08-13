@@ -7,7 +7,7 @@
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
-
+#define __DOINIT__
 #include "tran.h"
 #include "rxthreefry.h"
 #include "cbindThetaOmega.h"
