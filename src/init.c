@@ -7,11 +7,12 @@
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
-
+#define __DOINIT__
 #include "tran.h"
 #include "rxthreefry.h"
 #include "cbindThetaOmega.h"
 #include "seed.h"
+#include "getTime.h"
 
 SEXP _rxHasOpenMp();
 
@@ -306,7 +307,6 @@ SEXP _RxODE_rxrandnV(SEXP, SEXP);
 void simeps(int id);
 void simeta(int id);
 
-double getTime(int idx, rx_solving_options_ind *ind);
 void transIniNull();
 void nullGlobals();
 void R_init_RxODE(DllInfo *info){
