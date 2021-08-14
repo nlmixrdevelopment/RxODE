@@ -726,6 +726,13 @@ extern "C" int iniSubjectE(int solveid, int inLhs, rx_solving_options_ind *ind, 
   return iniSubject(solveid, inLhs, ind, op, rx, u_inis);
 }
 
+static inline void iniAllSubjectsForODE(rx_solve *rx) {
+  for (int solveid = 0; solveid < rx->nsim*rx->nsub; solveid++){
+     rx_solving_options_ind *ind = &(rx->subjects[solveid]);
+    ind->ini = iniSubject(solveid,  0, ind, rx->op, rx, update_inis);
+  }
+}
+
 static void chkIntFn(void *dummy) {
   R_CheckUserInterrupt();
 }
@@ -1194,7 +1201,7 @@ extern "C" void ind_indLin0(rx_solve *rx, rx_solving_options *op, int solveid,
   inits = op->inits;
   int idid = 0;
   ind = &(rx->subjects[neq[1]]);
-  if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
+  if (!ind->ini) return;
   nx = ind->n_all_times;
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
@@ -1326,7 +1333,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   ctx->state = 1;
   ctx->error=NULL;
   ind = &(rx->subjects[neq[1]]);
-  if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) {
+  if (!ind->ini) {
     free(ctx);
     ctx = NULL;
     return;
@@ -1675,7 +1682,7 @@ extern "C" void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, in
   double xp = ind->all_times[0];
   double xout;
 
-  if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
+  if (!ind->ini) return;
   unsigned int j;
   for(i=0; i < ind->n_all_times; i++) {
     ind->idx=i;
@@ -1813,7 +1820,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
   int nx;
   neq[1] = solveid;
   ind = &(rx->subjects[neq[1]]);
-  if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
+  if (!ind->ini) return;
   nx = ind->n_all_times;
   inits = op->inits;
   evid = ind->evid;
@@ -1960,6 +1967,7 @@ extern "C" void ind_solve(rx_solve *rx, unsigned int cid,
   rxt.cur = 0;
   assignFuns();
   rx_solving_options *op = &op_global;
+  iniAllSubjectsForODE(rx);
   if (op->neq !=  0){
     switch (op->stiff){
     case 3:
@@ -1990,6 +1998,7 @@ extern "C" void par_solve(rx_solve *rx){
   rxt.d = 0;
   rxt.cur = 0;
   assignFuns();
+  iniAllSubjectsForODE(rx);
   rx_solving_options *op = &op_global;
   if (op->neq != 0){
     switch(op->stiff){
