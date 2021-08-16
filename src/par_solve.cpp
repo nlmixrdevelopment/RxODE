@@ -696,6 +696,7 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
     ind->tfirstS[j] = NA_REAL;
   }
   ind->inLhs = inLhs;
+  _update_par_ptr(NA_REAL, ind->id, rx, idx);
   if (rx->nMtime) calc_mtime(solveid, ind->mtime);
   for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   if ((inLhs == 0 && op->neq > 0) ||

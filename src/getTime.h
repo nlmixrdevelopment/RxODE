@@ -14,6 +14,8 @@ extern t_calc_mtime calc_mtime;
 #ifndef __DOINIT__
 
 
+extern "C" void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
+
 static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time){
   double ret = LAG(id, cmt, time);
   if (ISNA(ret)) {
@@ -279,9 +281,11 @@ static inline double getTime__(int idx, rx_solving_options_ind *ind, int update)
 	return handleInfusionItem(idx, rx, op, ind);
       }
     } else {
+      _update_par_ptr(NA_REAL, ind->id, rx, idx);
       return getTimeCalculateInfusionTimes(idx, rx, op, ind);
     }
   }
+  _update_par_ptr(NA_REAL, ind->id, rx, idx);
   return getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
 }
 
