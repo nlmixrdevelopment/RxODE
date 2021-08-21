@@ -5,10 +5,10 @@
 
 #if defined(__cplusplus)
 
-extern t_F AMT;
-extern t_LAG LAG;
-extern t_RATE RATE;
-extern t_DUR DUR;
+extern t_F     AMT;
+extern t_LAG   LAG;
+extern t_RATE  RATE;
+extern t_DUR   DUR;
 extern t_calc_mtime calc_mtime;
 
 #ifndef __DOINIT__
@@ -96,11 +96,11 @@ static inline void updateRate(int idx, rx_solving_options_ind *ind, double *yp) 
   double dur, rate, amt;
   amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[idx], t, yp);
   rate  = getRate(ind, ind->id, ind->cmt, amt, t);
+  ind->idx=oldIdx;
   if (rate > 0){
     dur = amt/rate; // mg/hr
     ind->dose[idx+1]      = - rate;
     ind->all_times[idx+1] = t+dur;
-    ind->idx=oldIdx;
   } else {
     rx_solve *rx;
     rx = &rx_global;
@@ -120,7 +120,6 @@ static inline void updateRate(int idx, rx_solving_options_ind *ind, double *yp) 
       }
     }
   }
-  ind->idx=oldIdx;
 }
 
 static inline void handleTurnOffModeledDuration(int idx, rx_solve *rx, rx_solving_options *op, rx_solving_options_ind *ind) {
@@ -197,7 +196,7 @@ static inline void handleTurnOnModeledRate(int idx, rx_solve *rx, rx_solving_opt
 
 static inline double handleInfusionItem(int idx, rx_solve *rx, rx_solving_options *op, rx_solving_options_ind *ind) {
   double amt = ind->dose[idx];
-  if (amt > 0){
+  if (ind->whI != EVIDF_INF_RATE || amt > 0){
     return getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
   } else if (amt < 0){
     int j = getDoseNumberFromIndex(ind, idx);
@@ -277,9 +276,8 @@ static inline double getTime__(int idx, rx_solving_options_ind *ind, int update)
     // After solving the yp will contain the solved values
     //
     if (update == 0) {
-      if (ind->whI == EVIDF_INF_RATE) {
-	return handleInfusionItem(idx, rx, op, ind);
-      }
+      _update_par_ptr(NA_REAL, ind->id, rx, idx);
+      return handleInfusionItem(idx, rx, op, ind);
     } else {
       _update_par_ptr(NA_REAL, ind->id, rx, idx);
       return getTimeCalculateInfusionTimes(idx, rx, op, ind);
