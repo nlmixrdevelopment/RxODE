@@ -163,7 +163,6 @@ void printErr(int err, int id){
   if (err & 8388608){
     RSprintf(" Rate is zero/negative\n");
   }
-  
 }
 
 rx_solving_options op_global;
