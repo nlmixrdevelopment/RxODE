@@ -1,50 +1,12 @@
 #ifndef __GETTIME_H__
 #define __GETTIME_H__
 
-
-
 #if defined(__cplusplus)
-
-extern t_F AMT;
-extern t_LAG LAG;
-extern t_RATE RATE;
-extern t_DUR DUR;
 extern t_calc_mtime calc_mtime;
 
 #ifndef __DOINIT__
 
-
 extern "C" void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
-
-static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time){
-  double ret = LAG(id, cmt, time);
-  if (ISNA(ret)) {
-    rx_solving_options *op = &op_global;
-    op->badSolve=1;
-    op->naTime = 1;
-  }
-  return ret;
-}
-
-static inline double getRate(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
-  double ret = RATE(id, cmt, dose, t);
-  if (ISNA(ret)){
-    rx_solving_options *op = &op_global;
-    op->badSolve=1;
-    op->naTime = 1;
-  }
-  return ret;
-}
-
-static inline double getDur(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
-  double ret = DUR(id, cmt, dose, t);
-  if (ISNA(ret)){
-    rx_solving_options *op = &op_global;
-    op->badSolve=1;
-    op->naTime = 1;
-  }
-  return ret;
-}
 
 
 static inline int isEvidType(int evid, int type) {
@@ -58,7 +20,7 @@ static inline int isEvidType(int evid, int type) {
 #define isEvidModeledRateStart(evid) isEvidType(evid, EVIDF_MODEL_RATE_ON)
 #define isEvidModeledRateStop(evid) isEvidType(evid, EVIDF_MODEL_RATE_OFF)
 
-static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
+static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp, rx_solve *rx) {
   double t = ind->all_times[idx];
   double dur, amt;
   // The duration and f cannot depend on state values
@@ -89,7 +51,19 @@ static inline void updateDur(int idx, rx_solving_options_ind *ind, double *yp){
   }
 }
 
-static inline void updateRate(int idx, rx_solving_options_ind *ind, double *yp) {
+static inline double getDurationEndTime(int idx, rx_solving_options_ind *ind, double *yp, rx_solve *rx) {
+  double t = ind->all_times[idx];  double dur;
+  // The duration and f cannot depend on state values
+  int oldIdx = ind->idx;
+  ind->idx = idx-1;
+  double amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[idx], t, yp);
+  dur  = getDur(ind,  ind->id, ind->cmt, amt, t);
+  t = getLag(ind, ind->id, ind->cmt, t + dur);
+  ind->idx = oldIdx;
+  return t;
+}
+
+static inline void updateRate(int idx, rx_solving_options_ind *ind, double *yp, rx_solve *rx) {
   double t = ind->all_times[idx];
   int oldIdx = ind->idx;
   ind->idx=idx;
@@ -123,6 +97,19 @@ static inline void updateRate(int idx, rx_solving_options_ind *ind, double *yp) 
   ind->idx=oldIdx;
 }
 
+static inline double getRateEndTime(int idx, rx_solving_options_ind *ind, double *yp, rx_solve *rx) {
+  double t = ind->all_times[idx];
+  int oldIdx = ind->idx;
+  ind->idx=idx - 1;
+  double dur, rate, amt;
+  amt  = getAmt(ind, ind->id, ind->cmt, ind->dose[idx], t, yp);
+  rate  = getRate(ind, ind->id, ind->cmt, amt, t);
+  dur = amt/rate; // mg/hr
+  t = getLag(ind, ind->id, ind->cmt, t + dur);
+  ind->idx=oldIdx;
+  return t;
+}
+
 static inline void handleTurnOffModeledDuration(int idx, rx_solve *rx, rx_solving_options *op, rx_solving_options_ind *ind) {
   if (idx > 0){
     if (!isEvidModeledDurationStart(ind->evid[idx-1])) {
@@ -154,7 +141,7 @@ static inline void handleTurnOnModeledDuration(int idx, rx_solve *rx, rx_solving
       }
       return;
     }
-    updateDur(idx, ind, rx->ypNA);
+    updateDur(idx, ind, rx->ypNA, rx);
   }
 }
 
@@ -191,7 +178,7 @@ static inline void handleTurnOnModeledRate(int idx, rx_solve *rx, rx_solving_opt
       return;
     }
     ind->all_times[idx + 1] = ind->all_times[idx];
-    updateRate(idx, ind, rx->ypNA);
+    updateRate(idx, ind, rx->ypNA, rx);
   }
 }
 
@@ -209,7 +196,7 @@ static inline double handleInfusionItem(int idx, rx_solve *rx, rx_solving_option
       /* Rf_errorcall(R_NilValue, "Corrupted event table during sort (1)."); */
     }
     int k;
-    for (k = j; k--;){
+    for (k = j; k--;) {
       if (ind->evid[ind->idose[j]] == ind->evid[ind->idose[k]]) break;
       if (k == 0) {
 	if (!(ind->err & 32768)){
@@ -239,24 +226,44 @@ static inline double handleInfusionItem(int idx, rx_solve *rx, rx_solving_option
   }
 }
 
+static inline double handleTimeTurnOnRate(int idx, rx_solve *rx, rx_solving_options *op, rx_solving_options_ind *ind) {
+  _update_par_ptr(NA_REAL, ind->id, rx, idx);
+  return getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
+}
 
 static inline double getTimeCalculateInfusionTimes(int idx, rx_solve *rx, rx_solving_options *op, rx_solving_options_ind *ind) {
-  switch(ind->whI){
-  case EVIDF_MODEL_DUR_OFF:
-    handleTurnOffModeledDuration(idx, rx, op, ind);
-    break;
-  case EVIDF_MODEL_DUR_ON:
-    handleTurnOnModeledDuration(idx, rx, op, ind);
-    break;
-  case EVIDF_MODEL_RATE_OFF:
-    handleTurnOffModeledRate(idx, rx, op, ind);
-    break;
-  case EVIDF_MODEL_RATE_ON:
-    handleTurnOnModeledRate(idx, rx, op, ind);
-    break;
-  case EVIDF_INF_RATE:
-    return handleInfusionItem(idx, rx, op, ind);
-    break;
+  if (rx->nsim == 1 || ind->id < rx->nsim) {
+    switch(ind->whI){
+    case EVIDF_MODEL_DUR_OFF:
+      handleTurnOffModeledDuration(idx, rx, op, ind);
+      break;
+    case EVIDF_MODEL_DUR_ON:
+      handleTurnOnModeledDuration(idx, rx, op, ind);
+      break;
+    case EVIDF_MODEL_RATE_OFF:
+      handleTurnOffModeledRate(idx, rx, op, ind);
+      break;
+    case EVIDF_MODEL_RATE_ON:
+      handleTurnOnModeledRate(idx, rx, op, ind);
+      break;
+    case EVIDF_INF_RATE:
+      return handleInfusionItem(idx, rx, op, ind);
+      break;
+    }
+  } else {
+    // double getDurationEndTime(int idx, rx_solving_options_ind *ind, double *yp, rx_solve *rx)
+    switch(ind->whI){
+    case EVIDF_MODEL_DUR_OFF:
+      return getDurationEndTime(idx, ind, rx->ypNA, rx);
+    case EVIDF_MODEL_DUR_ON:
+      return handleTimeTurnOnRate(idx, rx, op, ind);
+    case EVIDF_MODEL_RATE_OFF:
+      return getRateEndTime(idx, ind, rx->ypNA, rx);
+    case EVIDF_MODEL_RATE_ON:
+      return handleTimeTurnOnRate(idx, rx, op, ind);
+    case EVIDF_INF_RATE:
+      return handleInfusionItem(idx, rx, op, ind);
+    }
   }
   return getLag(ind, ind->id, ind->cmt, ind->all_times[idx]);
 }
@@ -293,9 +300,7 @@ static inline double getTime_(int idx, rx_solving_options_ind *ind) {
   return getTime__(idx, ind, 0);
 }
 
-
 #endif
-
 
 extern "C" {
 #endif
@@ -303,7 +308,6 @@ extern "C" {
 double getTime(int idx, rx_solving_options_ind *ind);
 
 #define calcMtime(solveid, mtime) calc_mtime(solveid,mtime);
-
 
 #if defined(__cplusplus)
 }
