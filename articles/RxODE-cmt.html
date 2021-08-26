@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Changing RxODE compartment numbers</h1>
             
-            <h4 data-toc-skip class="date">2021-08-21</h4>
+            <h4 data-toc-skip class="date">2021-08-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-cmt.Rmd" class="external-link"><code>vignettes/RxODE-cmt.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-cmt.Rmd</code></div>
@@ -344,8 +344,8 @@
 <p>If you look at the summary, you can see where RxODE assigned the compartment number(s)</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">pbpk</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.1.0 model named rx_61b67e756ab54da4348d385c43f04e0b model (ready). 
-#&gt; DLL: /tmp/Rtmpv5kRGC/RxODE/rx_61b67e756ab54da4348d385c43f04e0b__.rxd/rx_61b67e756ab54da4348d385c43f04e0b_.so
+<pre><code>#&gt; RxODE 1.1.0 model named rx_3da46c89967242fc525a1f6dfcdfe4b2 model (ready). 
+#&gt; DLL: /tmp/Rtmp0S4WUv/RxODE/rx_3da46c89967242fc525a1f6dfcdfe4b2__.rxd/rx_3da46c89967242fc525a1f6dfcdfe4b2_.so
 #&gt; NULL
 #&gt; 
 #&gt; Calculated Variables:
@@ -536,7 +536,7 @@
 <p>You can see this change in the simple printout</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pbpk2</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.1.0 model named rx_bd31dc2bea48bcc011fdf29f3015b0ad model (ready). 
+<pre><code>#&gt; RxODE 1.1.0 model named rx_db19b94a96c3556ad450f85bf6b20d1e model (ready). 
 #&gt; x$state: Venous_Blood, Skin, Lungs, Heart, Brain, Muscles, Adipose, Spleen, Pancreas, Liver, Stomach, Gut, Bones, Kidneys, Arterial_Blood, Rest_of_Body
 #&gt; x$params: lKbBR, lKbMU, lKbAD, lCLint, eta.LClint, lKbBO, lKbRB, WT, BP, fup
 #&gt; x$lhs: KbBR, KbMU, KbAD, CLint, KbBO, KbRB, CO, QHT, QBR, QMU, QAD, QSK, QSP, QPA, QLI, QST, QGU, QHA, QBO, QKI, QRB, QLU, VLU, VHT, VBR, VMU, VAD, VSK, VSP, VPA, VLI, VST, VGU, VBO, VKI, VAB, VVB, VRB, fub, KbLU, KbHT, KbSK, KbSP, KbPA, KbLI, KbST, KbGU, KbKI, S15, C15</code></pre>
@@ -555,7 +555,7 @@
     <span class="fu">cmt</span><span class="op">(</span><span class="va">eff</span><span class="op">)</span>;
 <span class="op">}</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ode.1c.ka</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; RxODE 1.1.0 model named rx_a4de651f43013a37de6f443ec79e514b model (ready). 
+<pre><code>#&gt; RxODE 1.1.0 model named rx_92bd41c9e3b361848df41b9ae3888c82 model (ready). 
 #&gt; $state: depot, center
 #&gt; $stateExtra: eff
 #&gt; $params: V, KA, CL
