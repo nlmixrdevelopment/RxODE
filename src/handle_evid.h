@@ -12,10 +12,17 @@ extern "C" {
 
   int handle_evidL(int evid, double *yp, double xout, int id, rx_solving_options_ind *ind);
   void handleTlast(double *time, rx_solving_options_ind *ind);
-  
+
 #if defined(__cplusplus)
 }
 #endif
+
+extern t_F AMT;
+extern t_LAG LAG;
+extern t_RATE RATE;
+extern t_DUR DUR;
+
+extern rx_solve rx_global;
 
 // EVID = 0; Observations
 // EVID = 1; is illegal, but converted from NONMEM
@@ -63,6 +70,37 @@ extern "C" {
 #define EVID0_SS2 20
 #define EVID0_OFF 30
 #define EVID0_SSINF 40
+
+static inline double getLag(rx_solving_options_ind *ind, int id, int cmt, double time){
+  double ret = LAG(id, cmt, time);
+  if (ISNA(ret)) {
+    rx_solving_options *op = &op_global;
+    op->badSolve=1;
+    op->naTime = 1;
+  }
+  return ret;
+}
+
+static inline double getRate(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
+  double ret = RATE(id, cmt, dose, t);
+  if (ISNA(ret)){
+    rx_solving_options *op = &op_global;
+    op->badSolve=1;
+    op->naTime = 1;
+  }
+  return ret;
+}
+
+static inline double getDur(rx_solving_options_ind *ind, int id, int cmt, double dose, double t){
+  double ret = DUR(id, cmt, dose, t);
+  if (ISNA(ret)){
+    rx_solving_options *op = &op_global;
+    op->badSolve=1;
+    op->naTime = 1;
+  }
+  return ret;
+}
+
 
 static inline void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0){
   *wh = evid;
@@ -172,7 +210,11 @@ static inline double getDoseIndex(rx_solving_options_ind *ind, int i) {
 }
 
 static inline double getDoseIndexPlus1(rx_solving_options_ind *ind, int i) {
-  return ind->dose[ind->ix[i]+1];
+  return ind->dose[ind->ix[i] + 1];
+}
+
+static inline double getDoseIndexMinus1(rx_solving_options_ind *ind, int i) {
+  return ind->dose[ind->ix[i] - 1];
 }
 
 static inline double getIiNumber(rx_solving_options_ind *ind, int i) {
@@ -187,7 +229,7 @@ static inline void setDoseNumber(rx_solving_options_ind *ind, int i, int j, doub
 
 extern t_F AMT;
 
-static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y){
+static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double dose, double t, double *y) {
   double ret = AMT(id, cmt, dose, t, y);
   if (ISNA(ret)){
     rx_solving_options *op = &op_global;
@@ -196,8 +238,46 @@ static inline double getAmt(rx_solving_options_ind *ind, int id, int cmt, double
   }
   return ret;
 }
- 
-static inline int handle_evid(int evid, int neq, 
+
+static inline double getModeledRateWhenTurnedOn(rx_solving_options_ind *ind, double *yp) {
+  rx_solve *rx = &rx_global;
+  if (rx->nsim == 1 || ind->id < rx->nsub) {
+    return -getDoseIndexPlus1(ind, ind->idx);
+  } else if ( ind->whI == EVIDF_MODEL_RATE_ON ){
+    // Modeled rate where the information isn't saved
+    double t = ind->all_times[ind->ix[ind->idx]];
+    double amt  = getAmt(ind, ind->id, ind->cmt, getDoseIndex(ind, ind->idx), t, yp);
+    double rate  = getRate(ind, ind->id, ind->cmt, amt, t);
+    return rate;
+  } else {
+    // Modeled duration where the information is not saved
+    double t = ind->all_times[ind->ix[ind->idx]];
+    double amt  = getAmt(ind, ind->id, ind->cmt, getDoseIndex(ind, ind->idx), t, yp);
+    double dur  = getDur(ind,  ind->id, ind->cmt, amt, t);
+    return amt/dur;
+  }
+}
+
+static inline double getModeledRateWhenTurnedOff(rx_solving_options_ind *ind, double *yp) {
+  rx_solve *rx = &rx_global;
+  if (rx->nsim == 1 || ind->id < rx->nsub) {
+    return -getDoseIndex(ind, ind->idx);
+  } else if ( ind->whI == EVIDF_MODEL_RATE_ON ){
+    // Modeled rate where the information isn't saved
+    double t = ind->all_times[ind->ix[ind->idx] - 1];
+    double amt  = getAmt(ind, ind->id, ind->cmt, getDoseIndexMinus1(ind, ind->idx), t, yp);
+    double rate  = getRate(ind, ind->id, ind->cmt, amt, t);
+    return rate;
+  } else {
+    // Modeled duration where the information is not saved
+    double t = ind->all_times[ind->ix[ind->idx] - 1];
+    double amt  = getAmt(ind, ind->id, ind->cmt, getDoseIndexMinus1(ind, ind->idx), t, yp);
+    double dur  = getDur(ind,  ind->id, ind->cmt, amt, t);
+    return amt/dur;
+  }
+}
+
+ static inline int handle_evid(int evid, int neq,
 			      int *BadDose,
 			      double *InfusionRate,
 			      double *dose,
@@ -210,7 +290,7 @@ static inline int handle_evid(int evid, int neq,
   double tmp;
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
   handleTlastInline(&xout, ind);
-  if (ind->wh0 == EVID0_SSINF){
+  if (ind->wh0 == EVID0_SSINF) {
     ind->ixds++;
     return 1;
   }
@@ -255,7 +335,7 @@ static inline int handle_evid(int evid, int neq,
       // Rate already calculated and saved in the next dose record
       ind->on[cmt] = 1;
       ind->cacheME=0;
-      InfusionRate[cmt] -= getDoseIndexPlus1(ind, ind->idx);
+      InfusionRate[cmt] += getModeledRateWhenTurnedOn(ind, yp);
       if (ind->wh0 == EVID0_SS2 && getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp) !=
 	  getDoseIndex(ind, ind->idx)) {
 	if (!(ind->err & 1048576)){
@@ -270,7 +350,7 @@ static inline int handle_evid(int evid, int neq,
       // In this case re-sort is not going to be assessed
       // If cmt is off, don't remove rate....
       // Probably should throw an error if the infusion rate is on still.
-      InfusionRate[cmt] += getDoseIndex(ind, ind->idx);
+      InfusionRate[cmt] -= getModeledRateWhenTurnedOff(ind, yp);
       ind->cacheME=0;
       if (ind->wh0 == EVID0_SS2 &&
 	  getAmt(ind, id, cmt, getDoseIndex(ind, ind->idx), xout, yp) !=
@@ -353,4 +433,3 @@ static inline int handleEvid1(int *i, rx_solve *rx, int *neq,
 		     op->do_transit_abs, *xout, neq[1], ind);
 }
 #endif
-
