@@ -2,11 +2,6 @@
 
 * Fix the LTO issue that CRAN identified.
 
-* Only store duration and rate information internally for the first
-  subject that uses the data, not the additional subjects that
-  simulate against the same dataset.  Those are now calculated and not
-  stored.
-
 # RxODE 1.1.0
 
 * Always calculate "nolhs" for using numeric differences when the

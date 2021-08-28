@@ -163,6 +163,7 @@ void printErr(int err, int id){
   if (err & 8388608){
     RSprintf(" Rate is zero/negative\n");
   }
+  
 }
 
 rx_solving_options op_global;
@@ -620,6 +621,7 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
   rx_solving_options *op = &op_global;
   uint8_t **key = rx->keys[core];
   // Reset times for infusion
+  int wh, cmt, wh100, whI, wh0;
   int doSort = 1;
   double *time = new double[ind->n_all_times];
   uint64_t *all = new uint64_t[ind->n_all_times];
@@ -682,7 +684,7 @@ extern "C" void sortRadix(rx_solving_options_ind *ind){
 
 static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind, rx_solving_options *op, rx_solve *rx,
 			     t_update_inis u_inis) {
-  ind->ixds = ind->idx = 0; // reset dosing
+  ind->ixds = ind->idx = ind->_update_par_ptr_in = 0; // reset dosing
   ind->id=solveid;
   ind->cacheME=0;
   ind->curShift=0.0;
@@ -694,7 +696,6 @@ static inline int iniSubject(int solveid, int inLhs, rx_solving_options_ind *ind
     ind->tfirstS[j] = NA_REAL;
   }
   ind->inLhs = inLhs;
-  _update_par_ptr(NA_REAL, ind->id, rx, 0);
   if (rx->nMtime) calc_mtime(solveid, ind->mtime);
   for (int j = op->nlhs; j--;) ind->lhs[j] = NA_REAL;
   if ((inLhs == 0 && op->neq > 0) ||
@@ -1310,6 +1311,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
   int nx;
   rx_solving_options_ind *ind;
   double *inits;
+  int *evid;
   double *x;
   int *BadDose;
   double *InfusionRate;
@@ -1330,6 +1332,7 @@ extern "C" void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda
     return;
   }
   nx = ind->n_all_times;
+  evid = ind->evid;
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   x = ind->all_times;
@@ -1801,6 +1804,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
       "problem is probably stiff (interrupted)"
     };
   rx_solving_options_ind *ind;
+  int *evid;
   double *x;
   int *BadDose;
   double *InfusionRate;
@@ -1812,6 +1816,7 @@ extern "C" void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int 
   if (!iniSubject(neq[1], 0, ind, op, rx, u_inis)) return;
   nx = ind->n_all_times;
   inits = op->inits;
+  evid = ind->evid;
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   x = ind->all_times;
