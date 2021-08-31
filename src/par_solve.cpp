@@ -1,4 +1,5 @@
 #define STRICT_R_HEADER
+#include "rxomp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -30,7 +31,6 @@ extern "C" {
 // OpenMP is excellent for parallelizing existing loops where the iterations are independent;
 // OpenMP is used by part of the R core, therefore support will come for all platforms at some time in the future.
 // Since these are independent, we will just use Open MP.
-#include "rxomp.h"
 
 #ifdef ENABLE_NLS
 #include <libintl.h>

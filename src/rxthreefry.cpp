@@ -1,11 +1,11 @@
 // [[Rcpp::interfaces(r, cpp)]]
 //#undef NDEBUG
 #define STRICT_R_HEADER
+#include "rxomp.h"
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #include <RcppArmadillo.h>
 #include "../inst/include/RxODE.h"
 #include <threefry.h>
-#include "rxomp.h"
 #include "seed.h"
 #include <R.h>
 #include "checkmate.h"

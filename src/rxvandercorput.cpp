@@ -1,11 +1,11 @@
 #define STRICT_R_HEADER
 // [[Rcpp::interfaces(r, cpp)]]
 //#undef NDEBUG
+#include "rxomp.h"
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #include <RcppArmadillo.h>
 #include "../inst/include/RxODE.h"
 #include <vandercorput.h>
-#include "rxomp.h"
 #include "seed.h"
 #include <R.h>
 #ifdef ENABLE_NLS
