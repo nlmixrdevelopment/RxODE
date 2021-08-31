@@ -82,16 +82,144 @@
 ## mu-referencing routine
 
 
+.errHandleSingleDistributionTerm <- function(funName, expression, env) {
 
-##' Process a single expression and add information to the provided environment
+}
+
+.errHandleSingleTerm <- function(funName, expression, env) {
+
+}
+
+##' Handle the error structure term
 ##'
-##' .. content for \details{} ..
-##' @title
-##' @param expression
-##' @param env
+##' @param expression The error structure term
+##'
+##' @param env The environment that holds information about the error
+##'   structure
+##'
 ##' @return
 ##' @author Matthew Fidler
-##' @noRd
-.errProcessExpression <- function(expression, env) {
+.errHandleErrorStructure <- function(expression, env) {
+  if (identical(expression[[1]], quote(`+`))) {
+    env$isAnAdditiveExpression <- TRUE
+    .errHandleErrorStructure(expression[[2]], env)
+    .errHandleErrorStructure(expression[[3]], env)
+  } else if (env$isAnAdditiveExpression) {
+    .currErr <- deparse1(expression[[1]])
+    if (.currErr %in% .errAddDists) {
+      .errHandleSingleDistributionTerm(.currErr, expression, env)
+    } else {
+      .errHandleSingleTerm(.currErr, expression, env)
+    }
+  } else {
+    .currErr <- deparse1(expression[[1]])
+    if (.currErr %in% names(.errDist)) {
+      .errHandleSingleDistributionTerm(.currErr, expression, env)
+    } else {
+      .errHandleSingleTerm(.currErr, expression, env)
+    }
+  }
+}
 
+##' Handle the right hand side conditional expression (if it exists)
+##'
+##' @param expression A right hand side of the tilde equation
+##' @param env Environment for storing information about the expression
+##' @return An expression without a conditional statement.
+##'
+##' @details
+##'
+##' In addition to stripping the conditional statement out of the
+##' expression, the environment is modified when a conditional
+##' expression is present.  First, the environment variable
+##' `needsToBeAnErrorExpression` is changed to `TRUE`.  Second, the
+##' expression `curCondition` is modified to match the information
+##' within the conditional statement.
+##'
+##' @author Matthew Fidler
+.errHandleCondition <- function(expression, env) {
+  if (identical(expression[[1]], quote(`|`))) {
+    env$needsToBeAnErrorExpression  <- TRUE
+    env$curCondition <- deparse1(expression[[3]])
+    return(expression[[2]])
+  }
+  expression
+}
+
+##' Handle the error expressions
+##'
+##' @param expression Single tilde error expression
+##' @param env Environment with initial estimate data.frame
+##' @return
+##' @author Matthew Fidler
+.errHandleTilde <- function(expression, env) {
+  .left <- expression[[2]]
+  env$curCondition <- deparse1(.left)
+  env$needsToBeAnErrorExpression <- FALSE
+  .right <- .errHandleCondition(expression[[3]], env)
+  env$isAnAdditiveExpression <- FALSE
+  .errHandleErrorStructure(.right, env)
+}
+
+##' Process the errors in the quoted expression
+##'
+##' @param x
+##' @param df
+##' @return
+##' @author Matthew Fidler
+##' @examples
+##' lmat <- lotri({
+##'  ## You may label each parameter with a comment
+##'  tka <- 0.45 # Log Ka
+##'  tcl <- log(c(0, 2.7, 100)) # Log Cl
+##'  ## This works with interactive models
+##'  ## You may also label the preceding line with label("label text")
+##'  tv <- 3.45; label("log V")
+##'  tvp <- 3.45; label("log V")
+##'  cl.wt <- 0.1
+##'  v.wt <- 0.1
+##'  cl.sex <- 0.1
+##'  v.sex <- 0.1
+##'  cl.age <- 0.1
+##'  v.age <- 0.1
+##'  vp.wt <- 1
+##'  vp.sex <- 1
+##'  vp.age <- 1
+##'  ## the label("Label name") works with all models
+##'  eta.ka ~ 0.6
+##'  eta.cl ~ 0.3
+##'  eta.v ~ 0.1
+##'  add.sd <- 0.7
+##'})
+##'
+##'
+##' iniDf <- as.data.frame(lmat)
+##'
+##' .errProcessExpression()
+##' @noRd
+.errProcessExpression <- function(x, df) {
+  # ntheta neta1 neta2   name lower       est   upper   fix  err  label
+  # backTransform condition trLow trHi
+  .env <- new.env(parent=emptyenv())
+  .env$top <- TRUE
+  .env$df <- df
+  # Add error structure like nlmixr ui had before transitioning to RxODE
+  .env$df$err <- NA_character_
+  .env$df$trLow <- .env$df$trHi <- NA_real_
+  if (is.call(x)) {
+    if (.env$top && identical(x[[1]], quote(`{`))) {
+      .env$top <- FALSE
+      .y <- x[-1]
+      .ret <- character(length(.y))
+      for (.i in seq_along(.y)) {
+        if (identical(.y[[.i]][[1]], quote(`~`))) {
+          .errHandleTilde(.y[[.i]], .env)
+        } else {
+          .ret[[.i]] <- deparse1(.y[[.i]])
+        }
+      }
+      return(.ret)
+    }
+  }
+  return(invisible(NULL))
 }
