@@ -234,7 +234,7 @@
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Easy RxODE Event Tables</h1>
             
-            <h4 data-toc-skip class="date">2021-08-28</h4>
+            <h4 data-toc-skip class="date">2021-08-31</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-event-table.Rmd" class="external-link"><code>vignettes/RxODE-event-table.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-event-table.Rmd</code></div>
@@ -409,13 +409,9 @@
 <p>In this example, you can see the time axes is labeled:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <p>If you are more familiar with the NONMEM/RxODE event records, you can also specify dosing using <code>et</code> with the dose elements directly:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">days</span><span class="op">)</span>,
      ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="co"># loading doses</span>
@@ -432,12 +428,8 @@
 #&gt;     [h] &lt;dbl&gt;   [h] &lt;int&gt; &lt;evid&gt;      
 #&gt; 1     0 10000    12     6 1:Dose (Add)</code></pre>
 <p>Which gives:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 <p>This shows how easy creating event tables can be.</p>
 </div>
@@ -445,7 +437,7 @@
 <h2 class="hasAnchor">
 <a href="#adding-sampling-to-an-event-table" class="anchor" aria-hidden="true"></a>Adding sampling to an event table</h2>
 <p>If you notice in the above examples, RxODE generated some default sampling times since there was not any sampling times. If you wish more control over the sampling time, you should add the samples to the RxODE event table by <code>add.sampling</code> or <code>et</code></p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eventTable.html">eventTable</a></span><span class="op">(</span>amount.units<span class="op">=</span><span class="st">"mg"</span>, time.units<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span>
 
 <span class="co">## The methods ar attached to the event table, so you can use them</span>
@@ -473,15 +465,11 @@
 #&gt; 7    20    NA    NA    NA 0:Observation
 #&gt; 8    24    NA    NA    NA 0:Observation</code></pre>
 <p>Which gives:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/symengine/man/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <p>Or if you use <code>et</code> you can simply add them in a similar way to <code>add.sampling</code>:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">days</span><span class="op">)</span>,
      ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># loading doses</span>
@@ -506,12 +494,8 @@
 #&gt; 7    20    NA    NA    NA 0:Observation
 #&gt; 8    24    NA    NA    NA 0:Observation</code></pre>
 <p>which gives the following RxODE solve:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/symengine/man/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>Note the jagged nature of these plots since there was only a few sample times.</p>
 </div>
@@ -519,7 +503,7 @@
 <h2 class="hasAnchor">
 <a href="#expand-the-event-table-to-a-multi-subject-event-table-" class="anchor" aria-hidden="true"></a>Expand the event table to a multi-subject event table.</h2>
 <p>The only thing that is needed to expand an event table is a list of IDs that you want to expand;</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, until <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">3</span>, <span class="va">days</span><span class="op">)</span>,
      ii<span class="op">=</span><span class="fl">12</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># loading doses</span>
@@ -548,7 +532,7 @@
 #&gt; 10     1 1.93     NA    NA    NA 0:Observation
 #&gt; # ... with 794 more rows</code></pre>
 <p>You can see in the following simulation there are 4 individuals that are solved for:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="fu"><a href="../reference/rxSetSeed.html">rxSetSeed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/pkg/symengine/man/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>,
@@ -557,10 +541,6 @@
     <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; Warning: 'ID' missing in 'parameters' dataset
 #&gt; individual parameters are assumed to have the same order as the event dataset</code></pre>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
 </div>
 <div id="add-doses-and-samples-within-a-sampling-window" class="section level2">
@@ -568,7 +548,7 @@
 <a href="#add-doses-and-samples-within-a-sampling-window" class="anchor" aria-hidden="true"></a>Add doses and samples within a sampling window</h2>
 <p>In addition to adding fixed doses and fixed sampling times, you can have windows where you sample and draw doses from. For dosing windows you specify the time as an ordered numerical vector with the lowest dosing time and the highest dosing time inside a list.</p>
 <p>In this example, you start with a dosing time with a 6 hour dosing window:</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="fu"><a href="../reference/rxSetSeed.html">rxSetSeed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
@@ -602,7 +582,7 @@
 #&gt; 15     4    24 29.6      30 10000 1:Dose (Add)
 #&gt; 16     4    36 41.5      42 10000 1:Dose (Add)</code></pre>
 <p>You can clearly see different dosing times in the following simulation:</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="va">ev</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">48</span>,length.out<span class="op">=</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/pkg/symengine/man/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">ev</span>,
@@ -611,13 +591,9 @@
   <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; Warning: 'ID' missing in 'parameters' dataset
 #&gt; individual parameters are assumed to have the same order as the event dataset</code></pre>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
 <p>Of course in reality the dosing interval may only be 2 hours:</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="fu"><a href="../reference/rxSetSeed.html">rxSetSeed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
@@ -632,13 +608,9 @@
   <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; Warning: 'ID' missing in 'parameters' dataset
 #&gt; individual parameters are assumed to have the same order as the event dataset</code></pre>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
 <p>The same sort of thing can be specified with sampling times. To specify the sampling times in terms of a sampling window, you can create a list of the sampling times. Each sampling time will be a two element ordered numeric vector.</p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/rxSetSeed.html">rxSetSeed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span>
 <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
@@ -660,10 +632,6 @@
   <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; Warning: 'ID' missing in 'parameters' dataset
 #&gt; individual parameters are assumed to have the same order as the event dataset</code></pre>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
 <p>This shows the flexibility in dosing and sampling that the RxODE event tables allow.</p>
 </div>
@@ -676,7 +644,7 @@
 <h2 class="hasAnchor">
 <a href="#sequencing-event-tables" class="anchor" aria-hidden="true"></a>Sequencing event tables</h2>
 <p>One way to combine event table is to sequence them by <code>c</code>, <code>seq</code> or <code>etSeq</code>. This takes the two dosing groups and adds at least one inter-dose interval between them:</p>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## bid for 5 days</span>
 <span class="va">bid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
        <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>,ii<span class="op">=</span><span class="fl">12</span>,until<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">5</span>, <span class="st">"days"</span><span class="op">)</span><span class="op">)</span>
@@ -689,34 +657,22 @@
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="va">bid</span>,<span class="va">qd</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">11</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>;
 
 <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 <p>When sequencing events, you can also separate this sequence by a period of time; For example if you wanted to separate this by a week, you could easily do that with the following sequence of event tables:</p>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## bid for 5 days followed by qd for 5 days</span>
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="va">bid</span>,<span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"week"</span><span class="op">)</span>, <span class="va">qd</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">18</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>;
 
 <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
 <p>Note that in this example the time between the bid and the qd event tables is exactly one week, not 1 week plus 24 hours because of the inter-dose interval. If you want that behavior, you can sequence it using the <code>wait="+ii"</code>.</p>
-<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## bid for 5 days followed by qd for 5 days</span>
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="va">bid</span>,<span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"week"</span><span class="op">)</span>, <span class="va">qd</span>,wait<span class="op">=</span><span class="st">"+ii"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">18</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>;
 
 <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
 <p>Also note, that RxODE assumes that the dosing is what you want to space the event tables by, and clears out any sampling records when you combine the event tables. If that is not true, you can also use the option <code>samples="use"</code></p>
 </div>
@@ -724,7 +680,7 @@
 <h2 class="hasAnchor">
 <a href="#repeating-event-tables" class="anchor" aria-hidden="true"></a>Repeating event tables</h2>
 <p>You can have an event table that you can repeat with <code>etRep</code> or <code>rep</code>. For example 4 rounds of 2 weeks on QD therapy and 1 week off of therapy can be simply specified:</p>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">qd</span> <span class="op">&lt;-</span><span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits <span class="op">=</span> <span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>, ii<span class="op">=</span><span class="fl">24</span>, until<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">2</span>, <span class="st">"weeks"</span><span class="op">)</span>, cmt<span class="op">=</span><span class="st">"depot"</span><span class="op">)</span>
 
@@ -732,10 +688,6 @@
       <span class="fu"><a href="../reference/add.sampling.html">add.sampling</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12.5</span>,by<span class="op">=</span><span class="fl">0.005</span><span class="op">)</span>,<span class="va">weeks</span><span class="op">)</span><span class="op">)</span>
 
 <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
 <p>This is a simplified way to use a sequence of event tables. Therefore, many of the same options still apply; That is <code>samples</code> are cleared unless you use <code>samples="use"</code>, and the time between event tables is at least the inter-dose interval. You can adjust the timing by the <code>wait</code> option.</p>
 </div>
@@ -744,7 +696,7 @@
 <a href="#combining-event-tables-with-rbind" class="anchor" aria-hidden="true"></a>Combining event tables with rbind</h2>
 <p>You may combine event tables with <code>rbind</code>. This does not consider the event times when combining the event tables, but keeps them the same times. If you space the event tables by a waiting period, it also does not consider the inter-dose interval.</p>
 <p>Using the previous <code>seq</code> you can clearly see the difference. Here was the sequence:</p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## bid for 5 days</span>
 <span class="va">bid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>timeUnits<span class="op">=</span><span class="st">"hr"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
        <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>amt<span class="op">=</span><span class="fl">10000</span>,ii<span class="op">=</span><span class="fl">12</span>,until<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">5</span>, <span class="st">"days"</span><span class="op">)</span><span class="op">)</span>
@@ -757,53 +709,37 @@
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">18</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">500</span><span class="op">)</span><span class="op">)</span>;
 
 <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
 <p>But if you bind them together with <code>rbind</code></p>
-<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## bid for 5 days</span>
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">bid</span>,<span class="va">qd</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">18</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">500</span><span class="op">)</span><span class="op">)</span>;
 
 <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
 <p>Still the waiting period applies (but does not consider the inter-dose interval)</p>
-<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">bid</span>,wait<span class="op">=</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html" class="external-link">set_units</a></span><span class="op">(</span><span class="fl">10</span>,<span class="va">days</span><span class="op">)</span>,<span class="va">qd</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">18</span><span class="op">*</span><span class="fl">24</span>,length.out<span class="op">=</span><span class="fl">500</span><span class="op">)</span><span class="op">)</span>;
 
 <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
 <p>You can also bind the tables together and make each ID in the event table unique; This can be good to combine cohorts with different expected dosing and sampling times. This requires the <code>id="unique"</code> option; Using the first example shows how this is different in this case:</p>
-<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## bid for 5 days</span>
 <span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/etRbind.html">etRbind</a></span><span class="op">(</span><span class="va">bid</span>,<span class="va">qd</span>, id<span class="op">=</span><span class="st">"unique"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
     <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">150</span>,length.out<span class="op">=</span><span class="fl">500</span><span class="op">)</span><span class="op">)</span>;
 
 <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>
 <span class="fu"><a href="../reference/rxSolve.html">rxSolve</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">et</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">C2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span> <span class="op">~</span> <span class="va">id</span><span class="op">)</span></code></pre></div>
-<pre><code>#&gt; Warning: dur() specified in model, but no modeled duration (rate=-2) in the
-#&gt; dataset</code></pre>
-<pre><code>#&gt; Warning: rate() specified in model, but no modeled rates (rate=-1) in the
-#&gt; dataset</code></pre>
 <p><img src="RxODE-event-table_files/figure-html/unnamed-chunk-27-1.png" width="700"></p>
 </div>
 <div id="expanding-events" class="section level2">
 <h2 class="hasAnchor">
 <a href="#expanding-events" class="anchor" aria-hidden="true"></a>Expanding events</h2>
 <p>Event tables can be expanded so they contain an <code>addl</code> data item, like the following example:</p>
-<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
   <span class="fu"><a href="../reference/et.html">et</a></span><span class="op">(</span>dose<span class="op">=</span><span class="fl">50</span>, ii<span class="op">=</span><span class="fl">8</span>, until<span class="op">=</span><span class="fl">48</span><span class="op">)</span>
 
@@ -820,7 +756,7 @@
 #&gt; 1     0    50     8     6 1:Dose (Add)</code></pre>
 <p>You can expand the events so they do not have the <code>addl</code> items by <code>$expand()</code> or <code>etExpand(ev)</code>:</p>
 <p>The first, <code>etExpand(ev)</code> expands the event table without modifying the original data frame:</p>
-<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/etExpand.html">etExpand</a></span><span class="op">(</span><span class="va">ev</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 7 records --------------------------
 #&gt; 
@@ -838,7 +774,7 @@
 #&gt; 6    40    50     0 1:Dose (Add)
 #&gt; 7    48    50     0 1:Dose (Add)</code></pre>
 <p>You can see the <code>addl</code> events were expanded, however the original data frame remained intact:</p>
-<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ev</span><span class="op">)</span></code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 1 records --------------------------
 #&gt; 
@@ -851,7 +787,7 @@
 #&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt; &lt;evid&gt;      
 #&gt; 1     0    50     8     6 1:Dose (Add)</code></pre>
 <p>If you use <code>ev$expand()</code> it will modify the <code>ev</code> object. This is similar to an object-oriented method:</p>
-<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">ev</span><span class="op">$</span><span class="fu">expand</span><span class="op">(</span><span class="op">)</span>
 <span class="va">ev</span></code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 7 records --------------------------
