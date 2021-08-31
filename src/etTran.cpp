@@ -2034,12 +2034,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       warnedNeg=true;
     }
   }
-  if (!rateModeled && (needSort & needSortRate)) {
-    Rf_warningcall(R_NilValue, _("rate() specified in model, but no modeled rates (rate=-1) in the dataset"));
-  }
-  if (!durModeled && (needSort & needSortDur)) {
-    Rf_warningcall(R_NilValue, _("dur() specified in model, but no modeled duration (rate=-2) in the dataset"));
-  }
 #ifdef rxSolveT
   RSprintf("  Time15: %f\n", ((double)(clock() - _lastT0))/CLOCKS_PER_SEC);
   _lastT0 = clock();
