@@ -2,6 +2,12 @@
 
 * Fix the LTO issue that CRAN identified.
 
+* Move the omp files so they come first to support clang13, as identified by CRAN.
+
+* For now, be a little more conservative in `dur()` and `rate()`
+  warnings because `linCmt()` models in `nlmixr` currently produce
+  irrelevant warnings.
+
 # RxODE 1.1.0
 
 * Always calculate "nolhs" for using numeric differences when the

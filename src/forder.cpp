@@ -1,4 +1,5 @@
 #define STRICT_R_HEADER
+#include "rxomp.h"
 #include <R.h>
 #include <Rversion.h>
 #include <Rinternals.h>
@@ -18,7 +19,6 @@
 #define _(String) (String)
 #endif
 
-#include "rxomp.h"
 
 // Much of this comes from data.table, with references to where it came from
 
