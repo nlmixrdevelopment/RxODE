@@ -2,7 +2,7 @@
 
 * Fix the LTO issue that CRAN identified.
 
-* Move the imp files so they come first to support clang13, as identified by CRAN.
+* Move the omp files so they come first to support clang13, as identified by CRAN.
 
 * For now, be a little more conservative in `dur()` and `rate()`
   warnings because `linCmt()` models in `nlmixr` currently produce
