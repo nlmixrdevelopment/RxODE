@@ -81,13 +81,59 @@
 ## With this change, there is sufficient information to send to the
 ## mu-referencing routine
 
-
-.errHandleSingleDistributionTerm <- function(funName, expression, env) {
-
+.errHandleSingleDistributionArgument <- function(argumentNumber, funName, expression, env) {
+  .cur <- expression[[argumentNumber + 1]]
+  if (is.name(.cur)) {
+    .curName <- as.character(.cur)
+    #print(.cur)
+  }
 }
 
+##' Checks and modifies the error term as needed in the user interface function.
+##'
+##' @param funName Name of the distributional error
+##' @param expression The R expression (including the function name)
+##' @param env The environment that holds information about the error structure
+##' @return Nothing; Called for the side effects
+##' @author Matthew Fidler
+##' @noRd
+.errHandleSingleDistributionTerm <- function(funName, expression, env) {
+  .nargs <- length(expression) - 1
+  .errDistArgs <- .errDist[[funName]]
+  #print(funName)
+  #print(.errDistArgs)
+  #print(.nargs)
+  if (.nargs %in% .errDistArgs) {
+    if (.nargs > 0) {
+      lapply(seq(1, .nargs), .errHandleSingleDistributionArgument, funName=funName, expression=expression, env=env)
+    }
+    env$needsToBeAnErrorExpression <- TRUE
+  } else {
+    .min <- range(.errDistArgs)
+    .max <- .min[2]
+    .min <- .min[1]
+    if (.min == .max) {
+      assign("err", c(env$err,
+                      paste0("syntax error: `", funName, "` requires ",
+                             .max, " argument(s), you specified ", .nargs)), envir=env)
+    } else {
+      assign("err", c(env$err,
+                      paste0("syntax error: `", funName, "` requires ",
+                             .min, " to ", .max, " argument(s), you specified ", .nargs)),
+             envir=env)
+    }
+  }
+}
+##' This handles a function that is not an error term.
+##'
+##' @param funName Function that is being called, as a character
+##' @param expression Expression (including function)
+##' @param env Environment that stores the information about errors
+##' @return Nothing, called for the side effects
+##' @author Matthew Fidler
+##' @noRd
 .errHandleSingleTerm <- function(funName, expression, env) {
-
+  env$hasNonErrorTerm <- TRUE
 }
 
 ##' Handle the error structure term
@@ -97,8 +143,9 @@
 ##' @param env The environment that holds information about the error
 ##'   structure
 ##'
-##' @return
+##' @return Nothing, called for the side efects
 ##' @author Matthew Fidler
+##' @noRd
 .errHandleErrorStructure <- function(expression, env) {
   if (identical(expression[[1]], quote(`+`))) {
     env$isAnAdditiveExpression <- TRUE
@@ -108,6 +155,9 @@
     .currErr <- deparse1(expression[[1]])
     if (.currErr %in% .errAddDists) {
       .errHandleSingleDistributionTerm(.currErr, expression, env)
+    } else if (.currErr %in% names(.errDist)) {
+      assign("err", c(env$err,
+                      paste0("syntax error: `", .currErr, "` is incorrectly added to an error expression")), envir=env)
     } else {
       .errHandleSingleTerm(.currErr, expression, env)
     }
@@ -152,13 +202,19 @@
 ##' @param env Environment with initial estimate data.frame
 ##' @return
 ##' @author Matthew Fidler
+##' @noRd
 .errHandleTilde <- function(expression, env) {
   .left <- expression[[2]]
   env$curCondition <- deparse1(.left)
+  env$hasNonErrorTerm <- FALSE
   env$needsToBeAnErrorExpression <- FALSE
   .right <- .errHandleCondition(expression[[3]], env)
   env$isAnAdditiveExpression <- FALSE
   .errHandleErrorStructure(.right, env)
+  if (env$hasNonErrorTerm & env$needsToBeAnErrorExpression) {
+    assign("err", c(env$err, "syntax error: cannot mix additive expression with algebraic expressions"),
+           envir=env)
+  }
 }
 
 ##' Process the errors in the quoted expression
@@ -203,6 +259,7 @@
   .env <- new.env(parent=emptyenv())
   .env$top <- TRUE
   .env$df <- df
+  .env$err <- NULL
   # Add error structure like nlmixr ui had before transitioning to RxODE
   .env$df$err <- NA_character_
   .env$df$trLow <- .env$df$trHi <- NA_real_
@@ -217,6 +274,10 @@
         } else {
           .ret[[.i]] <- deparse1(.y[[.i]])
         }
+      }
+      if (!is.null(.env$err)) {
+        stop(paste(c("Syntax Errors:", paste(" ", .env$err)), collapse="\n"),
+             call.=FALSE)
       }
       return(.ret)
     }

@@ -30,6 +30,60 @@ rxodeTest({
   df <- as.data.frame(lmat)
 
 
+
+  test_that("error when errors have too many arguments", {
+    expect_error(.errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v
+      cp ~ add(add.sd, pow) + pow(pow.sd, pow) + boxCox(lambda) | cond
+    }), df))
+  })
+
+  test_that("error when adding distributions that do not support the additive notation", {
+    expect_error(.errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v
+      cp ~ dbinom(add.sd, pow) + pow(pow.sd, pow) + boxCox(lambda) | cond
+    }), df))
+  })
+
+  test_that("error for specifying distributions that have multiple numbers of arguments", {
+    expect_error(.errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v
+      cp ~ dbinom(add.sd, pow)
+      center ~ pow(pow.sd, pow) + boxCox(lambda) | cond
+    }), df))
+  })
+
+  test_that("error when adding algebraic expressions to known distributional abbreviations", {
+    expect_error(.errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v
+      cp ~ add(add.sd) + pow(pow.sd, pow) + boxCox(lambda) + tan(vp)| cond
+    }), df))
+  })
+
   .errProcessExpression(quote({
     ka <- exp(tka + eta.ka)
     cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
