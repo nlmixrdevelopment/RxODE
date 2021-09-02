@@ -82,6 +82,12 @@ rxodeTest({
     }), df))
   })
 
+  test_that("The distribution names will transform to the preferred distributions", {
+    expect_equal(rxPreferredDistributionName("dnorm"), "add")
+    expect_equal(rxPreferredDistributionName("add"), "add")
+    expect_equal(rxPreferredDistributionName("logitNorm"), "logitNorm")
+  })
+
   .errProcessExpression(quote({
     ka <- exp(tka + eta.ka)
     cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)

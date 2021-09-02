@@ -1,21 +1,21 @@
 ## This is a list of supported distributions with the number of arguments they currently support.
 .errDist <- list(
   "dpois" = 0,
+  "pois" = 0,
   "dbinom" = 0:1,
+  "binom"=0:1,
   "dbern" = 0,
   "bern" = 0,
   "dbeta" = 2:3,
+  "beta" = 2:3,
+  "dt" = 1:2,
+  "t" = 1:2,
   ##
   ## "dnbinom"=2:3,  ## dnbinom is in R; FIXME: how does ot compare to dneg_binomial
   ## "dneg_binomial", ## not in base R (but in glnmm2)
   ##
   ## Available as external package http://ugrad.stat.ubc.ca/R/library/rmutil/html/BetaBinom.html
   ## "dbetabinomial", ## not in base R (but in glnmm2)
-  "dt" = 1:2,
-  "pois" = 0,
-  "binom" = 0:1,
-  "beta" = 2:3,
-  "t" = 1:2,
   "add" = 1,
   "norm" = 1,
   "dnorm" = 1,
@@ -28,11 +28,11 @@
   "tbsYj" = 1,
   "yeoJohnson" = 1,
   "logn" = 1,
+  "lnorm" = 1,
+  "dlnorm" = 1,
   "dlogn" = 1,
   "logitNorm" = 1:3,
-  "probitNorm" = 1:3,
-  "lnorm" = 1,
-  "dlnorm" = 1
+  "probitNorm" = 1:3
 )
 
 .errDistsPositive <- c("add", "norm", "dnorm", "prop", "propT", "pow", "powT", "logn", "dlogn", "lnorm", "dlnorm", "logitNorm", "probitNorm")
@@ -48,6 +48,18 @@
 
 .errAddDists <- c("add", "prop", "propT", "norm", "pow", "powT", "dnorm", "logn", "lnorm", "dlnorm", "tbs", "tbsYj", "boxCox",
                   "yeoJohnson", "logitNorm", "probitNorm")
+
+.errIdenticalDists <- list(
+  "add"=c("norm", "dnorm"),
+  "lnorm"=c("logn", "dlogn", "dlnorm"),
+  "boxCox"="tbs",
+  "yeoJohnson"="tbsYj",
+  "pois"="dpois",
+  "binom"="dbinom",
+  "bern"="dbern",
+  "beta"="dbeta",
+  "t"="dt"
+)
 
 
 ## the desired outcome for each expression is to capture the condition
@@ -81,6 +93,40 @@
 ## With this change, there is sufficient information to send to the
 ## mu-referencing routine
 
+
+##' Change distribution name to the preferred distribution name term
+##'
+##' This is determined by the internal preferred condition name list
+##' `.errIdenticalDists`
+##'
+##' @param dist This is the input distribution
+##' @return Preferred distribution term
+##' @author Matthew Fidler
+##'
+##' @examples
+##'
+##' rxPreferredDistributionName("dnorm")
+##'
+##' rxPreferredDistributionName("add")
+##'
+##' @export
+rxPreferredDistributionName <- function(condition) {
+  .names <- names(.errIdenticalDists)
+  for(.n in .names) {
+    if (condition == .n) return(.n)
+    else if (condition %in% .errIdenticalDists[[.n]]) return(.n)
+  }
+  condition
+}
+##' This handles the error distribution for a single argument.
+##'
+##' @param argumentNumber The argument number of the distribution being processed
+##' @param funName Function name string of the distribution name
+##' @param expression Function expression (including the function name)
+##' @param env Environment where the names and calculations are made for the user interface.
+##' @return None, called for the side effects.
+##' @author Matthew Fidler
+##' @noRd
 .errHandleSingleDistributionArgument <- function(argumentNumber, funName, expression, env) {
   .cur <- expression[[argumentNumber + 1]]
   if (is.name(.cur)) {
@@ -89,7 +135,7 @@
     if (length(.w) == 1L) {
       .df  <- env$df
       .df$err[.w] <- ifelse(argumentNumber == 1, funName, paste0(funName, argumentNumber))
-      .df$condition[.w] <- env$curCondition
+      .df$condition[.w] <- rxPreferredDistributionName(env$curCondition)
       assign("df", .df, envir=env)
     }
   }
@@ -193,6 +239,7 @@
 ##' within the conditional statement.
 ##'
 ##' @author Matthew Fidler
+##' @noRd
 .errHandleCondition <- function(expression, env) {
   if (identical(expression[[1]], quote(`|`))) {
     env$needsToBeAnErrorExpression  <- TRUE

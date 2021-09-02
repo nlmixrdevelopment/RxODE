@@ -27,7 +27,7 @@ as.rxEvid(x)
 
 \method{[[}{rxEvid}(x, ...)
 
-\method{type_sum}{rxEvid}(x)
+type_sum.rxEvid(x)
 
 pillar_shaft.rxEvid(x, ...)
 
