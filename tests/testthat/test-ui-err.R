@@ -29,8 +29,6 @@ rxodeTest({
 
   df <- as.data.frame(lmat)
 
-
-
   test_that("error when errors have too many arguments", {
     expect_error(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)

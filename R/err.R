@@ -85,7 +85,13 @@
   .cur <- expression[[argumentNumber + 1]]
   if (is.name(.cur)) {
     .curName <- as.character(.cur)
-    #print(.cur)
+    .w <- which(env$df$name == .curName)
+    if (length(.w) == 1L) {
+      .df  <- env$df
+      .df$err[.w] <- ifelse(argumentNumber == 1, funName, paste0(funName, argumentNumber))
+      .df$condition[.w] <- env$curCondition
+      assign("df", .df, envir=env)
+    }
   }
 }
 
@@ -279,6 +285,7 @@
         stop(paste(c("Syntax Errors:", paste(" ", .env$err)), collapse="\n"),
              call.=FALSE)
       }
+      print(.env$df)
       return(.ret)
     }
   }
