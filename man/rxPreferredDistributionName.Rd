@@ -4,7 +4,7 @@
 \alias{rxPreferredDistributionName}
 \title{Change distribution name to the preferred distribution name term}
 \usage{
-rxPreferredDistributionName(condition)
+rxPreferredDistributionName(dist)
 }
 \arguments{
 \item{dist}{This is the input distribution}

@@ -110,13 +110,13 @@
 ##' rxPreferredDistributionName("add")
 ##'
 ##' @export
-rxPreferredDistributionName <- function(condition) {
+rxPreferredDistributionName <- function(dist) {
   .names <- names(.errIdenticalDists)
   for(.n in .names) {
-    if (condition == .n) return(.n)
-    else if (condition %in% .errIdenticalDists[[.n]]) return(.n)
+    if (dist == .n) return(.n)
+    else if (dist %in% .errIdenticalDists[[.n]]) return(.n)
   }
-  condition
+  dist
 }
 ##' This handles the error distribution for a single argument.
 ##'
