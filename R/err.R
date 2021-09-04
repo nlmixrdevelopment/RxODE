@@ -258,12 +258,15 @@ rxPreferredDistributionName <- function(dist) {
 ##' @noRd
 .errHandleTilde <- function(expression, env) {
   .left <- expression[[2]]
-  env$curCondition <- deparse1(.left)
+  env$curCondition <- env$curVar <- deparse1(.left)
   env$hasNonErrorTerm <- FALSE
   env$needsToBeAnErrorExpression <- FALSE
   .right <- .errHandleCondition(expression[[3]], env)
   env$isAnAdditiveExpression <- FALSE
   .errHandleErrorStructure(.right, env)
+  env$predDf <- rbind(env$predDf,
+                      data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid))
+  env$curDvid <- env$curDvid + 1
   if (env$hasNonErrorTerm & env$needsToBeAnErrorExpression) {
     assign("err", c(env$err, "syntax error: cannot mix additive expression with algebraic expressions"),
            envir=env)
@@ -316,6 +319,9 @@ rxPreferredDistributionName <- function(dist) {
   # Add error structure like nlmixr ui had before transitioning to RxODE
   .env$df$err <- NA_character_
   .env$df$trLow <- .env$df$trHi <- NA_real_
+  .env$curDvid <- 1
+  # Pred df needs to be finalized with compartment information from parsing the raw RxODE model
+  .env$predDf  <- NULL
   if (is.call(x)) {
     if (.env$top && identical(x[[1]], quote(`{`))) {
       .env$top <- FALSE
@@ -332,7 +338,8 @@ rxPreferredDistributionName <- function(dist) {
         stop(paste(c("Syntax Errors:", paste(" ", .env$err)), collapse="\n"),
              call.=FALSE)
       }
-      print(.env$df)
+      ## print(.env$df)
+      ## print(.env$predDf)
       return(.ret)
     }
   }
