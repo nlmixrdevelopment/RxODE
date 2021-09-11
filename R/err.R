@@ -554,10 +554,11 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
     if (.nargs > 0) {
       lapply(seq(1, .nargs), .errHandleSingleDistributionArgument, funName=funName, expression=expression, env=env)
     }
+    env$distInfo <- rxDistributionCombine(env$distInfo, funName)
     env$needsToBeAnErrorExpression <- TRUE
   } else {
     .min <- range(.errDistArgs)
-   .max <- .min[2]
+    .max <- .min[2]
     .min <- .min[1]
     if (.min == .max) {
       assign("err", c(env$err,
@@ -604,7 +605,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
       .errHandleSingleDistributionTerm(.currErr, expression, env)
     } else if (.currErr %in% names(.errDist)) {
       assign("err", c(env$err,
-                      paste0("syntax error: `", .currErr, "` is incorrectly added to an error expression")), envir=env)
+                      paste0("`", .currErr, "` is incorrectly added to an error expression")), envir=env)
     } else {
       .errHandleSingleTerm(.currErr, expression, env)
     }
@@ -659,10 +660,19 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
   env$needsToBeAnErrorExpression <- FALSE
   .right <- .errHandleCondition(expression[[3]], env)
   env$isAnAdditiveExpression <- FALSE
+  env$distInfo <- rxDistributionCombine("")
   .errHandleErrorStructure(.right, env)
+  if (inherits(env$distInfo, "character")) {
+    env$err <- c(env$err, env$distInfo)
+    env$distInfo <- rxDistributionCombine("")
+  }
   env$predDf <- rbind(env$predDf,
                       data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
-                                 trHi=env$trLimit[1], trLow=env$trLimit[2]))
+                                 trHi=env$trLimit[1], trLow=env$trLimit[2],
+                                 transform=env$distInfo$transform,
+                                 errType=env$distInfo$errType,
+                                 errTypeF=env$distInfo$errTypeF,
+                                 addProp=env$distInfo$addProp))
   env$curDvid <- env$curDvid + 1
   if (env$hasNonErrorTerm & env$needsToBeAnErrorExpression) {
     assign("err", c(env$err, "syntax error: cannot mix additive expression with algebraic expressions"),
