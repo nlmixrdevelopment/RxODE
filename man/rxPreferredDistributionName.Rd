@@ -22,6 +22,10 @@ rxPreferredDistributionName("dnorm")
 
 rxPreferredDistributionName("add")
 
+# can be vectorized
+
+rxPreferredDistributionName(c("add","dnorm"))
+
 }
 \author{
 Matthew Fidler

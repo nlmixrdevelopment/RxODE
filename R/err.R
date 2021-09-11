@@ -21,8 +21,10 @@
   "dnorm" = 1,
   "prop" = 1,
   "propT" = 1,
+  "propF" = 2,
   "pow" = 2,
   "powT" = 2,
+  "powF"=3,
   "tbs" = 1,
   "boxCox" = 1,
   "tbsYj" = 1,
@@ -32,7 +34,11 @@
   "dlnorm" = 1,
   "dlogn" = 1,
   "logitNorm" = 1:3,
-  "probitNorm" = 1:3
+  "probitNorm" = 1:3,
+  "combined1"=0,
+  "combined2"=0,
+  "comb1"=0,
+  "comb2"=0
 )
 
 .errDistsPositive <- c("add", "norm", "dnorm", "prop", "propT", "pow", "powT", "logn", "dlogn", "lnorm", "dlnorm", "logitNorm", "probitNorm")
@@ -46,8 +52,8 @@
   "nlmixrDist"
 )
 
-.errAddDists <- c("add", "prop", "propT", "norm", "pow", "powT", "dnorm", "logn", "lnorm", "dlnorm", "tbs", "tbsYj", "boxCox",
-                  "yeoJohnson", "logitNorm", "probitNorm")
+.errAddDists <- c("add", "prop", "propT", "propF", "norm", "pow", "powT", "powF", "dnorm", "logn", "lnorm", "dlnorm", "tbs", "tbsYj", "boxCox",
+                  "yeoJohnson", "logitNorm", "probitNorm", "combined1", "combined2", "comb1", "comb2")
 
 .errIdenticalDists <- list(
   "add"=c("norm", "dnorm"),
@@ -58,7 +64,9 @@
   "binom"="dbinom",
   "bern"="dbern",
   "beta"="dbeta",
-  "t"="dt"
+  "t"="dt",
+  "combined1"="comb1",
+  "combined2"="comb2"
 )
 
 
@@ -109,15 +117,356 @@
 ##'
 ##' rxPreferredDistributionName("add")
 ##'
+##' # can be vectorized
+##'
+##' rxPreferredDistributionName(c("add","dnorm"))
+##'
 ##' @export
 rxPreferredDistributionName <- function(dist) {
-  .names <- names(.errIdenticalDists)
-  for(.n in .names) {
-    if (dist == .n) return(.n)
-    else if (dist %in% .errIdenticalDists[[.n]]) return(.n)
+  if (length(dist) == 1) {
+    .names <- names(.errIdenticalDists)
+    for(.n in .names) {
+      if (dist == .n) return(.n)
+      else if (dist %in% .errIdenticalDists[[.n]]) return(.n)
+    }
+    dist
+  } else {
+    vapply(dist, rxPreferredDistributionName, character(1))
   }
-  dist
 }
+
+.incompatibleTransformations <-
+  list(boxCox=c("yeoJohnson", "lnorm"),
+       yeoJohnson=c("boxCox", "lnorm"),
+       lnorm=c("yeoJohnson", "boxCox", "logit", "logitNorm", "probit", "probitNorm", "logit + yeoJohnson"),
+       logit=c("probit", "probitNorm", "lnorm"),
+       probit=c("logit", "lnorm"),
+       "logit + yeoJohnson"=c("boxCox", "probit", "probitNorm", "lnorm"),
+       "probit + yeoJohnson"=c("boxCox", "logit", "logitNorm", "lnorm"),
+       "logit + boxCox"=c("yeoJohnson", "probit", "probitNorm", "lnorm"),
+       "probit + boxCox"=c("yeoJohnson", "logit", "logitNorm", "lnorm"))
+
+.rxTransformCombineLevels <- c(
+  "boxCox", # 1
+  "yeoJohnson", # 2
+  "untransformed", # 3
+  "lnorm", # 4
+  "logit", # 5
+  "logit + yeoJohnson", # 6
+  "probit", # 7
+  "probit + yeoJohnson", #8
+  "logit + boxCox", # 9
+  "probit + boxCox" # 10
+)
+
+.rxAddPropLevels <- c(
+  "combined1", # 1
+  "combined2", # 2
+  "default" # 3
+)
+
+.incompatibleAddProp <- list(
+  combined1="combined2",
+  combined2="combined1"
+)
+
+.rxErrType <- c(
+  "add", # 1
+  "prop", # 2
+  "pow", # 3
+  "add + prop", # 4
+  "add + pow", # 5
+  "none" # 6
+)
+
+.incompatibleErrType <- list(prop=c("pow", "powT", "powF"),
+                             propT=c("pow", "powT", "powF"),
+                             propF=c("pow", "powT", "powF"),
+                             pow=c("prop", "propT", "propF"),
+                             powT=c("prop", "propT", "propF"),
+                             powF=c("prop", "propT", "propF"))
+
+
+.rxErrTypeF <- c(
+  "untransformed", # 1
+  "transformed", # 2
+  "f", # 3
+  "none")
+
+.incompatibleErrTypeF <- list(prop=c("propT", "propF", "powT", "powF"),
+                              propT=c("prop", "propF", "pow", "powF"),
+                              propF=c("prop", "propT", "pow", "powT"),
+                              pow=c("propF", "propT", "powF", "powT"),
+                              powT=c("prop", "propF", "pow", "powF"),
+                              powF=c("prop", "propT", "pow", "powT"))
+
+.incompatibleErr <- function(err1, err2) {
+  .errs <- sort(c(err1, err2))
+   paste0("`", .errs[1], "` and `", .errs[2], "` are incompatible")
+}
+##' Combine error types to get the model F type
+##'
+##' @param newAddProp New error type
+##' @param oldAddProp old error type
+##' @return factor of the error type function OR a string indicating a syntax error
+##' @author Matthew Fidler
+##' @noRd
+.rxCombineAddProp <- function(newAddProp, oldAddProp="default") {
+  .tmp <- as.character(oldAddProp)
+  .w <- which(names(.incompatibleAddProp) == .tmp)
+  if (length(.w) == 1L) {
+    if (newTransform %in% .incompatibleAddProp[[.w]]) {
+      return(.incompatibleErr(.tmp, newTransform))
+    }
+  }
+  structure(switch(newAddProp,
+                   combined1 =1L,
+                   combined2=2L,
+                   default=3L,
+                   ifelse(inherits(oldAddProp, "character"),
+                          switch(oldAddProp,
+                                 combined1 =1L,
+                                 combined2=2L,
+                                 default=3L,
+                                 3L),
+                          as.integer(oldAddProp))),
+            .Label=.rxAddPropLevels,
+            class="factor")
+}
+
+##' Combine error types to get the model F type
+##'
+##' @param newErrTypeF New error type
+##' @param oldErrTypeF old error type
+##' @return factor of the error type function OR a string indicating a syntax error
+##' @author Matthew Fidler
+##' @noRd
+.rxCombineErrTypeF <- function(newErrTypeF, oldErrTypeF="none") {
+  .tmp <- as.character(oldErrTypeF)
+  .w <- which(names(.incompatibleErrTypeF) == .tmp)
+  if (length(.w) == 1L) {
+    if (newTransform %in% .incompatibleErrTypeF[[.w]]) {
+      return(.incompatibleErr(.tmp, newTransform))
+    }
+  }
+  structure(switch(newErrTypeF,
+                   prop =1L,
+                   propT=2L,
+                   propF=3L,
+                   pow=1L,
+                   powT=2L,
+                   powF=3L,
+                   ifelse(inherits(oldErrTypeF, "character"),
+                          switch(oldErrTypeF,
+                                 prop =1L,
+                                 propT=2L,
+                                 propF=3L,
+                                 pow=1L,
+                                 powT=2L,
+                                 powF=3L,
+                                 4L),
+                          as.integer(oldErrTypeF))),
+            .Label=.rxErrTypeF,
+            class="factor")
+}
+
+#' Combine error model
+#'
+#' @param newErrType New error portion combined with current proportion
+#' @param oldErrType Old error information
+#' @return A factor for error type OR a string with error information
+#' @author Matthew Fidler
+#' @noRd
+.rxCombineErrType <- function(newErrType, oldErrType="none") {
+  .tmp <- as.character(oldErrType)
+  .w <- which(names(.incompatibleErrType) == .tmp)
+  if (length(.w) == 1L) {
+    if (newErrType %in% .incompatibleErrType[[.w]]) {
+      return(.incompatibleErr(.tmp, newErrType))
+    }
+  }
+  structure(switch(.tmp,
+                   add=switch(newErrType,
+                              prop=4L,
+                              propT=4L,
+                              propF=4L,
+                              pow=5L,
+                              powT=5L,
+                              powF=5L,
+                              1L),
+                   prop=switch(newErrType,
+                               add=4L,
+                               probit=4L,
+                               probitNorm=4L,
+                               logit=4L,
+                               logitNorm=4L,
+                               lnorm=4L,
+                               2L),
+                   pow=switch(newErrType,
+                              add=5L,
+                              probit=5L,
+                              probitNorm=5L,
+                              logit=5L,
+                              logitNorm=5L,
+                              lnorm=5L,
+                              3L),
+                   none=structure(switch(newErrType,
+                                         add=1L,
+                                         lnorm=1L,
+                                         logit=1L,
+                                         logitNorm=1L,
+                                         probit=1L,
+                                         probitNorm=1L,
+                                         prop=2L,
+                                         propT=2L,
+                                         propF=2L,
+                                         pow=3L,
+                                         powT=3L,
+                                         powF=3L,
+                                         6L)),
+                   as.integer(oldErrType)),
+            .Label=.rxErrType,
+            class="factor")
+}
+##' Combine transformations
+##'
+##' @param newTransform New error structure added together
+##' @param oldTransform Old transformation added together
+##' @return A factor describing the transformation type
+##' @author Matthew Fidler
+##' @noRd
+.rxCombineTransform <- function(newTransform, oldTransform="untransformed") {
+  .tmp <- as.character(oldTransform)
+  .w <- which(names(.incompatibleTransformations) == .tmp)
+  if (length(.w) == 1L) {
+    if (newTransform %in% .incompatibleTransformations[[.w]]) {
+      return(.incompatibleErr(.tmp, newTransform))
+    }
+  }
+  structure(switch(.tmp,
+                   boxCox=switch(newTransform,
+                                 logitNorm=9L,
+                                 probitNorm=10L,
+                                 1L),
+                   yeoJohnson=switch(newTransform,
+                                     logitNorm=6L,
+                                     probitNorm=8L,
+                                     2L),
+                   logit=switch(newTransform,
+                                boxCox=9L,
+                                yeoJohnson=6L,
+                                5L),
+                   probit=switch(newTransform,
+                                 boxCox=10L,
+                                 yeoJohnson=8L,
+                                 7L),
+                   untransformed=structure(switch(newTransform,
+                                                  boxCox=1L,
+                                                  yeoJohnson=2L,
+                                                  lnorm=4L,
+                                                  logitNorm=5L,
+                                                  probitNorm=7L,
+                                                  3L),
+                                           .Label=.rxTransformCombineLevels,
+                                           class="factor"),
+                   as.integer(oldTransform)),
+            .Label=.rxTransformCombineLevels,
+            class="factor")
+}
+
+.rxTransformCombineListOrChar <- function(inputList) {
+  if (inherits(inputList, "character")) return(inputList)
+  .err  <- NULL
+  for (i in names(inputList)) {
+    if (inherits(inputList[[i]], "character")) {
+      .err <- c(.err, inputList[[i]])
+    }
+  }
+  if (is.null(.err)) {
+    .ret <- inputList
+    class(.ret) <- "rxCombinedErrorList"
+    return(.ret)
+  } else {
+    return(paste(.err, collapse="\n"))
+  }
+}
+
+
+##' Combine transformations and error structures
+##'
+##' Combine error information to figure out what transformation is
+##' being applied for the current endpoint
+##'
+##'
+##' @param oldDistribution This is the old transformation, by default is
+##'   zero representing no prior transformation. This parameter is
+##'   first to allow piping. When the parameter `addTransform` is
+##'   missing and `oldDistribution` is a character value, this functions
+##'   swaps `oldDistribution` and `addTransform` and assigns
+##'   `oldDistribution` to zero assuming that there is no prior
+##'   distribution.
+##'
+##' @param newTransform This is the new distribution that is being
+##'   "added" to the current transformation.  These assumes the inputs
+##'   are in the preferred distribution name, as determined by
+##'   `rxPreferredDistributionName()`
+##'
+##'
+##' @return The new transformation as a factor
+##'
+##' @author Matthew Fidler
+##'
+##' @examples
+##'
+##' rxDistributionCombine("probitNorm")
+##'
+##' rxDistributionCombine("probitNorm") %>%
+##'   rxDistributionCombine("boxCox")
+##'
+##'
+##' @export
+##' @keywords internal
+rxDistributionCombine <- function(oldDistribution, newDistribution) {
+  if (missing(newDistribution) && inherits(oldDistribution, "character")) {
+    return(.rxTransformCombineListOrChar(list(transform=.rxCombineTransform(oldDistribution),
+                                              errType=.rxCombineErrType(oldDistribution),
+                                              errTypeF=.rxCombineErrTypeF(oldDistribution),
+                                              addProp=.rxCombineAddProp(oldDistribution))))
+  } else if (inherits(oldDistribution, "rxCombinedErrorList")) {
+    return(.rxTransformCombineListOrChar(list(transform=.rxCombineTransform(newDistribution, oldDistribution$transform),
+                                              errType=.rxCombineErrType(newDistribution, oldDistribution$errType),
+                                              errTypeF=.rxCombineErrTypeF(newDistribution, oldDistribution$errTypeF),
+                                              addProp=.rxCombineAddProp(newDistribution, oldDistribution$addProp))))
+  } else {
+    stop("old transform not in the proper format", call.=FALSE)
+  }
+}
+
+##' Checks to see if an expression is numeric
+##'
+##' @param expression quoted expression
+##' @param env Environment to store result in `env$.numeric`
+##' @return TRUE if this is an expression containing a positive or negative expression or FALSE if it is an expression that doesn't contain an expression.
+##' @author Matthew Fidler
+##' @noRd
+.is.numeric <- function(expression, env) {
+  if (is.numeric(expression)) {
+    env$.numeric <- expression
+    return(TRUE)
+  } else if (length(expression) == 2L) {
+    if (identical(expression[[1]], quote(`-`)) &&
+          is.numeric(expression[[2]])) {
+      env$.numeric <- -(expression[[2]])
+      return(TRUE)
+    } else if (identical(expression[[1]], quote(`+`)) &&
+          is.numeric(expression[[2]])) {
+      env$.numeric <- expression[[2]]
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+
 ##' This handles the error distribution for a single argument.
 ##'
 ##' @param argumentNumber The argument number of the distribution being processed
@@ -129,15 +478,30 @@ rxPreferredDistributionName <- function(dist) {
 ##' @noRd
 .errHandleSingleDistributionArgument <- function(argumentNumber, funName, expression, env) {
   .cur <- expression[[argumentNumber + 1]]
+  .isLogitOrProbit <- (funName %in% c("logitNorm", "probitNorm"))
   if (is.name(.cur)) {
     .curName <- as.character(.cur)
     .w <- which(env$df$name == .curName)
-    if (length(.w) == 1L) {
+    if (.isLogitOrProbit && argumentNumber > 2) {
+      env$err <- c(env$err,
+                   paste0("`", funName, "()` requires numeric bounds"))
+    } else if (length(.w) == 1L) {
       .df  <- env$df
       .df$err[.w] <- ifelse(argumentNumber == 1, funName, paste0(funName, argumentNumber))
       .df$condition[.w] <- rxPreferredDistributionName(env$curCondition)
       assign("df", .df, envir=env)
+      assign("lastDistAssign", .curName, envir=env)
     }
+  } else if (.is.numeric(.cur, env)) {
+    if (.isLogitOrProbit) {
+      .curName <- env$lastDistAssign
+      .w <- which(env$df$name == .curName)
+      if (length(.w) == 1L) {
+        env$trLimit[argumentNumber - 1] <- env$.numeric
+        #env$df[.w, c("trHi", "trLow")[argumentNumber - 1]] <- env$.numeric
+      }
+    }
+  } else {
   }
 }
 
@@ -152,9 +516,6 @@ rxPreferredDistributionName <- function(dist) {
 .errHandleSingleDistributionTerm <- function(funName, expression, env) {
   .nargs <- length(expression) - 1
   .errDistArgs <- .errDist[[funName]]
-  #print(funName)
-  #print(.errDistArgs)
-  #print(.nargs)
   if (.nargs %in% .errDistArgs) {
     if (.nargs > 0) {
       lapply(seq(1, .nargs), .errHandleSingleDistributionArgument, funName=funName, expression=expression, env=env)
@@ -162,15 +523,15 @@ rxPreferredDistributionName <- function(dist) {
     env$needsToBeAnErrorExpression <- TRUE
   } else {
     .min <- range(.errDistArgs)
-    .max <- .min[2]
+   .max <- .min[2]
     .min <- .min[1]
     if (.min == .max) {
       assign("err", c(env$err,
-                      paste0("syntax error: `", funName, "` requires ",
+                      paste0("`", funName, "` requires ",
                              .max, " argument(s), you specified ", .nargs)), envir=env)
     } else {
       assign("err", c(env$err,
-                      paste0("syntax error: `", funName, "` requires ",
+                      paste0("`", funName, "` requires ",
                              .min, " to ", .max, " argument(s), you specified ", .nargs)),
              envir=env)
     }
@@ -258,6 +619,7 @@ rxPreferredDistributionName <- function(dist) {
 ##' @noRd
 .errHandleTilde <- function(expression, env) {
   .left <- expression[[2]]
+  env$trLimit <- c(-Inf, Inf)
   env$curCondition <- env$curVar <- deparse1(.left)
   env$hasNonErrorTerm <- FALSE
   env$needsToBeAnErrorExpression <- FALSE
@@ -265,7 +627,8 @@ rxPreferredDistributionName <- function(dist) {
   env$isAnAdditiveExpression <- FALSE
   .errHandleErrorStructure(.right, env)
   env$predDf <- rbind(env$predDf,
-                      data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid))
+                      data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
+                                 trHi=env$trLimit[1], trLow=env$trLimit[2]))
   env$curDvid <- env$curDvid + 1
   if (env$hasNonErrorTerm & env$needsToBeAnErrorExpression) {
     assign("err", c(env$err, "syntax error: cannot mix additive expression with algebraic expressions"),
@@ -275,9 +638,9 @@ rxPreferredDistributionName <- function(dist) {
 
 ##' Process the errors in the quoted expression
 ##'
-##' @param x
-##' @param df
-##' @return
+##' @param x Quoted expression for parsing
+##' @param df lotri data.frame of estimates
+##' @return Environment with error information setup.
 ##' @author Matthew Fidler
 ##' @examples
 ##' lmat <- lotri({
@@ -318,10 +681,11 @@ rxPreferredDistributionName <- function(dist) {
   .env$err <- NULL
   # Add error structure like nlmixr ui had before transitioning to RxODE
   .env$df$err <- NA_character_
-  .env$df$trLow <- .env$df$trHi <- NA_real_
+  #.env$df$trLow <- .env$df$trHi <- NA_real_
   .env$curDvid <- 1
   # Pred df needs to be finalized with compartment information from parsing the raw RxODE model
   .env$predDf  <- NULL
+  .env$lastDistAssign <- ""
   if (is.call(x)) {
     if (.env$top && identical(x[[1]], quote(`{`))) {
       .env$top <- FALSE
