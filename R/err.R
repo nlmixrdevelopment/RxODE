@@ -178,6 +178,39 @@ rxPreferredDistributionName <- function(dist) {
   "add + pow", # 5
   "none" # 6
 )
+##' Demote the error type
+##'
+##' @param errType Error type factor
+##' @return Demoted Error Type
+##' @author Matthew Fidler
+##' @export
+##' @examples
+##' rxDistributionCombine("add") %>%
+##'   rxDistributionCombine("prop")
+##'
+##' # This removes the internal additive error
+##' rxDistributionCombine("add") %>%
+##'   rxDistributionCombine("prop") %>%
+##'   rxDemoteAddErr()
+##'
+##' # This is used for logitNorm(NA), the additive portion is stripped
+##' @keywords internal
+rxDemoteAddErr <- function(errType) {
+  if (inherits(errType, "factor")) {
+    return(structure(switch(as.character(errType),
+                            add=6L,
+                            "add + prop"=2L,
+                            "add + pow"=3L,
+                            as.integer(errType)),
+                     .Label =.rxErrType,
+                     class="factor"))
+  } else if (inherits(errType, "rxCombinedErrorList")) {
+    return(.rxTransformCombineListOrChar(list(transform=errType$transform,
+                                              errType=rxDemoteAddErr(errType$errType),
+                                              errTypeF=errType$errTypeF,
+                                              addProp=errType$addProp)))
+  }
+}
 
 .incompatibleErrType <- list(prop=c("pow", "powT", "powF"),
                              propT=c("pow", "powT", "powF"),
@@ -269,6 +302,7 @@ rxPreferredDistributionName <- function(dist) {
             .Label=.rxErrTypeF,
             class="factor")
 }
+
 
 #' Combine error model
 #'
