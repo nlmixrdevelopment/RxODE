@@ -348,6 +348,14 @@ rxodeTest({
     expect_equal(testCombine(c("pow", "prop")),
                  testCombine(c("pow", "prop")))
 
+    # Make sure demotion works
+    expect_equal(rxDemoteAddErr(testCombine(c("add", "prop"))),
+                 testCombine("prop"))
+
+    expect_equal(rxDemoteAddErr(testCombine(c("add", "pow"))),
+                 testCombine("pow"))
+
+
 
   })
 

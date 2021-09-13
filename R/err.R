@@ -408,6 +408,12 @@ rxDemoteAddErr <- function(errType) {
             class="factor")
 }
 
+##' This is a wrapper to make sure that the transformation combination returns the correct value
+##'
+##' @param inputList This is either an input list or character vector of length one
+##' @return Either a complete list, or a character vector which represents the parsed error that was encountered
+##' @author Matthew Fidler
+##' @noRd
 .rxTransformCombineListOrChar <- function(inputList) {
   if (inherits(inputList, "character")) return(inputList)
   .err  <- NULL
@@ -501,6 +507,9 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
   return(FALSE)
 }
 
+
+.allowDemoteAddDistributions <- c("lnorm", "probitNorm", "logitNorm")
+
 ##' This handles the error distribution for a single argument.
 ##'
 ##' @param argumentNumber The argument number of the distribution being processed
@@ -513,7 +522,14 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
 .errHandleSingleDistributionArgument <- function(argumentNumber, funName, expression, env) {
   .cur <- expression[[argumentNumber + 1]]
   .isLogitOrProbit <- (funName %in% c("logitNorm", "probitNorm"))
-  if (is.name(.cur)) {
+  if (is.na(.cur)) {
+    if (argumentNumber == 2 && funName %in% .allowDemoteAddDistributions) {
+      env$needToDemoteAdditiveExpression <- TRUE
+    } else {
+      env$err <- c(env$err,
+                   paste0("NA in `", funName, "()` cannot be used her"))
+    }
+  } else if (is.name(.cur)) {
     .curName <- as.character(.cur)
     .w <- which(env$df$name == .curName)
     if (.isLogitOrProbit && argumentNumber > 2) {
@@ -549,8 +565,19 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
 ##' @noRd
 .errHandleSingleDistributionTerm <- function(funName, expression, env) {
   .nargs <- length(expression) - 1
-  .errDistArgs <- .errDist[[funName]]
-  if (.nargs %in% .errDistArgs) {
+  .doIt <- FALSE
+  if (funName == "ordinal") {
+    .doIt <- FALSE
+    if (.nargs == 0) {
+      assign("err", c(env$err,
+                      paste0("ordinal errors require at least 1 argument (i.e. err ~ c(err1))", envir=env)))
+      return(invisible())
+    }
+  } else {
+    .errDistArgs <- .errDist[[funName]]
+    .doIt <- .nargs %in% .errDistArgs
+  }
+  if (.doIt) {
     if (.nargs > 0) {
       lapply(seq(1, .nargs), .errHandleSingleDistributionArgument, funName=funName, expression=expression, env=env)
     }
@@ -611,7 +638,9 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
     }
   } else {
     .currErr <- deparse1(expression[[1]])
-    if (.currErr %in% names(.errDist)) {
+    if (.currErr == "c") {
+      .errHandleSingleDistributionTerm("ordinal", expression, env)
+    } else if (.currErr %in% names(.errDist)) {
       .errHandleSingleDistributionTerm(.currErr, expression, env)
     } else {
       .errHandleSingleTerm(.currErr, expression, env)
@@ -658,6 +687,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
   env$curCondition <- env$curVar <- deparse1(.left)
   env$hasNonErrorTerm <- FALSE
   env$needsToBeAnErrorExpression <- FALSE
+  env$needToDemoteAdditiveExpression <- FALSE
   .right <- .errHandleCondition(expression[[3]], env)
   env$isAnAdditiveExpression <- FALSE
   env$distInfo <- rxDistributionCombine("")
@@ -665,6 +695,8 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
   if (inherits(env$distInfo, "character")) {
     env$err <- c(env$err, env$distInfo)
     env$distInfo <- rxDistributionCombine("")
+  } else if (env$needToDemoteAdditiveExpression) {
+    env$distInfo <- rxDemoteAddErr(env$distInfo)
   }
   env$predDf <- rbind(env$predDf,
                       data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
@@ -672,10 +704,11 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
                                  transform=env$distInfo$transform,
                                  errType=env$distInfo$errType,
                                  errTypeF=env$distInfo$errTypeF,
-                                 addProp=env$distInfo$addProp))
+                                 addProp=env$distInfo$addProp,
+                                 line=env$line, n2ll=FALSE))
   env$curDvid <- env$curDvid + 1
   if (env$hasNonErrorTerm & env$needsToBeAnErrorExpression) {
-    assign("err", c(env$err, "syntax error: cannot mix additive expression with algebraic expressions"),
+    assign("err", c(env$err, "cannot mix error expression with algebraic expressions"),
            envir=env)
   }
 }
@@ -736,6 +769,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
       .y <- x[-1]
       .ret <- character(length(.y))
       for (.i in seq_along(.y)) {
+        .env$line <- .i
         if (identical(.y[[.i]][[1]], quote(`~`))) {
           .errHandleTilde(.y[[.i]], .env)
         } else {
@@ -746,8 +780,6 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
         stop(paste(c("Syntax Errors:", paste(" ", .env$err)), collapse="\n"),
              call.=FALSE)
       }
-      ## print(.env$df)
-      ## print(.env$predDf)
       return(.ret)
     }
   }
