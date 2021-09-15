@@ -522,14 +522,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
 .errHandleSingleDistributionArgument <- function(argumentNumber, funName, expression, env) {
   .cur <- expression[[argumentNumber + 1]]
   .isLogitOrProbit <- (funName %in% c("logitNorm", "probitNorm"))
-  if (is.na(.cur)) {
-    if (argumentNumber == 2 && funName %in% .allowDemoteAddDistributions) {
-      env$needToDemoteAdditiveExpression <- TRUE
-    } else {
-      env$err <- c(env$err,
-                   paste0("NA in `", funName, "()` cannot be used her"))
-    }
-  } else if (is.name(.cur)) {
+  if (is.name(.cur)) {
     .curName <- as.character(.cur)
     .w <- which(env$df$name == .curName)
     if (.isLogitOrProbit && argumentNumber > 2) {
@@ -551,7 +544,15 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
         #env$df[.w, c("trHi", "trLow")[argumentNumber - 1]] <- env$.numeric
       }
     }
-  } else {
+  } else if (is.logical(.cur)) {
+    if (is.na(.cur)) {
+      if (argumentNumber == 1 && funName %in% .allowDemoteAddDistributions) {
+        env$needToDemoteAdditiveExpression <- TRUE
+      } else {
+        env$err <- c(env$err,
+                     paste0("NA in `", funName, "()` cannot be used here"))
+      }
+    }
   }
 }
 
@@ -767,20 +768,31 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
     if (.env$top && identical(x[[1]], quote(`{`))) {
       .env$top <- FALSE
       .y <- x[-1]
-      .ret <- character(length(.y))
+      .env$lstChr <- character(length(.y))
+      .env$lstErr <- vector(length(.y), mode="list")
+      .env$lstExpr <- vector(length(.y), mode="list")
+      .env$hasErrors <- FALSE
       for (.i in seq_along(.y)) {
         .env$line <- .i
         if (identical(.y[[.i]][[1]], quote(`~`))) {
           .errHandleTilde(.y[[.i]], .env)
-        } else {
-          .ret[[.i]] <- deparse1(.y[[.i]])
+        }
+        .env$lstChr[[.i]] <- deparse1(.y[[.i]])
+        .env$lstExpr[[.i]] <- .y[[.i]]
+        if (!is.null(.env$err)) {
+          .env$lstErr[[.i]] <- paste(paste(" ", .env$err), collapse="\n")
+          .env$err <- NULL
+          .env$hasErrors <- TRUE
         }
       }
-      if (!is.null(.env$err)) {
-        stop(paste(c("Syntax Errors:", paste(" ", .env$err)), collapse="\n"),
-             call.=FALSE)
-      }
-      return(.ret)
+      .env$ini <- .env$df
+      .rm <- intersect(c("curCondition", "curDvid", "curVar", "df",
+                         "distInfo", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
+                         "lastDistAssign", "line", "needsToBeAnErrorExpression", "needToDemoteAdditiveExpression",
+                         "top", "trLimit", ".numeric"),
+                       ls(envir=.env, all.names=TRUE))
+      if (length(.rm) > 0) rm(list=.rm, envir=.env)
+      return(.env)
     }
   }
   return(invisible(NULL))

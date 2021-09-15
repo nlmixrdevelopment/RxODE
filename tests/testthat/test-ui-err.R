@@ -29,8 +29,17 @@ rxodeTest({
 
   df <- as.data.frame(lmat)
 
+  expect_err2 <- function(x, extra=FALSE) {
+    if (is.na(extra)){
+      expect_false(x$hasErrors)
+    } else {
+      expect_true(x$hasErrors)
+    }
+  }
+
   test_that("error when errors have too many arguments", {
-    expect_error(.errProcessExpression(quote({
+
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -43,7 +52,7 @@ rxodeTest({
   })
 
   test_that("error when adding distributions that do not support the additive notation", {
-    expect_error(.errProcessExpression(quote({
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -56,7 +65,7 @@ rxodeTest({
   })
 
   test_that("error for specifying distributions that have multiple numbers of arguments", {
-    expect_error(.errProcessExpression(quote({
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -70,7 +79,7 @@ rxodeTest({
   })
 
   test_that("error when adding algebraic expressions to known distributional abbreviations", {
-    expect_error(.errProcessExpression(quote({
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -91,7 +100,7 @@ rxodeTest({
 
   test_that("non-numeric bounds for logitNorm and probitNorm", {
 
-    expect_error(.errProcessExpression(quote({
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -103,7 +112,7 @@ rxodeTest({
     }), df))
 
 
-    expect_error(.errProcessExpression(quote({
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -114,7 +123,7 @@ rxodeTest({
       cp ~ logitNorm(add.sd) + pow(pow.sd, pow) + boxCox(lambda) | cond
     }), df), NA)
 
-    expect_error(.errProcessExpression(quote({
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -125,7 +134,7 @@ rxodeTest({
       cp ~ logitNorm(add.sd, 0) + pow(pow.sd, pow) + boxCox(lambda) | cond
     }), df), NA)
 
-    expect_error(.errProcessExpression(quote({
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -137,7 +146,7 @@ rxodeTest({
     }), df), NA)
 
 
-    .errProcessExpression(quote({
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -146,10 +155,10 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ logitNorm(add.sd, -5, 5) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df)
+    }), df), NA)
 
 
-    .errProcessExpression(quote({
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -158,9 +167,9 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ logitNorm(add.sd, -Inf, Inf) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df)
+    }), df), NA)
 
-    expect_error(.errProcessExpression(quote({
+    expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -356,9 +365,86 @@ rxodeTest({
                  testCombine("pow"))
 
 
+    .errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v
+      cp ~ logitNorm(add.sd) + pow(pow.sd, pow) + boxCox(lambda) | cond
+    }), df) -> mod
+
+    expect_equal(mod$predDf$errType, testCombine(c("pow", "add"))$errType)
+
+    .errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v + add.sd
+      cp ~ logitNorm(NA) + pow(pow.sd, pow) + boxCox(lambda) | cond
+    }), df) -> mod
+
+    expect_equal(mod$predDf$errType, testCombine(c("pow"))$errType)
+
+    .errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v + add.sd + lambda
+      cp ~ lnorm(NA) + pow(pow.sd, pow) | cond
+    }), df) -> mod
+
+    expect_equal(mod$predDf$errType, testCombine(c("pow"))$errType)
+
+    .errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v + add.sd + lambda
+      cp ~ lnorm(add.sd) + pow(pow.sd, pow)  | cond
+    }), df) -> mod
+
+    expect_equal(mod$predDf$errType, testCombine(c("add", "pow"))$errType)
+
+    .errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v + add.sd
+      cp ~ probitNorm(NA) + pow(pow.sd, pow) + boxCox(lambda) | cond
+    }), df) -> mod
+
+    expect_equal(mod$predDf$errType, testCombine(c("pow"))$errType)
+
+
+    .errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v
+      cp ~ probitNorm(add.sd) + pow(pow.sd, pow) + boxCox(lambda) | cond
+    }), df) -> mod
+
+    expect_equal(mod$predDf$errType, testCombine(c("add", "pow"))$errType)
 
   })
-
 
   .errProcessExpression(quote({
     ka <- exp(tka + eta.ka)
@@ -369,6 +455,8 @@ rxodeTest({
     d/dt(center) = ka * depot - cl/v * center
     cp = center/v
     cp ~ add(add.sd) + pow(pow.sd, pow) + boxCox(lambda) | cond
-  }), df)
+  }), df) -> mod
+
+
 
  }, test="lvl2")
