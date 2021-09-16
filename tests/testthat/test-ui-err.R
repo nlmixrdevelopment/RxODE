@@ -457,6 +457,24 @@ rxodeTest({
     cp ~ add(add.sd) + pow(pow.sd, pow) + boxCox(lambda) | cond
   }), df) -> mod
 
+  test_that("categorical expressions", {
+
+    expect_err2(.errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v
+      cp ~ c(add.sd, pow.sd, pow, lambda) | cond
+    }), df), NA)
+
+
+   })
+
+
+
 
 
  }, test="lvl2")

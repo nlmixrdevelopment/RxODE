@@ -510,6 +510,19 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
 
 .allowDemoteAddDistributions <- c("lnorm", "probitNorm", "logitNorm")
 
+.namedArgumentsToPredDf <- list(
+  add="a",
+  lnorm="a",
+  boxCox="lambda",
+  yeoJohnson="lambda",
+  pow=c("b", "c"),
+  powT=c("b", "c"),
+  powF=c("b", "c", "f"),
+  prop="b",
+  propT="b",
+  propF=c("b", "f")
+)
+
 ##' This handles the error distribution for a single argument.
 ##'
 ##' @param argumentNumber The argument number of the distribution being processed
@@ -534,6 +547,17 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
       .df$condition[.w] <- rxPreferredDistributionName(env$curCondition)
       assign("df", .df, envir=env)
       assign("lastDistAssign", .curName, envir=env)
+    } else {
+      .w <- which(names(.namedArgumentsToPredDf) == funName)
+      if (length(.w) == 1) {
+        .curLst <- .namedArgumentsToPredDf[[.w]]
+        if (argumentNumber <= length(.curLst)) {
+          assign(.curLst[argumentNumber], .curName, envir=env)
+          return(NULL)
+        }
+      }
+      env$err <- c(env$err,
+                   paste0("In the error expression, the variable `", .curName, "` must be estimated, not calculated"))
     }
   } else if (.is.numeric(.cur, env)) {
     if (.isLogitOrProbit) {
@@ -541,7 +565,6 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
       .w <- which(env$df$name == .curName)
       if (length(.w) == 1L) {
         env$trLimit[argumentNumber - 1] <- env$.numeric
-        #env$df[.w, c("trHi", "trLow")[argumentNumber - 1]] <- env$.numeric
       }
     }
   } else if (is.logical(.cur)) {
@@ -568,12 +591,12 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
   .nargs <- length(expression) - 1
   .doIt <- FALSE
   if (funName == "ordinal") {
-    .doIt <- FALSE
     if (.nargs == 0) {
       assign("err", c(env$err,
                       paste0("ordinal errors require at least 1 argument (i.e. err ~ c(err1))", envir=env)))
       return(invisible())
     }
+    .doIt <- TRUE
   } else {
     .errDistArgs <- .errDist[[funName]]
     .doIt <- .nargs %in% .errDistArgs
@@ -685,6 +708,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
 .errHandleTilde <- function(expression, env) {
   .left <- expression[[2]]
   env$trLimit <- c(-Inf, Inf)
+  env$a <- env$b <- env$c <- env$f <- env$lambda <- NA_character_
   env$curCondition <- env$curVar <- deparse1(.left)
   env$hasNonErrorTerm <- FALSE
   env$needsToBeAnErrorExpression <- FALSE
@@ -706,7 +730,13 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
                                  errType=env$distInfo$errType,
                                  errTypeF=env$distInfo$errTypeF,
                                  addProp=env$distInfo$addProp,
-                                 line=env$line, n2ll=FALSE))
+                                 line=env$line,
+                                 n2ll=FALSE,
+                                 a=env$a,
+                                 b=env$b,
+                                 c=env$c,
+                                 f=env$f,
+                                 lambda=env$lambda))
   env$curDvid <- env$curDvid + 1
   if (env$hasNonErrorTerm & env$needsToBeAnErrorExpression) {
     assign("err", c(env$err, "cannot mix error expression with algebraic expressions"),
@@ -789,7 +819,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
       .rm <- intersect(c("curCondition", "curDvid", "curVar", "df",
                          "distInfo", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
                          "lastDistAssign", "line", "needsToBeAnErrorExpression", "needToDemoteAdditiveExpression",
-                         "top", "trLimit", ".numeric"),
+                         "top", "trLimit", ".numeric", "a", "b", "c", "f",  "lambda"),
                        ls(envir=.env, all.names=TRUE))
       if (length(.rm) > 0) rm(list=.rm, envir=.env)
       return(.env)
