@@ -446,17 +446,6 @@ rxodeTest({
 
   })
 
-  .errProcessExpression(quote({
-    ka <- exp(tka + eta.ka)
-    cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
-    v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
-    vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
-    d/dt(depot) = -ka * depot
-    d/dt(center) = ka * depot - cl/v * center
-    cp = center/v
-    cp ~ add(add.sd) + pow(pow.sd, pow) + boxCox(lambda) | cond
-  }), df) -> mod
-
   test_that("categorical expressions", {
 
     expect_err2(.errProcessExpression(quote({
@@ -470,11 +459,51 @@ rxodeTest({
       cp ~ c(add.sd, pow.sd, pow, lambda) | cond
     }), df), NA)
 
+    .errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v
+      cp ~ c(add.sd, pow.sd, pow, lambda) | cond
+    }), df) -> mod
+
+    testOrd <- mod$ini[which(mod$ini$condition == "cond"),c("name","err")]
+    row.names(testOrd) <- NULL
+
+    expect_equal(testOrd, structure(list(name = c("add.sd", "pow.sd", "pow", "lambda"),
+    err = c("ordinal", "ordinal2", "ordinal3", "ordinal4")), row.names = c(NA,
+-4L), class = "data.frame"))
 
    })
 
+  test_that("theta/eta/eps problems", {
 
+    .errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v G+ add.sd + pow.sd + pow + lambda
+      # Nonsense parameters just to check calculated parameters being used in the error expression
+      a = tka + eta.ka
+      b = tka + eta.ka
+      c = tka + eta.ka
+      d = tka + eta.ka
+      e = tka + eta.ka
+      f = tka + eta.ka
+      l = tka + eta.ka
+      cp ~ add(a) + powF(b, c, f) + t(d, e) + boxCox(l)| cond
+    }), df) -> mod
 
+    expect_equal(mod$predDf[, c("a", "b", "c", "d", "e", "lambda")],
+                 structure(list(a = "a", b = "b", c = "c", d = "d", e = "e", lambda = "l"), class = "data.frame", row.names = c(NA, -1L)))
+
+  })
 
 
  }, test="lvl2")

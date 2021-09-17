@@ -38,22 +38,34 @@
   "combined1"=0,
   "combined2"=0,
   "comb1"=0,
-  "comb2"=0
+  "comb2"=0,
+  "dchisq"=1:2,
+  "chisq"=1:2,
+  "exp"=0:1,
+  "dexp"=0:1,
+  "df"=2:3,
+  "f"=2:3,
+  "dgeom"=1,
+  "geom"=1,
+  "dhyper"=3,
+  "hyper"=3,
+  "dunif"=0:2,
+  "unif"=0:2,
+  "dweibull"=1:2,
+  "weibull"=1:2
 )
 
 .errDistsPositive <- c("add", "norm", "dnorm", "prop", "propT", "pow", "powT", "logn", "dlogn", "lnorm", "dlnorm", "logitNorm", "probitNorm")
 
 
 .errUnsupportedDists <- c(
-  "dchisq", "chisq", "dexp", "df", "f", "dgeom", "geom",
-  "dhyper", "hyper", "dunif", "unif",
-  "dweibull", "weibull",
+
   ## for testing...
   "nlmixrDist"
 )
 
 .errAddDists <- c("add", "prop", "propT", "propF", "norm", "pow", "powT", "powF", "dnorm", "logn", "lnorm", "dlnorm", "tbs", "tbsYj", "boxCox",
-                  "yeoJohnson", "logitNorm", "probitNorm", "combined1", "combined2", "comb1", "comb2")
+                  "yeoJohnson", "logitNorm", "probitNorm", "combined1", "combined2", "comb1", "comb2", "t")
 
 .errIdenticalDists <- list(
   "add"=c("norm", "dnorm"),
@@ -66,7 +78,14 @@
   "beta"="dbeta",
   "t"="dt",
   "combined1"="comb1",
-  "combined2"="comb2"
+  "combined2"="comb2",
+  "chisq"="dchisq", #6
+  "exp"="dexp", #7
+  "f"="df", #8
+  "geom"="dgeom", #9
+  "hyper"="dhyper", #10
+  "unif"="dunif", #11
+  "weibull"="dweibull"#12
 )
 
 
@@ -178,6 +197,23 @@ rxPreferredDistributionName <- function(dist) {
   "add + pow", # 5
   "none" # 6
 )
+
+.rxDistributionType <- c(
+  "norm", #1
+  "pois", #2
+  "binom", #3
+  "beta", #4
+  "t", #5
+  "chisq", #6
+  "dexp", #7
+  "f", #8
+  "geom", #9
+  "hyper", #10
+  "unif", #11
+  "weibull", #12
+  "-2LL" #13
+)
+
 ##' Demote the error type
 ##'
 ##' @param errType Error type factor
@@ -508,6 +544,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
 }
 
 
+
 .allowDemoteAddDistributions <- c("lnorm", "probitNorm", "logitNorm")
 
 .namedArgumentsToPredDf <- list(
@@ -520,7 +557,8 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
   powF=c("b", "c", "f"),
   prop="b",
   propT="b",
-  propF=c("b", "f")
+  propF=c("b", "f"),
+  t=c("d", "e")
 )
 
 ##' This handles the error distribution for a single argument.
@@ -708,7 +746,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
 .errHandleTilde <- function(expression, env) {
   .left <- expression[[2]]
   env$trLimit <- c(-Inf, Inf)
-  env$a <- env$b <- env$c <- env$f <- env$lambda <- NA_character_
+  env$a <- env$b <- env$c <- env$d <- env$e <- env$f <- env$lambda <- NA_character_
   env$curCondition <- env$curVar <- deparse1(.left)
   env$hasNonErrorTerm <- FALSE
   env$needsToBeAnErrorExpression <- FALSE
@@ -735,6 +773,8 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
                                  a=env$a,
                                  b=env$b,
                                  c=env$c,
+                                 d=env$d,
+                                 e=env$e,
                                  f=env$f,
                                  lambda=env$lambda))
   env$curDvid <- env$curDvid + 1
@@ -819,7 +859,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
       .rm <- intersect(c("curCondition", "curDvid", "curVar", "df",
                          "distInfo", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
                          "lastDistAssign", "line", "needsToBeAnErrorExpression", "needToDemoteAdditiveExpression",
-                         "top", "trLimit", ".numeric", "a", "b", "c", "f",  "lambda"),
+                         "top", "trLimit", ".numeric", "a", "b", "c", "d", "e", "f",  "lambda"),
                        ls(envir=.env, all.names=TRUE))
       if (length(.rm) > 0) rm(list=.rm, envir=.env)
       return(.env)
