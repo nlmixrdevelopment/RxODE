@@ -883,6 +883,8 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
                                          envir=.env)
                                   .env$curCmt
                                 }, integer(1))
+
+      .env$extraDvid <- paste0("dvid(", paste(.env$predDf$cmt, collapse = ","), ")")
       # Cleanup the environment
       .rm <- intersect(c("curCondition", "curDvid", "curVar", "df",
                          "distInfo", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
