@@ -700,7 +700,18 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
     }
   } else {
     .currErr <- deparse1(expression[[1]])
-    if (.currErr == "c") {
+    if (.currErr == "exp") {
+      if (is.name(expression[[2]])) {
+        .var <- as.character(expression[[2]])
+        if (any(.var == env$df$name)) {
+          .errHandleSingleDistributionTerm(.currErr, expression, env)
+        } else {
+          .errHandleSingleTerm(.currErr, expression, env)
+        }
+      } else {
+        .errHandleSingleTerm(.currErr, expression, env)
+      }
+    } else if (.currErr == "c") {
       .errHandleSingleDistributionTerm("ordinal", expression, env)
     } else if (.currErr %in% names(.errDist)) {
       .errHandleSingleDistributionTerm(.currErr, expression, env)
@@ -764,6 +775,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
   if (env$hasNonErrorTerm & env$needsToBeAnErrorExpression) {
     assign("errGlobal", c(env$errGlobal, "cannot mix error expression with algebraic expressions"),
            envir=env)
+  } else if (env$hasNonErrorTerm) {
   } else if (!env$hasNonErrorTerm) {
     env$predDf <- rbind(env$predDf,
                         data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
@@ -890,7 +902,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
                          "distInfo", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
                          "lastDistAssign", "line", "needsToBeAnErrorExpression", "needToDemoteAdditiveExpression",
                          "top", "trLimit", ".numeric", "a", "b", "c", "d", "e", "f",  "lambda",
-                         "curCmt"),
+                         "curCmt", "errGlobal"),
                        ls(envir=.env, all.names=TRUE))
       if (length(.rm) > 0) rm(list=.rm, envir=.env)
       return(.env)
