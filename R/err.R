@@ -761,26 +761,27 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
   } else if (env$needToDemoteAdditiveExpression) {
     env$distInfo <- rxDemoteAddErr(env$distInfo)
   }
-  env$predDf <- rbind(env$predDf,
-                      data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
-                                 trHi=env$trLimit[1], trLow=env$trLimit[2],
-                                 transform=env$distInfo$transform,
-                                 errType=env$distInfo$errType,
-                                 errTypeF=env$distInfo$errTypeF,
-                                 addProp=env$distInfo$addProp,
-                                 line=env$line,
-                                 n2ll=FALSE,
-                                 a=env$a,
-                                 b=env$b,
-                                 c=env$c,
-                                 d=env$d,
-                                 e=env$e,
-                                 f=env$f,
-                                 lambda=env$lambda))
-  env$curDvid <- env$curDvid + 1
   if (env$hasNonErrorTerm & env$needsToBeAnErrorExpression) {
-    assign("err", c(env$err, "cannot mix error expression with algebraic expressions"),
+    assign("errGlobal", c(env$errGlobal, "cannot mix error expression with algebraic expressions"),
            envir=env)
+  } else if (!env$hasNonErrorTerm) {
+    env$predDf <- rbind(env$predDf,
+                        data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
+                                   trHi=env$trLimit[1], trLow=env$trLimit[2],
+                                   transform=env$distInfo$transform,
+                                   errType=env$distInfo$errType,
+                                   errTypeF=env$distInfo$errTypeF,
+                                   addProp=env$distInfo$addProp,
+                                   line=env$line,
+                                   n2ll=FALSE,
+                                   a=env$a,
+                                   b=env$b,
+                                   c=env$c,
+                                   d=env$d,
+                                   e=env$e,
+                                   f=env$f,
+                                   lambda=env$lambda))
+    env$curDvid <- env$curDvid + 1L
   }
 }
 
@@ -820,17 +821,19 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
 ##'
 ##' .errProcessExpression()
 ##' @noRd
-.errProcessExpression <- function(x, df) {
+.errProcessExpression <- function(x, ini) {
   # ntheta neta1 neta2   name lower       est   upper   fix  err  label
   # backTransform condition trLow trHi
   .env <- new.env(parent=emptyenv())
+  .env$eta <- dimnames(ini)[[1]]
   .env$top <- TRUE
-  .env$df <- df
+  .env$df <- as.data.frame(ini)
   .env$err <- NULL
+  .env$errGlobal <- NULL
   # Add error structure like nlmixr ui had before transitioning to RxODE
   .env$df$err <- NA_character_
   #.env$df$trLow <- .env$df$trHi <- NA_real_
-  .env$curDvid <- 1
+  .env$curDvid <- 1L
   # Pred df needs to be finalized with compartment information from parsing the raw RxODE model
   .env$predDf  <- NULL
   .env$lastDistAssign <- ""
@@ -856,10 +859,36 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
         }
       }
       .env$ini <- .env$df
+      if (is.null(.env$predDf)) {
+        .env$errGlobal <- c(.env$errGlobal,
+                            "there must be at least one prediction in the model({}) block.  Use `~` for predictions")
+      } else if (length(.env$predDf[, 1]) == 0L) {
+        .env$errGlobal <- c(.env$errGlobal,
+                            "there must be at least one prediction in the model({}) block.  Use `~` for predictions")
+      }
+      if (!is.null(.env$errGlobal)) {
+        stop(paste(.env$errGlobal, collapse="\n"), call.=FALSE)
+      }
+      .env$mv0 <- rxModelVars(paste(.env$lstChr[-.env$predDf$line], collapse="\n"))
+      .env$curCmt <- length(.env$mv0$state)
+      .env$extraCmt <- NULL
+      .env$predDf$cmt <- vapply(seq_along(.env$predDf$line),
+                                function(i) {
+                                  .cmtName <- .env$predDf$cond[i]
+                                  .w <- which(.cmtName == .env$mv0$state)
+                                  if (length(.w) == 1L) return(.w)
+                                  assign("curCmt", .env$curCmt + 1L, envir=.env)
+                                  assign("extraCmt", c(.env$extraCmt,
+                                                       paste0("cmt(", .cmtName, ")")),
+                                         envir=.env)
+                                  .env$curCmt
+                                }, integer(1))
+      # Cleanup the environment
       .rm <- intersect(c("curCondition", "curDvid", "curVar", "df",
                          "distInfo", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
                          "lastDistAssign", "line", "needsToBeAnErrorExpression", "needToDemoteAdditiveExpression",
-                         "top", "trLimit", ".numeric", "a", "b", "c", "d", "e", "f",  "lambda"),
+                         "top", "trLimit", ".numeric", "a", "b", "c", "d", "e", "f",  "lambda",
+                         "curCmt"),
                        ls(envir=.env, all.names=TRUE))
       if (length(.rm) > 0) rm(list=.rm, envir=.env)
       return(.env)

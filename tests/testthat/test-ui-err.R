@@ -27,8 +27,6 @@ rxodeTest({
     lambda  <- 0.5
   })
 
-  df <- as.data.frame(lmat)
-
   expect_err2 <- function(x, extra=FALSE) {
     if (is.na(extra)){
       expect_false(x$hasErrors)
@@ -38,7 +36,6 @@ rxodeTest({
   }
 
   test_that("error when errors have too many arguments", {
-
     expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
@@ -48,7 +45,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ add(add.sd, pow) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df))
+    }), lmat))
   })
 
   test_that("error when adding distributions that do not support the additive notation", {
@@ -61,7 +58,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ dbinom(add.sd, pow) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df))
+    }), lmat))
   })
 
   test_that("error for specifying distributions that have multiple numbers of arguments", {
@@ -75,11 +72,11 @@ rxodeTest({
       cp = center/v
       cp ~ dbinom(add.sd, pow)
       center ~ pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df))
+    }), lmat))
   })
 
   test_that("error when adding algebraic expressions to known distributional abbreviations", {
-    expect_err2(.errProcessExpression(quote({
+    expect_error(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -88,7 +85,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ add(add.sd) + pow(pow.sd, pow) + boxCox(lambda) + tan(vp)| cond
-    }), df))
+    }), lmat))
   })
 
   test_that("The distribution names will transform to the preferred distributions", {
@@ -109,7 +106,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ logitNorm(add.sd, lower, upper) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df))
+    }), lmat))
 
 
     expect_err2(.errProcessExpression(quote({
@@ -121,7 +118,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ logitNorm(add.sd) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df), NA)
+    }), lmat), NA)
 
     expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
@@ -132,7 +129,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ logitNorm(add.sd, 0) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df), NA)
+    }), lmat), NA)
 
     expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
@@ -143,7 +140,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ logitNorm(add.sd, 0, 5) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df), NA)
+    }), lmat), NA)
 
 
     expect_err2(.errProcessExpression(quote({
@@ -155,7 +152,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ logitNorm(add.sd, -5, 5) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df), NA)
+    }), lmat), NA)
 
 
     expect_err2(.errProcessExpression(quote({
@@ -167,7 +164,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ logitNorm(add.sd, -Inf, Inf) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df), NA)
+    }), lmat), NA)
 
     expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
@@ -178,7 +175,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ probitNorm(add.sd, lower, upper) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df))
+    }), lmat))
 
   })
 
@@ -271,7 +268,6 @@ rxodeTest({
 
     expect_equal(testCombine(c("prop", "boxCox"))$transform,
                  testCombine(c("add", "boxCox"))$transform)
-
 
     expect_equal(testCombine(c("lnorm", "prop", "boxCox")),
                  testCombine(c("lnorm", "propT", "boxCox")))
@@ -374,7 +370,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ logitNorm(add.sd) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df) -> mod
+    }), lmat) -> mod
 
     expect_equal(mod$predDf$errType, testCombine(c("pow", "add"))$errType)
 
@@ -387,7 +383,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v + add.sd
       cp ~ logitNorm(NA) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df) -> mod
+    }), lmat) -> mod
 
     expect_equal(mod$predDf$errType, testCombine(c("pow"))$errType)
 
@@ -400,7 +396,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v + add.sd + lambda
       cp ~ lnorm(NA) + pow(pow.sd, pow) | cond
-    }), df) -> mod
+    }), lmat) -> mod
 
     expect_equal(mod$predDf$errType, testCombine(c("pow"))$errType)
 
@@ -413,7 +409,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v + add.sd + lambda
       cp ~ lnorm(add.sd) + pow(pow.sd, pow)  | cond
-    }), df) -> mod
+    }), lmat) -> mod
 
     expect_equal(mod$predDf$errType, testCombine(c("add", "pow"))$errType)
 
@@ -426,7 +422,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v + add.sd
       cp ~ probitNorm(NA) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df) -> mod
+    }), lmat) -> mod
 
     expect_equal(mod$predDf$errType, testCombine(c("pow"))$errType)
 
@@ -440,7 +436,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ probitNorm(add.sd) + pow(pow.sd, pow) + boxCox(lambda) | cond
-    }), df) -> mod
+    }), lmat) -> mod
 
     expect_equal(mod$predDf$errType, testCombine(c("add", "pow"))$errType)
 
@@ -457,7 +453,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ c(add.sd, pow.sd, pow, lambda) | cond
-    }), df), NA)
+    }), lmat), NA)
 
     .errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
@@ -468,7 +464,7 @@ rxodeTest({
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
       cp ~ c(add.sd, pow.sd, pow, lambda) | cond
-    }), df) -> mod
+    }), lmat) -> mod
 
     testOrd <- mod$ini[which(mod$ini$condition == "cond"),c("name","err")]
     row.names(testOrd) <- NULL
@@ -488,7 +484,7 @@ rxodeTest({
       vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
       d/dt(depot) = -ka * depot
       d/dt(center) = ka * depot - cl/v * center
-      cp = center/v G+ add.sd + pow.sd + pow + lambda
+      cp = center/v + add.sd + pow.sd + pow + lambda
       # Nonsense parameters just to check calculated parameters being used in the error expression
       a = tka + eta.ka
       b = tka + eta.ka
@@ -498,12 +494,159 @@ rxodeTest({
       f = tka + eta.ka
       l = tka + eta.ka
       cp ~ add(a) + powF(b, c, f) + t(d, e) + boxCox(l)| cond
-    }), df) -> mod
+    }), lmat) -> mod
 
     expect_equal(mod$predDf[, c("a", "b", "c", "d", "e", "lambda")],
                  structure(list(a = "a", b = "b", c = "c", d = "d", e = "e", lambda = "l"), class = "data.frame", row.names = c(NA, -1L)))
 
+    .errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v+ add.sd + pow.sd + pow + lambda
+      cp ~ add(a) + powF(b, c, f) + t(d, e) + boxCox(l)| cond
+    }), lmat) -> mod
+
   })
 
+
+  test_that("no defined errors throw an error", {
+    expect_error(.errProcessExpression(quote({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
+      v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
+      vp <- exp(tvp + wt * vp.wt + sex * vp.sex + age * vp.age)
+      d/dt(depot) = -ka * depot
+      d/dt(center) = ka * depot - cl/v * center
+      cp = center/v + add.sd + pow.sd + pow + lambda
+    }), lmat))
+  })
+
+  test_that("multiple endpoint parsing", {
+
+    lmat <- lotri({
+      tktr <- log(1)
+      tka <- log(1)
+      tcl <- log(0.1)
+      tv <- log(10)
+      ##
+      eta.ktr ~ 1
+      eta.ka ~ 1
+      eta.cl ~ 2
+      eta.v ~ 1
+      prop.err <- 0.1
+      pkadd.err <- 0.1
+      ##
+      temax <- logit(0.8)
+      #temax <- 7.5
+      tec50 <- log(0.5)
+      tkout <- log(0.05)
+      te0 <- log(100)
+      ##
+      eta.emax ~ .5
+      eta.ec50  ~ .5
+      eta.kout ~ .5
+      eta.e0 ~ .5
+      ##
+      pdadd.err <- 10
+    })
+
+    .errProcessExpression(quote({
+      ktr <- exp(tktr + eta.ktr)
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl)
+      v <- exp(tv + eta.v)
+      ##
+      #poplogit = log(temax/(1-temax))
+      emax=expit(temax+eta.emax)
+      #logit=temax+eta.emax
+      ec50 =  exp(tec50 + eta.ec50)
+      kout = exp(tkout + eta.kout)
+      e0 = exp(te0 + eta.e0)
+      ##
+      DCP = center/v
+      PD=1-emax*DCP/(ec50+DCP)
+      ##
+      effect(0) = e0
+      kin = e0*kout
+      ##
+      d/dt(depot) = -ktr * depot
+      d/dt(gut) =  ktr * depot -ka * gut
+      d/dt(center) =  ka * gut - cl / v * center
+      d/dt(effect) = kin*PD -kout*effect
+      ##
+      cp = center / v
+      cp ~ prop(prop.err) + add(pkadd.err)
+      effect ~ add(pdadd.err)
+    }), lmat) -> mod
+
+    expect_equal(mod$predDf[, c("cond", "var", "dvid", "cmt")],
+                 structure(list(cond = c("cp", "effect"), var = c("cp", "effect"), dvid = 1:2, cmt = 5:4), class = "data.frame", row.names = c(NA, -2L)))
+
+    .errProcessExpression(quote({
+      ktr <- exp(tktr + eta.ktr)
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl)
+      v <- exp(tv + eta.v)
+      ##
+      emax=expit(temax+eta.emax)
+      ec50 =  exp(tec50 + eta.ec50)
+      kout = exp(tkout + eta.kout)
+      e0 = exp(te0 + eta.e0)
+      ##
+      DCP = center/v
+      PD=1-emax*DCP/(ec50+DCP)
+      ##
+      effect(0) = e0
+      kin = e0*kout
+      ##
+      d/dt(depot) = -ktr * depot
+      d/dt(gut) =  ktr * depot -ka * gut
+      d/dt(center) =  ka * gut - cl / v * center
+      d/dt(effect) = kin*PD -kout*effect
+      ##
+      cp = center / v
+      cp ~ prop(prop.err) + add(pkadd.err) | center
+      effect ~ add(pdadd.err)
+    }), lmat) -> mod
+
+    expect_equal(mod$predDf[, c("cond", "var", "dvid", "cmt")],
+                 structure(list(cond = c("center", "effect"), var = c("cp", "effect"), dvid = 1:2, cmt = 3:4),
+                           class = "data.frame", row.names = c(NA, -2L)))
+
+    .errProcessExpression(quote({
+      ktr <- exp(tktr + eta.ktr)
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl)
+      v <- exp(tv + eta.v)
+      emax = expit(temax+eta.emax)
+      ec50 =  exp(tec50 + eta.ec50)
+      kout = exp(tkout + eta.kout)
+      e0 = exp(te0 + eta.e0)
+      ##
+      DCP = center/v
+      PD=1-emax*DCP/(ec50+DCP)
+      ##
+      effect(0) = e0
+      kin = e0*kout
+      ##
+      d/dt(depot) = -ktr * depot
+      d/dt(gut) =  ktr * depot -ka * gut
+      d/dt(center) =  ka * gut - cl / v * center
+      d/dt(effect) = kin*PD -kout*effect
+      ##
+      cp = center / v
+      cp ~ prop(prop.err) + add(pkadd.err)
+      effect ~ add(pdadd.err) | pca
+    }), lmat) -> mod
+
+    expect_equal(mod$predDf[, c("cond", "var", "dvid", "cmt")],
+                 structure(list(cond = c("cp", "pca"), var = c("cp", "effect"), dvid = 1:2, cmt = 5:6),
+                           class = "data.frame", row.names = c(NA, -2L)))
+
+  })
 
  }, test="lvl2")
