@@ -41,7 +41,6 @@
   "comb2"=0,
   "dchisq"=1:2,
   "chisq"=1:2,
-  "exp"=0:1,
   "dexp"=0:1,
   "df"=2:3,
   "f"=2:3,
@@ -80,7 +79,6 @@
   "combined1"="comb1",
   "combined2"="comb2",
   "chisq"="dchisq", #6
-  "exp"="dexp", #7
   "f"="df", #8
   "geom"="dgeom", #9
   "hyper"="dhyper", #10
@@ -700,18 +698,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
     }
   } else {
     .currErr <- deparse1(expression[[1]])
-    if (.currErr == "exp") {
-      if (is.name(expression[[2]])) {
-        .var <- as.character(expression[[2]])
-        if (any(.var == mod$df$name[!is.na(mod$df$ntheta)])) {
-          .errHandleSingleDistributionTerm(.currErr, expression, env)
-        } else {
-          .errHandleSingleTerm(.currErr, expression, env)
-        }
-      } else {
-        .errHandleSingleTerm(.currErr, expression, env)
-      }
-    } else if (.currErr == "c") {
+    if (.currErr == "c") {
       .errHandleSingleDistributionTerm("ordinal", expression, env)
     } else if (.currErr %in% names(.errDist)) {
       .errHandleSingleDistributionTerm(.currErr, expression, env)

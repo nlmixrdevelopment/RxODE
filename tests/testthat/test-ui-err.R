@@ -772,8 +772,6 @@ rxodeTest({
                  structure(list(cond = c("cp", "pca"), var = c("cp", "effect"), dvid = 1:2, cmt = 5:6),
                            class = "data.frame", row.names = c(NA, -2L)))
 
-
-
   })
 
 
