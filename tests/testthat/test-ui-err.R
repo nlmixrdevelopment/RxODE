@@ -741,6 +741,39 @@ rxodeTest({
                            class = "data.frame", row.names = c(NA, -2L)))
 
 
+    .errProcessExpression(quote({
+      ktr ~ exp(tktr + eta.ktr)
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl)
+      v <- exp(tv + eta.v)
+      emax = expit(temax+eta.emax)
+      ec50 =  exp(tec50 + eta.ec50)
+      kout = exp(tkout + eta.kout)
+      e0 = exp(te0 + eta.e0)
+      ##
+      DCP = center/v
+      tmp ~ exp(eta.tr)
+      PD=1-emax*DCP/(ec50+DCP)
+      ##
+      effect(0) = e0
+      kin ~ e0*kout
+      ##
+      d/dt(depot) = -ktr * depot
+      d/dt(gut) =  ktr * depot -ka * gut
+      d/dt(center) =  ka * gut - cl / v * center
+      d/dt(effect) = kin*PD -kout*effect
+      ##
+      cp = center / v
+      cp ~ prop(prop.err) + add(pkadd.err)
+      effect ~ add(pdadd.err) | pca
+    }), lmat) -> mod
+
+    expect_equal(mod$predDf[, c("cond", "var", "dvid", "cmt")],
+                 structure(list(cond = c("cp", "pca"), var = c("cp", "effect"), dvid = 1:2, cmt = 5:6),
+                           class = "data.frame", row.names = c(NA, -2L)))
+
+
+
   })
 
 

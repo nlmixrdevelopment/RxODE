@@ -703,7 +703,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
     if (.currErr == "exp") {
       if (is.name(expression[[2]])) {
         .var <- as.character(expression[[2]])
-        if (any(.var == env$df$name)) {
+        if (any(.var == mod$df$name[!is.na(mod$df$ntheta)])) {
           .errHandleSingleDistributionTerm(.currErr, expression, env)
         } else {
           .errHandleSingleTerm(.currErr, expression, env)
