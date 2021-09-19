@@ -182,9 +182,9 @@ rxodeTest({
   test_that("rxTransformCombine", {
 
     testCombine0 <- function(transforms) {
-      .cmb <- rxDistributionCombine("matt")
+      .cmb <- rxErrTypeCombine("matt")
       for (i in transforms) {
-        .cmb <- rxDistributionCombine(.cmb, i)
+        .cmb <- rxErrTypeCombine(.cmb, i)
       }
       .cmb
     }

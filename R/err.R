@@ -209,7 +209,8 @@ rxPreferredDistributionName <- function(dist) {
   "hyper", #10
   "unif", #11
   "weibull", #12
-  "-2LL" #13
+  "ordinal", # 13
+  "-2LL" #14
 )
 
 ##' Demote the error type
@@ -219,12 +220,12 @@ rxPreferredDistributionName <- function(dist) {
 ##' @author Matthew Fidler
 ##' @export
 ##' @examples
-##' rxDistributionCombine("add") %>%
-##'   rxDistributionCombine("prop")
+##' rxErrTypeCombine("add") %>%
+##'   rxErrTypeCombine("prop")
 ##'
 ##' # This removes the internal additive error
-##' rxDistributionCombine("add") %>%
-##'   rxDistributionCombine("prop") %>%
+##' rxErrTypeCombine("add") %>%
+##'   rxErrTypeCombine("prop") %>%
 ##'   rxDemoteAddErr()
 ##'
 ##' # This is used for logitNorm(NA), the additive portion is stripped
@@ -492,15 +493,15 @@ rxDemoteAddErr <- function(errType) {
 ##'
 ##' @examples
 ##'
-##' rxDistributionCombine("probitNorm")
+##' rxErrTypeCombine("probitNorm")
 ##'
-##' rxDistributionCombine("probitNorm") %>%
-##'   rxDistributionCombine("boxCox")
+##' rxErrTypeCombine("probitNorm") %>%
+##'   rxErrTypeCombine("boxCox")
 ##'
 ##'
 ##' @export
 ##' @keywords internal
-rxDistributionCombine <- function(oldDistribution, newDistribution) {
+rxErrTypeCombine <- function(oldDistribution, newDistribution) {
   if (missing(newDistribution) && inherits(oldDistribution, "character")) {
     return(.rxTransformCombineListOrChar(list(transform=.rxCombineTransform(oldDistribution),
                                               errType=.rxCombineErrType(oldDistribution),
@@ -641,7 +642,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
     if (.nargs > 0) {
       lapply(seq(1, .nargs), .errHandleSingleDistributionArgument, funName=funName, expression=expression, env=env)
     }
-    env$distInfo <- rxDistributionCombine(env$distInfo, funName)
+    env$errTypeInfo <- rxErrTypeCombine(env$errTypeInfo, funName)
     env$needsToBeAnErrorExpression <- TRUE
   } else {
     .min <- range(.errDistArgs)
@@ -751,13 +752,13 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
   env$needToDemoteAdditiveExpression <- FALSE
   .right <- .errHandleCondition(expression[[3]], env)
   env$isAnAdditiveExpression <- FALSE
-  env$distInfo <- rxDistributionCombine("")
+  env$errTypeInfo <- rxErrTypeCombine("")
   .errHandleErrorStructure(.right, env)
-  if (inherits(env$distInfo, "character")) {
-    env$err <- c(env$err, env$distInfo)
-    env$distInfo <- rxDistributionCombine("")
+  if (inherits(env$errTypeInfo, "character")) {
+    env$err <- c(env$err, env$errTypeInfo)
+    env$errTypeInfo <- rxErrTypeCombine("")
   } else if (env$needToDemoteAdditiveExpression) {
-    env$distInfo <- rxDemoteAddErr(env$distInfo)
+    env$errTypeInfo <- rxDemoteAddErr(env$errTypeInfo)
   }
   if (env$hasNonErrorTerm & env$needsToBeAnErrorExpression) {
     assign("errGlobal", c(env$errGlobal, "cannot mix error expression with algebraic expressions"),
@@ -767,10 +768,10 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
     env$predDf <- rbind(env$predDf,
                         data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
                                    trHi=env$trLimit[1], trLow=env$trLimit[2],
-                                   transform=env$distInfo$transform,
-                                   errType=env$distInfo$errType,
-                                   errTypeF=env$distInfo$errTypeF,
-                                   addProp=env$distInfo$addProp,
+                                   transform=env$errTypeInfo$transform,
+                                   errType=env$errTypeInfo$errType,
+                                   errTypeF=env$errTypeInfo$errTypeF,
+                                   addProp=env$errTypeInfo$addProp,
                                    line=env$line,
                                    n2ll=FALSE,
                                    a=env$a,
@@ -886,7 +887,7 @@ rxDistributionCombine <- function(oldDistribution, newDistribution) {
       .env$extraDvid <- paste0("dvid(", paste(.env$predDf$cmt, collapse = ","), ")")
       # Cleanup the environment
       .rm <- intersect(c("curCondition", "curDvid", "curVar", "df",
-                         "distInfo", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
+                         "errTypeInfok", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
                          "lastDistAssign", "line", "needsToBeAnErrorExpression", "needToDemoteAdditiveExpression",
                          "top", "trLimit", ".numeric", "a", "b", "c", "d", "e", "f",  "lambda",
                          "curCmt", "errGlobal"),

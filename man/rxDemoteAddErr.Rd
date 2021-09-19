@@ -16,12 +16,12 @@ Demoted Error Type
 Demote the error type
 }
 \examples{
-rxDistributionCombine("add") \%>\%
-  rxDistributionCombine("prop")
+rxErrTypeCombine("add") \%>\%
+  rxErrTypeCombine("prop")
 
 # This removes the internal additive error
-rxDistributionCombine("add") \%>\%
-  rxDistributionCombine("prop") \%>\%
+rxErrTypeCombine("add") \%>\%
+  rxErrTypeCombine("prop") \%>\%
   rxDemoteAddErr()
 
 # This is used for logitNorm(NA), the additive portion is stripped
