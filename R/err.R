@@ -473,12 +473,12 @@ rxDemoteAddErr <- function(errType) {
 ##' being applied for the current endpoint
 ##'
 ##'
-##' @param oldDistribution This is the old transformation, by default is
+##' @param oldErrType This is the old transformation, by default is
 ##'   zero representing no prior transformation. This parameter is
 ##'   first to allow piping. When the parameter `addTransform` is
-##'   missing and `oldDistribution` is a character value, this functions
-##'   swaps `oldDistribution` and `addTransform` and assigns
-##'   `oldDistribution` to zero assuming that there is no prior
+##'   missing and `oldErrType` is a character value, this functions
+##'   swaps `oldErrType` and `addTransform` and assigns
+##'   `oldErrType` to zero assuming that there is no prior
 ##'   distribution.
 ##'
 ##' @param newTransform This is the new distribution that is being
@@ -501,17 +501,17 @@ rxDemoteAddErr <- function(errType) {
 ##'
 ##' @export
 ##' @keywords internal
-rxErrTypeCombine <- function(oldDistribution, newDistribution) {
-  if (missing(newDistribution) && inherits(oldDistribution, "character")) {
-    return(.rxTransformCombineListOrChar(list(transform=.rxCombineTransform(oldDistribution),
-                                              errType=.rxCombineErrType(oldDistribution),
-                                              errTypeF=.rxCombineErrTypeF(oldDistribution),
-                                              addProp=.rxCombineAddProp(oldDistribution))))
-  } else if (inherits(oldDistribution, "rxCombinedErrorList")) {
-    return(.rxTransformCombineListOrChar(list(transform=.rxCombineTransform(newDistribution, oldDistribution$transform),
-                                              errType=.rxCombineErrType(newDistribution, oldDistribution$errType),
-                                              errTypeF=.rxCombineErrTypeF(newDistribution, oldDistribution$errTypeF),
-                                              addProp=.rxCombineAddProp(newDistribution, oldDistribution$addProp))))
+rxErrTypeCombine <- function(oldErrType, newErrType) {
+  if (missing(newErrType) && inherits(oldErrType, "character")) {
+    return(.rxTransformCombineListOrChar(list(transform=.rxCombineTransform(oldErrType),
+                                              errType=.rxCombineErrType(oldErrType),
+                                              errTypeF=.rxCombineErrTypeF(oldErrType),
+                                              addProp=.rxCombineAddProp(oldErrType))))
+  } else if (inherits(oldErrType, "rxCombinedErrorList")) {
+    return(.rxTransformCombineListOrChar(list(transform=.rxCombineTransform(newErrType, oldErrType$transform),
+                                              errType=.rxCombineErrType(newErrType, oldErrType$errType),
+                                              errTypeF=.rxCombineErrTypeF(newErrType, oldErrType$errTypeF),
+                                              addProp=.rxCombineAddProp(newErrType, oldErrType$addProp))))
   } else {
     stop("old transform not in the proper format", call.=FALSE)
   }
@@ -688,7 +688,7 @@ rxErrTypeCombine <- function(oldDistribution, newDistribution) {
     .errHandleErrorStructure(expression[[2]], env)
     .errHandleErrorStructure(expression[[3]], env)
   } else if (env$isAnAdditiveExpression) {
-    .currErr <- deparse1(expression[[1]])
+    .currErr <- rxPreferredDistributionName(deparse1(expression[[1]]))
     if (.currErr %in% .errAddDists) {
       .errHandleSingleDistributionTerm(.currErr, expression, env)
     } else if (.currErr %in% names(.errDist)) {
@@ -700,8 +700,11 @@ rxErrTypeCombine <- function(oldDistribution, newDistribution) {
   } else {
     .currErr <- deparse1(expression[[1]])
     if (.currErr == "c") {
+      env$distribution <- "ordinal"
       .errHandleSingleDistributionTerm("ordinal", expression, env)
     } else if (.currErr %in% names(.errDist)) {
+      .currErr <- rxPreferredDistributionName(.currErr)
+      env$distribution <- .currErr
       .errHandleSingleDistributionTerm(.currErr, expression, env)
     } else {
       .errHandleSingleTerm(.currErr, expression, env)
@@ -753,6 +756,7 @@ rxErrTypeCombine <- function(oldDistribution, newDistribution) {
   .right <- .errHandleCondition(expression[[3]], env)
   env$isAnAdditiveExpression <- FALSE
   env$errTypeInfo <- rxErrTypeCombine("")
+  env$distribution <- "norm"
   .errHandleErrorStructure(.right, env)
   if (inherits(env$errTypeInfo, "character")) {
     env$err <- c(env$err, env$errTypeInfo)
@@ -765,6 +769,9 @@ rxErrTypeCombine <- function(oldDistribution, newDistribution) {
            envir=env)
   } else if (env$hasNonErrorTerm) {
   } else if (!env$hasNonErrorTerm) {
+    if (!(env$distribution %in% .rxDistributionType)) {
+      env$distribution <- "norm"
+    }
     env$predDf <- rbind(env$predDf,
                         data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
                                    trHi=env$trLimit[1], trLow=env$trLimit[2],
@@ -772,6 +779,7 @@ rxErrTypeCombine <- function(oldDistribution, newDistribution) {
                                    errType=env$errTypeInfo$errType,
                                    errTypeF=env$errTypeInfo$errTypeF,
                                    addProp=env$errTypeInfo$addProp,
+                                   distribution=factor(env$distribution, levels=.rxDistributionType),
                                    line=env$line,
                                    n2ll=FALSE,
                                    a=env$a,
@@ -887,7 +895,7 @@ rxErrTypeCombine <- function(oldDistribution, newDistribution) {
       .env$extraDvid <- paste0("dvid(", paste(.env$predDf$cmt, collapse = ","), ")")
       # Cleanup the environment
       .rm <- intersect(c("curCondition", "curDvid", "curVar", "df",
-                         "errTypeInfok", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
+                         "errTypeInfo", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
                          "lastDistAssign", "line", "needsToBeAnErrorExpression", "needToDemoteAdditiveExpression",
                          "top", "trLimit", ".numeric", "a", "b", "c", "d", "e", "f",  "lambda",
                          "curCmt", "errGlobal"),
