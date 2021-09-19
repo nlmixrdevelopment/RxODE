@@ -690,6 +690,7 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   } else if (env$isAnAdditiveExpression) {
     .currErr <- rxPreferredDistributionName(deparse1(expression[[1]]))
     if (.currErr %in% .errAddDists) {
+      if (.currErr == "t") env$distribution <- "t"
       .errHandleSingleDistributionTerm(.currErr, expression, env)
     } else if (.currErr %in% names(.errDist)) {
       assign("err", c(env$err,
