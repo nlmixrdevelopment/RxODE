@@ -739,15 +739,43 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   expression
 }
 
+##' Handle -2LL equivalent for n2ll
+##'
+##' @param expression Left handed side of the equation
+##' @param env Environment for storing information about the error structure
+##' @return Nothing called for side effects
+##' @details
+##'
+##' The takes the expression
+##'
+##' n2ll(var) ~  log(...)
+##'
+##' And strips the `n2ll` and sets the flag `env$n2ll` to `TRUE`
+##'
+##' Otherwise it leaves the `expression` alone and returns the value
+##'
+##' @author Matthew Fidler
+##' @noRd
+.errHandleN2ll <- function(expression, env) {
+  if (is.call(expression) &&
+        identical(expression[[1]], quote(`n2ll`)) &&
+        length(expression) == 2L) {
+    env$n2ll <- TRUE
+    return(expression[[2]])
+  }
+  expression
+}
+
 ##' Handle the error expressions
 ##'
 ##' @param expression Single tilde error expression
 ##' @param env Environment with initial estimate data.frame
 ##' @return
-##' @author Matthew Fidler
+##' @author Matthew Fidle
 ##' @noRd
 .errHandleTilde <- function(expression, env) {
-  .left <- expression[[2]]
+  env$n2ll <- FALSE
+  .left <- .errHandleN2ll(expression[[2]], env)
   env$trLimit <- c(-Inf, Inf)
   env$a <- env$b <- env$c <- env$d <- env$e <- env$f <- env$lambda <- NA_character_
   env$curCondition <- env$curVar <- deparse1(.left)
@@ -769,28 +797,54 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
     assign("errGlobal", c(env$errGlobal, "cannot mix error expression with algebraic expressions"),
            envir=env)
   } else if (env$hasNonErrorTerm) {
-  } else if (!env$hasNonErrorTerm) {
-    if (!(env$distribution %in% .rxDistributionType)) {
-      env$distribution <- "norm"
+    if (env$n2ll) {
+      env$distribution <- "-2LL"
+      env$predDf <- rbind(env$predDf,
+                          data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
+                                     trHi=env$trLimit[1], trLow=env$trLimit[2],
+                                     transform=env$errTypeInfo$transform,
+                                     errType=env$errTypeInfo$errType,
+                                     errTypeF=env$errTypeInfo$errTypeF,
+                                     addProp=env$errTypeInfo$addProp,
+                                     distribution=factor(env$distribution, levels=.rxDistributionType),
+                                     line=env$line,
+                                     a=env$a,
+                                     b=env$b,
+                                     c=env$c,
+                                     d=env$d,
+                                     e=env$e,
+                                     f=env$f,
+                                     lambda=env$lambda))
+      env$curDvid <- env$curDvid + 1L
+
     }
-    env$predDf <- rbind(env$predDf,
-                        data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
-                                   trHi=env$trLimit[1], trLow=env$trLimit[2],
-                                   transform=env$errTypeInfo$transform,
-                                   errType=env$errTypeInfo$errType,
-                                   errTypeF=env$errTypeInfo$errTypeF,
-                                   addProp=env$errTypeInfo$addProp,
-                                   distribution=factor(env$distribution, levels=.rxDistributionType),
-                                   line=env$line,
-                                   n2ll=FALSE,
-                                   a=env$a,
-                                   b=env$b,
-                                   c=env$c,
-                                   d=env$d,
-                                   e=env$e,
-                                   f=env$f,
-                                   lambda=env$lambda))
-    env$curDvid <- env$curDvid + 1L
+  } else if (!env$hasNonErrorTerm) {
+    if (env$n2ll) {
+      assign("errGlobal", c(env$errGlobal, "a -2 log-likelihood expression cannot use abbreviated error codes like add() + prop() "),
+             envir=env)
+    } else {
+      if (!(env$distribution %in% .rxDistributionType)) {
+        env$distribution <- "norm"
+      }
+      env$predDf <- rbind(env$predDf,
+                          data.frame(cond=env$curCondition, var=env$curVar, dvid=env$curDvid,
+                                     trHi=env$trLimit[1], trLow=env$trLimit[2],
+                                     transform=env$errTypeInfo$transform,
+                                     errType=env$errTypeInfo$errType,
+                                     errTypeF=env$errTypeInfo$errTypeF,
+                                     addProp=env$errTypeInfo$addProp,
+                                     distribution=factor(env$distribution, levels=.rxDistributionType),
+                                     line=env$line,
+                                     a=env$a,
+                                     b=env$b,
+                                     c=env$c,
+                                     d=env$d,
+                                     e=env$e,
+                                     f=env$f,
+                                     lambda=env$lambda))
+      env$curDvid <- env$curDvid + 1L
+    }
+
   }
 }
 

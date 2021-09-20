@@ -1534,6 +1534,33 @@ rxodeTest({
 
     expect_equal(paste(mod$predDf$distribution), c("t", "norm"))
 
+    .errProcessExpression(quote({
+      ktr ~ exp(tktr + eta.ktr)
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl)
+      v <- exp(tv + eta.v)
+      emax = expit(temax+eta.emax)
+      ec50 =  exp(tec50 + eta.ec50)
+      kout = exp(tkout + eta.kout)
+      e0 = exp(te0 + eta.e0)
+      ##
+      DCP = center/v
+      tmp ~ exp(eta.tr)
+      PD=1-emax*DCP/(ec50+DCP)
+      ##
+      effect(0) = e0
+      kin ~ e0*kout
+      ##
+      d/dt(depot) = -ktr * depot
+      d/dt(gut) =  ktr * depot -ka * gut
+      d/dt(center) =  ka * gut - cl / v * center
+      d/dt(effect) = kin*PD -kout*effect
+      ##
+      cp = center / v
+      n2ll(cp) ~ log(prop.err) + log(pkadd.err)
+      effect ~ add(pdadd.err) | pca
+    }), lmat2) -> mod
+
   })
 
 
