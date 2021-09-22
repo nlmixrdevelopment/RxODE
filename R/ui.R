@@ -31,6 +31,7 @@
   if (.env$convertLabel) {
     cli::cli_alert_info("parameter labels from comments will be replaced by 'label()'")
   }
+  .ret <- deparse(eval(parse(text=paste(.ret, collapse="\n"), keep.source=FALSE)))
   .ret
 }
 
@@ -52,3 +53,24 @@
   .ret
 }
 
+##' Ini block for RxODE/nlmixr models
+##'
+##' @param x expression
+##' @param ...
+##' @return Ini block
+##' @author Matthew Fidler
+##' @export
+ini <- function(x, ...) {
+  UseMethod("ini")
+}
+
+##' Model block for RxODE/nlmixr models
+##'
+##' @param x model expression
+##' @param ... Other arguments
+##' @return Model block with ini information included.  `ini` must be called before `model` block
+##' @author Matthew Fidler
+##' @export
+model <- function(x, ...) {
+  UseMethod("model")
+}

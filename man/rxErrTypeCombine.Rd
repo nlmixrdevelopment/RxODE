@@ -4,15 +4,15 @@
 \alias{rxErrTypeCombine}
 \title{Combine transformations and error structures}
 \usage{
-rxErrTypeCombine(oldDistribution, newDistribution)
+rxErrTypeCombine(oldErrType, newErrType)
 }
 \arguments{
-\item{oldDistribution}{This is the old transformation, by default is
+\item{oldErrType}{This is the old transformation, by default is
 zero representing no prior transformation. This parameter is
 first to allow piping. When the parameter \code{addTransform} is
-missing and \code{oldDistribution} is a character value, this functions
-swaps \code{oldDistribution} and \code{addTransform} and assigns
-\code{oldDistribution} to zero assuming that there is no prior
+missing and \code{oldErrType} is a character value, this functions
+swaps \code{oldErrType} and \code{addTransform} and assigns
+\code{oldErrType} to zero assuming that there is no prior
 distribution.}
 
 \item{newTransform}{This is the new distribution that is being

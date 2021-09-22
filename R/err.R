@@ -739,11 +739,15 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   expression
 }
 
-##' Handle -2LL equivalent for n2ll
+##' Handle -2LL equivalent for n2ll or `linCmt()` statements for lhs
 ##'
 ##' @param expression Left handed side of the equation
-##' @param env Environment for storing information about the error structure
+##'
+##' @param env Environment for storing information about the error
+##'   structure
+##'
 ##' @return Nothing called for side effects
+##'
 ##' @details
 ##'
 ##' The takes the expression
@@ -754,28 +758,41 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
 ##'
 ##' Otherwise it leaves the `expression` alone and returns the value
 ##'
+##' This takes the expression:
+##'
+##' linCmt() ~ add() ...
+##'
+##' And returns a `rxLinCmt` as the lhs value and sets the linCmt flag to TRUE
+##'
+##'
 ##' @author Matthew Fidler
 ##' @noRd
-.errHandleN2ll <- function(expression, env) {
-  if (is.call(expression) &&
-        identical(expression[[1]], quote(`n2ll`)) &&
-        length(expression) == 2L) {
-    env$n2ll <- TRUE
-    return(expression[[2]])
+.errHandleN2llOrLinCmt <- function(expression, env) {
+  if (is.call(expression)) {
+    if (identical(expression[[1]], quote(`n2ll`)) &&
+          length(expression) == 2L) {
+      env$n2ll <- TRUE
+      return(expression[[2]])
+    } else if (identical(expression[[1]], quote(`linCmt`))) {
+      env$linCmt <- TRUE
+      return(quote(`rxLinCmt`))
+    }
   }
   expression
 }
+
 
 ##' Handle the error expressions
 ##'
 ##' @param expression Single tilde error expression
 ##' @param env Environment with initial estimate data.frame
 ##' @return
-##' @author Matthew Fidle
+##' @author Matthew Fidler
 ##' @noRd
 .errHandleTilde <- function(expression, env) {
   env$n2ll <- FALSE
-  .left <- .errHandleN2ll(expression[[2]], env)
+  env$linCmt <- FALSE
+  .left <- .errHandleN2llOrLinCmt(expression[[2]], env)
   env$trLimit <- c(-Inf, Inf)
   env$a <- env$b <- env$c <- env$d <- env$e <- env$f <- env$lambda <- NA_character_
   env$curCondition <- env$curVar <- deparse1(.left)
@@ -814,7 +831,8 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
                                      d=env$d,
                                      e=env$e,
                                      f=env$f,
-                                     lambda=env$lambda))
+                                     lambda=env$lambda,
+                                     linCmt=env$linCmt))
       env$curDvid <- env$curDvid + 1L
 
     }
@@ -841,7 +859,8 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
                                      d=env$d,
                                      e=env$e,
                                      f=env$f,
-                                     lambda=env$lambda))
+                                     lambda=env$lambda,
+                                     linCmt=env$linCmt))
       env$curDvid <- env$curDvid + 1L
     }
 
