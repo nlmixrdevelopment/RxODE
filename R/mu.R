@@ -613,33 +613,33 @@
 ## > f$oneTheta
 ## "tka" "tcl" "tv"
 .rxMuRef0 <- function(x, env) {
-  if (is.call(x)) {
-    if (env$top && identical(x[[1]], quote(`{`))) {
-      env$top <- FALSE
-      y <- x[-1]
-      for (.i in seq_along(y)) {
-        assign(".curEval", "", env)
-        x <- y[[.i]]
-        if (identical(x[[1]], quote(`=`)) ||
-              identical(x[[1]], quote(`~`))) {
-          .handleSingleEtaIfExists(x[[3]], env)
-          if (.rxMuRefHasThetaEtaOrCov(x[[3]], env)){
-            # This line has etas or covariates and might need to be
-            # separated into mu-referenced line
-            .rxMuRefLineIsClean(x, env)
-            lapply(x, .rxMuRef0, env=env)
-          } else {
-            # This line does not depend on etas or covariates
-            # simply add to the body
-            env$body <- c(env$body, list(x))
-          }
+  if (env$top) {
+    env$top <- FALSE
+    y <- x
+    for (.i in seq_along(y)) {
+      assign(".curEval", "", env)
+      x <- y[[.i]]
+      if (identical(x[[1]], quote(`=`)) ||
+            identical(x[[1]], quote(`~`))) {
+        .handleSingleEtaIfExists(x[[3]], env)
+        if (.rxMuRefHasThetaEtaOrCov(x[[3]], env)){
+          # This line has etas or covariates and might need to be
+          # separated into mu-referenced line
+          .rxMuRefLineIsClean(x, env)
+          lapply(x, .rxMuRef0, env=env)
         } else {
-          ## This line is a special statement, simply add to the body
+          # This line does not depend on etas or covariates
+          # simply add to the body
           env$body <- c(env$body, list(x))
         }
+      } else {
+        ## This line is a special statement, simply add to the body
+        env$body <- c(env$body, list(x))
       }
-    } else if (identical(x[[1]], quote(`+`))) {
-      .muRefHandlePlus(x, env)
+    }
+  } else if (is.call(x)) {
+    if (identical(x[[1]], quote(`+`))) {
+    .muRefHandlePlus(x, env)
     } else {
       assign(".curEval", as.character(x[[1]]), env)
       .handleSingleEtaIfExists(x[[2]], env)
@@ -696,12 +696,18 @@
 ## 4. theta: theta from ini
 ## 5. eta: eta from ini
 
-.rxMuRefSetupInitialEnvironment <- function(mod, ini) {
-  .eta <- dimnames(ini)[[1]]
-  .iniDf <- as.data.frame(ini)
+.rxMuRefSetupInitialEnvironment <- function(mod, ini=NULL) {
+  if (is.null(ini)) {
+
+  } else {
+    .eta <- dimnames(ini)[[1]]
+    .iniDf <- as.data.frame(ini)
+    .mv  <- rxModelVars(mod)
+    .env <- new.env(parent=emptyenv())
+  }
   .theta <- .iniDf$name[!is.na(.iniDf$ntheta)]
-  .mv  <- rxModelVars(mod)
   .expr <- eval(parse(text=paste0("quote({",rxNorm(.mv),"})")))
+  .expr <- .expr[-1]
   .state <- .mv$state
 
   .params <- .mv$params
@@ -712,7 +718,7 @@
                 theta=.theta,
                 eta=.eta,
                 cov=setdiff(.params, c(.theta, .eta)))
-  .env <- new.env(parent=emptyenv())
+
   .env$param <- list()
   .env$body <- list()
   .env$info <- .info
@@ -800,9 +806,6 @@
 ##'
 ##' @noRd
 .rxMuRef <- function(mod, ini=NULL) {
-  if (!inherits(ini, "lotriFix")) {
-    stop("requires a lotri object with at least one fixed effect", call.=FALSE)
-  }
   .env <- .rxMuRefSetupInitialEnvironment(mod, ini)
   .rxMuRef0(.env$.expr, env=.env)
   if (length(.env$err) > 0) {
