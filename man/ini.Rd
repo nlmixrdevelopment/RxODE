@@ -2,12 +2,17 @@
 % Please edit documentation in R/ui.R
 \name{ini}
 \alias{ini}
+\alias{ini.default}
 \title{Ini block for RxODE/nlmixr models}
 \usage{
-ini(x, ...)
+ini(x, ..., envir = parent.frame())
+
+\method{ini}{default}(x, ...)
 }
 \arguments{
 \item{x}{expression}
+
+\item{...}{Other expressions for \code{ini()} function}
 }
 \value{
 Ini block

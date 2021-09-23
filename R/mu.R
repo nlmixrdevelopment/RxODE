@@ -798,8 +798,8 @@
 ##'        add.sd <- 0.7
 ##'     })
 ##'
-##' @export
-rxMuRef <- function(mod, ini=NULL) {
+##' @noRd
+.rxMuRef <- function(mod, ini=NULL) {
   if (!inherits(ini, "lotriFix")) {
     stop("requires a lotri object with at least one fixed effect", call.=FALSE)
   }

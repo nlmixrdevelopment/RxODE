@@ -53,15 +53,27 @@
   .ret
 }
 
+.lastIni <- NULL
 ##' Ini block for RxODE/nlmixr models
 ##'
 ##' @param x expression
-##' @param ...
+##' @param ... Other expressions for `ini()` function
 ##' @return Ini block
 ##' @author Matthew Fidler
 ##' @export
-ini <- function(x, ...) {
+ini <- function(x, ..., envir = parent.frame()) {
+  if (is(substitute(x), "{")) {
+    .ini <- eval(bquote(lotri(.(substitute(x)))), envir=envir)
+    assignInMyNamespace(".lastIni", .ini)
+    return(invisible(.ini))
+  }
   UseMethod("ini")
+}
+
+##' @export
+##' @rdname ini
+ini.default <- function(x, ...) {
+
 }
 
 ##' Model block for RxODE/nlmixr models
@@ -72,5 +84,23 @@ ini <- function(x, ...) {
 ##' @author Matthew Fidler
 ##' @export
 model <- function(x, ...) {
+  if (is(substitute(x), "{")) {
+    .ini <- .lastIni
+    if (is.null(.ini)) {
+      stop("ini({}) block must be called before the model block",
+           call.=FALSE)
+    }
+    assignInMyNamespace(".lastIni", NULL)
+    .mod <- eval(bquote(.errProcessExpression(quote(.(substitute(x))), .ini)))
+    return(.mod)
+   }
   UseMethod("model")
 }
+
+##' @export
+##' @rdname model
+model.default <- function(x, ...) {
+
+}
+
+

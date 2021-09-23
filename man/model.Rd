@@ -2,9 +2,12 @@
 % Please edit documentation in R/ui.R
 \name{model}
 \alias{model}
+\alias{model.default}
 \title{Model block for RxODE/nlmixr models}
 \usage{
 model(x, ...)
+
+\method{model}{default}(x, ...)
 }
 \arguments{
 \item{x}{model expression}

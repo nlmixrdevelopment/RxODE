@@ -16,14 +16,14 @@ rxodeTest({
     })
 
     testBounded <- function(type="expit") {
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, a, b)"), lmat))
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, b)"), lmat))
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, b)"), lmat))
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, 2)"), lmat), NA)
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 2, 1)"), lmat))
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 0.5)"), lmat), NA)
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, a)"), lmat))
-      expect_error(rxMuRef(paste0("a=", type, "(tka + eta.ka, 4)"), lmat))
+      expect_error(.rx$.rxMuRef(paste0("a=", type, "(tka + eta.ka, a, b)"), lmat))
+      expect_error(.rx$.rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, b)"), lmat))
+      expect_error(.rx$.rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, b)"), lmat))
+      expect_error(.rx$.rxMuRef(paste0("a=", type, "(tka + eta.ka, 1, 2)"), lmat), NA)
+      expect_error(.rx$.rxMuRef(paste0("a=", type, "(tka + eta.ka, 2, 1)"), lmat))
+      expect_error(.rx$.rxMuRef(paste0("a=", type, "(tka + eta.ka, 0.5)"), lmat), NA)
+      expect_error(.rx$.rxMuRef(paste0("a=", type, "(tka + eta.ka, a)"), lmat))
+      expect_error(.rx$.rxMuRef(paste0("a=", type, "(tka + eta.ka, 4)"), lmat))
     }
 
     testBounded("logit")
@@ -41,8 +41,8 @@ rxodeTest({
   })
 
   test_that("bad mu referencing examples (throw error)", {
-    expect_error(rxMuRef("a=theta1+theta2+theta3*wt+eta1", lmat))
-    expect_error(rxMuRef("a=theta1+theta2*wt+theta3*wt+eta1", lmat))
+    expect_error(.rx$.rxMuRef("a=theta1+theta2+theta3*wt+eta1", lmat))
+    expect_error(.rx$.rxMuRef("a=theta1+theta2*wt+theta3*wt+eta1", lmat))
   })
 
 
@@ -81,7 +81,7 @@ rxodeTest({
       add.sd <- 0.7
     })
 
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl)
       v <- tv + eta.v
@@ -119,7 +119,7 @@ rxodeTest({
     })
 
     ## ## Test a duplicated eta; It shouldn't be counted as mu-referenced
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       EmaxA <- exp(t.EmaxA + eta.emax)
       EmaxB <- exp(t.EmaxB + eta.emax)
       EmaxC <- exp(t.EmaxC + eta.emax)
@@ -138,7 +138,7 @@ list(muRefCovariateDataFrame = structure(list(theta = character(0),
     muRefExtra = structure(list(parameter = character(0), extra = character(0)), class = "data.frame", row.names = integer(0)),
     muRefExtraEmpty = c("t.EmaxA", "t.EmaxB", "t.EmaxC"), nonMuEtas = "eta.emax"))
 
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       EmaxA <- exp(t.EmaxA + eta.emax)
       EmaxB <- exp(t.EmaxB + eta.emax)
       EmaxC <- t.EmaxC + eta.emax
@@ -157,7 +157,7 @@ list(muRefCovariateDataFrame = structure(list(theta = character(0),
     muRefExtra = structure(list(parameter = character(0), extra = character(0)), class = "data.frame", row.names = integer(0)),
     muRefExtraEmpty = c("t.EmaxA", "t.EmaxB", "t.EmaxC"), nonMuEtas = "eta.emax"))
 
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       EmaxB <- t.EmaxB + eta.emax
       EmaxA <- exp(t.EmaxA + eta.emax)
     }), lmat)
@@ -195,7 +195,7 @@ list(muRefCovariateDataFrame = structure(list(theta = character(0),
       add.sd <- 0.7
     })
 
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       d/dt(depot) = -exp(tka + eta.ka) * depot
       d/dt(center) = exp(tka + eta.ka) * depot - exp(tcl + eta.cl)/exp(tv + eta.v) * center
       cp = center/exp(tv + eta.v)
@@ -235,7 +235,7 @@ list(muRefCovariateDataFrame = structure(list(theta = character(0),
       add.sd <- 0.7
     })
 
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       ka <- tka * exp(eta.ka + 0)
       cl <- tcl * exp(eta.cl + 0)
       v <- tv * exp(eta.v + 0)
@@ -260,7 +260,7 @@ list(muRefCovariateDataFrame = structure(list(theta = character(0),
     ), class = "data.frame"), muRefExtraEmpty = NULL, nonMuEtas = c("eta.ka",
     "eta.cl", "eta.v")))
 
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       ka <- tka * exp(eta.ka + 0)
       cl <- tcl * exp(eta.cl + 0)
       v <- tv * exp(eta.v + 0)
@@ -286,7 +286,7 @@ list(muRefCovariateDataFrame = structure(list(theta = character(0),
                                                        ), class = "data.frame"), muRefExtraEmpty = "tv", nonMuEtas = c("eta.ka",
     "eta.cl", "eta.v")))
 
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       ka <- tka * exp(eta.ka)
       cl <- tcl * exp(eta.cl)
       v <- tv * exp(eta.v)
@@ -310,7 +310,7 @@ list(muRefCovariateDataFrame = structure(list(theta = character(0),
     muRefExtraEmpty = NULL, nonMuEtas = c("eta.ka", "eta.cl",
     "eta.v")))
 
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       ka <- tka * exp(eta.ka)
       cl <- tcl * exp(eta.cl)
       v <- tv * exp(eta.v)
@@ -334,7 +334,6 @@ list(muRefCovariateDataFrame = structure(list(theta = character(0),
                  muRefExtra = structure(list(parameter = character(0), extra = character(0)), class = "data.frame", row.names = integer(0)),
                  muRefExtraEmpty = NULL, nonMuEtas = c("eta.ka", "eta.cl",
                                                        "eta.v")))
-ee
   })
 
   test_that("test covariates", {
@@ -363,7 +362,7 @@ ee
       add.sd <- 0.7
     })
 
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)
@@ -395,7 +394,7 @@ ee
 
 
     # This one tv is used in 2 covariate references
-    env <- rxMuRef(RxODE({
+    env <- .rx$.rxMuRef(RxODE({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl + log(wt / 70) * cl.wt + sex * cl.sex + age * cl.age + 3)
       v  <- exp(tv + eta.v + wt * v.wt + sex * v.sex + age * v.age + 2)

@@ -972,7 +972,7 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
                          "errTypeInfo", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
                          "lastDistAssign", "line", "needsToBeAnErrorExpression", "needToDemoteAdditiveExpression",
                          "top", "trLimit", ".numeric", "a", "b", "c", "d", "e", "f",  "lambda",
-                         "curCmt", "errGlobal"),
+                         "curCmt", "errGlobal", "linCmt", "n2ll"),
                        ls(envir=.env, all.names=TRUE))
       if (length(.rm) > 0) rm(list=.rm, envir=.env)
       return(.env)
