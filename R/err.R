@@ -940,7 +940,7 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
           .env$hasErrors <- TRUE
         }
       }
-      .env$ini <- .env$df
+      .env$iniDf <- .env$df
       if (is.null(.env$predDf)) {
         .env$errGlobal <- c(.env$errGlobal,
                             "there must be at least one prediction in the model({}) block.  Use `~` for predictions")
@@ -972,7 +972,7 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
                          "errTypeInfo", "err", "hasNonErrorTerm", "isAnAdditiveExpression",
                          "lastDistAssign", "line", "needsToBeAnErrorExpression", "needToDemoteAdditiveExpression",
                          "top", "trLimit", ".numeric", "a", "b", "c", "d", "e", "f",  "lambda",
-                         "curCmt", "errGlobal", "linCmt", "n2ll"),
+                         "curCmt", "errGlobal", "linCmt", "n2ll", "distribution"),
                        ls(envir=.env, all.names=TRUE))
       if (length(.rm) > 0) rm(list=.rm, envir=.env)
       return(.env)

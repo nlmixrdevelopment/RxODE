@@ -698,7 +698,10 @@
 
 .rxMuRefSetupInitialEnvironment <- function(mod, ini=NULL) {
   if (is.null(ini)) {
-
+    .eta <- mod$eta
+    .iniDf <- mod$iniDf
+    .mv <- mod$mv0
+    .env <- mod
   } else {
     .eta <- dimnames(ini)[[1]]
     .iniDf <- as.data.frame(ini)
@@ -813,5 +816,13 @@
                 paste(.env$err, collapse="\n")),
          call.=FALSE)
   }
+  .rm <- intersect(c(".curEval", ".curLineClean", ".expr", ".found", "body", "cov.ref",
+                     "err", "exp.theta", "expit.theta", "expit.theta.hi", "expit.theta.low",
+                     "found", "info", "log.theta", "logit.theta", "logit.theta.hi",
+                     "logit.theta.low", "param", "probit.theta", "probit.theta.hi",
+                     "probit.theta.low", "probitInv.theta", "probitInv.theta.hi",
+                     "probitInv.theta.low", "top"),
+                   ls(envir=.env, all.names=TRUE))
+  if (length(.rm) > 0) rm(list=.rm, envir=.env)
   return(invisible(.env))
 }

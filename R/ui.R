@@ -91,7 +91,8 @@ model <- function(x, ...) {
            call.=FALSE)
     }
     assignInMyNamespace(".lastIni", NULL)
-    .mod <- eval(bquote(.errProcessExpression(quote(.(substitute(x))), .ini)))
+    .mod <- .rxMuRef(eval(bquote(.errProcessExpression(quote(.(substitute(x))), .ini))))
+    class(.mod) <- "rxUi"
     return(.mod)
    }
   UseMethod("model")
