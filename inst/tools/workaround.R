@@ -17,6 +17,7 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
 .in <- gsub("@BH@", file.path(find.package("BH"),"include"), .in)
 .in <- gsub("@RCPP@", file.path(find.package("Rcpp"),"include"), .in)
 .in <- gsub("@EG@", file.path(find.package("RcppEigen"),"include"), .in)
+.in <- gsub("@RCPAR@", file.path(find.package("RcppParallel"),"include"), .in)
 
 .badStan <- ""
 .in <- gsub("@SH@", gsub("-I", "-@ISYSTEM@",
@@ -26,7 +27,7 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
                                .badStan)),
             .in)
 
-.in <- gsub("@SL@", "", ##paste(capture.output(StanHeaders:::LdFlags()), capture.output(RcppParallel:::RcppParallelLibs())),
+.in <- gsub("@SL@", paste(capture.output(StanHeaders:::LdFlags()), capture.output(RcppParallel:::RcppParallelLibs())),
             .in)
 
 if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {
