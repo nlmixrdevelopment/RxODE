@@ -27,7 +27,7 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
                                .badStan)),
             .in)
 
-.in <- gsub("@SL@", paste(capture.output(StanHeaders:::LdFlags()), capture.output(RcppParallel:::RcppParallelLibs())),
+.in <- gsub("@SL@", paste(capture.output(StanHeaders::LdFlags()), capture.output(RcppParallel::RcppParallelLibs())),
             .in)
 
 if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {
