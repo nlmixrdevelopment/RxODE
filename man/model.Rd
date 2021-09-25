@@ -5,7 +5,7 @@
 \alias{model.default}
 \title{Model block for RxODE/nlmixr models}
 \usage{
-model(x, ...)
+model(x, ..., envir = parent.frame())
 
 \method{model}{default}(x, ...)
 }
