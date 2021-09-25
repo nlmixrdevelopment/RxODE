@@ -53,6 +53,11 @@
   .ret
 }
 
+.rxFunction2ui <- function(fun) {
+  .fun <- eval(parse(text=paste(.rxFunction2string(fun), collapse="\n")))
+  .fun()
+}
+
 .lastIni <- NULL
 ##' Ini block for RxODE/nlmixr models
 ##'
@@ -83,7 +88,7 @@ ini.default <- function(x, ...) {
 ##' @return Model block with ini information included.  `ini` must be called before `model` block
 ##' @author Matthew Fidler
 ##' @export
-model <- function(x, ...) {
+model <- function(x, ..., envir=parent.frame()) {
   if (is(substitute(x), "{")) {
     .ini <- .lastIni
     if (is.null(.ini)) {
@@ -92,6 +97,13 @@ model <- function(x, ...) {
     }
     assignInMyNamespace(".lastIni", NULL)
     .mod <- .rxMuRef(eval(bquote(.errProcessExpression(quote(.(substitute(x))), .ini))))
+    .meta <- new.env(parent=emptyenv())
+    if (!identical(envir, globalenv())) {
+      for (.i in ls(envir, all=TRUE)) {
+        assign(.i, get(.i, envir), .meta)
+      }
+    }
+    .mod$meta <- .meta
     class(.mod) <- "rxUi"
     return(.mod)
    }
