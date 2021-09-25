@@ -19,17 +19,17 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
 .in <- gsub("@EG@", file.path(find.package("RcppEigen"),"include"), .in)
 .in <- gsub("@RCPAR@", file.path(find.package("RcppParallel"),"include"), .in)
 
+.stanLibs <- '$(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "RcppParallel::RcppParallelLibs()") $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "StanHeaders:::LdFlags()")'
+.stanCxx <- '$(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "RcppParallel::CxxFlags()") $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "StanHeaders:::CxxFlags()")'
+
 .badStan <- ""
 .in <- gsub("@SH@", gsub("-I", "-@ISYSTEM@",
-                         paste(## capture.output(StanHeaders:::CxxFlags()),
-                               ## capture.output(RcppParallel:::CxxFlags()),
+                         paste(.stanCxx,
                                paste0("-@ISYSTEM@'", system.file('include', 'src', package = 'StanHeaders', mustWork = TRUE), "'"),
                                .badStan)),
             .in)
-
-# Need to wrap in eval(parse()) to circumvent CodeFactor errors
-.in <- gsub("@SL@", capture.output(eval(parse(text="StanHeaders:::LdFlags()"))),
-            .in)
+  
+.in <- gsub("@SL@", .stanLibs, .in)
 
 if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {
   .in <- gsub("@CXX14STD@", "-std=c++1y", .in)
