@@ -27,8 +27,8 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
                                .badStan)),
             .in)
 
-.in <- gsub("@SL@", system(paste(paste0(Sys.getenv("R_HOME"),"/bin",Sys.getenv("R_ARCH_BIN"),"/Rscript"),
-                                 "-e 'StanHeaders:::LdFlags()'"),intern=T),
+# Need to wrap in eval(parse()) to circumvent CodeFactor errors
+.in <- gsub("@SL@", capture.output(eval(parse(text="StanHeaders:::LdFlags()"))),
             .in)
 
 if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {
