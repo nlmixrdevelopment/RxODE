@@ -13,21 +13,21 @@
   .regCommentOnBlankLine <- "^ *#+ *(.*) *$"
   .regLabel <- "^( *[^\n\"]+) *#+ *(.*) *$"
   .ret <- vapply(src,
-         function(line) {
-           if (regexpr(.regIni, line, perl=TRUE) != -1) {
-             .env$inIni <- TRUE
-           } else if (regexpr(.regOther, line, perl=TRUE) != -1) {
-             .env$inIni <- FALSE
-           } else if (.env$inIni) {
-             if (regexpr(.regCommentOnBlankLine, line) != -1) {
-             } else if (regexpr(.regLabel, line) != -1) {
-               .env$convertLabel <- TRUE
-               .label <- deparse1(sub(.regLabel, "\\2", line))
-               return(sub(.regLabel, paste0("\\1; label(", .label, ")"), line))
-             }
-           }
-           line
-         }, character(1), USE.NAMES = FALSE)
+                 function(line) {
+                   if (regexpr(.regIni, line, perl=TRUE) != -1) {
+                     .env$inIni <- TRUE
+                   } else if (regexpr(.regOther, line, perl=TRUE) != -1) {
+                     .env$inIni <- FALSE
+                   } else if (.env$inIni) {
+                     if (regexpr(.regCommentOnBlankLine, line) != -1) {
+                     } else if (regexpr(.regLabel, line) != -1) {
+                       .env$convertLabel <- TRUE
+                       .label <- deparse1(sub(.regLabel, "\\2", line))
+                       return(sub(.regLabel, paste0("\\1; label(", .label, ")"), line))
+                     }
+                   }
+                   line
+                 }, character(1), USE.NAMES = FALSE)
   if (.env$convertLabel) {
     cli::cli_alert_info("parameter labels from comments will be replaced by 'label()'")
   }
