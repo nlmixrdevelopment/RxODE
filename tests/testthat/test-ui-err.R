@@ -70,7 +70,7 @@ rxodeTest({
       d/dt(depot) = -ka * depot
       d/dt(center) = ka * depot - cl/v * center
       cp = center/v
-      cp ~ dbinom(add.sd, pow)
+      cp ~ dbinom(add.sd, pow, lambda)
       center ~ pow(pow.sd, pow) + boxCox(lambda) | cond
     }), lmat))
   })
@@ -442,7 +442,7 @@ rxodeTest({
 
   })
 
-  test_that("categorical expressions", {
+   test_that("categorical expressions", {
 
     expect_err2(.errProcessExpression(quote({
       ka <- exp(tka + eta.ka)
@@ -466,7 +466,7 @@ rxodeTest({
       cp ~ c(add.sd, pow.sd, pow, lambda) | cond
     }), lmat) -> mod
 
-    testOrd <- mod$ini[which(mod$ini$condition == "cond"),c("name","err")]
+    testOrd <- mod$iniDf[which(mod$iniDf$condition == "cond"),c("name","err")]
     row.names(testOrd) <- NULL
 
     expect_equal(testOrd, structure(list(name = c("add.sd", "pow.sd", "pow", "lambda"),
@@ -1001,7 +1001,7 @@ rxodeTest({
       ##
       cp = center / v + pdadd.err
       cp ~ prop(prop.err) + add(pkadd.err)
-      effect ~ dpois()
+      effect ~ dpois(lambda)
     }), lmat) -> mod
 
     expect_equal(paste(mod$predDf$distribution), c("norm", "pois"))
@@ -1030,7 +1030,7 @@ rxodeTest({
       ##
       cp = center / v + pdadd.err
       cp ~ prop(prop.err) + add(pkadd.err)
-      effect ~ dbinom()
+      effect ~ dbinom(pdadd.err)
     }), lmat) -> mod
 
     expect_equal(paste(mod$predDf$distribution), c("norm", "binom"))
@@ -1059,7 +1059,7 @@ rxodeTest({
       ##
       cp = center / v + pdadd.err
       cp ~ prop(prop.err) + add(pkadd.err)
-      effect ~ binom()
+      effect ~ binom(pdadd.err)
     }), lmat) -> mod
 
     expect_equal(paste(mod$predDf$distribution), c("norm", "binom"))
@@ -1205,7 +1205,7 @@ rxodeTest({
       ##
       cp = center / v
       cp ~ hyper(prop.err, pkadd.err, pdadd.err)
-      effect ~ dpois() | pca
+      effect ~ dpois(pdadd.err) | pca
     }), lmat) -> mod
 
     expect_equal(paste(mod$predDf$distribution), c("hyper", "pois"))

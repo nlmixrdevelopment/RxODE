@@ -65,7 +65,7 @@
 .errAddDists <- c("add", "prop", "propT", "propF", "norm", "pow", "powT", "powF", "dnorm", "logn", "lnorm", "dlnorm", "tbs", "tbsYj", "boxCox",
                   "yeoJohnson", "logitNorm", "probitNorm", "combined1", "combined2", "comb1", "comb2", "t")
 
-.errIdDists <- list(
+.errIdenticalDists <- list(
   "add"=c("norm", "dnorm"),
   "lnorm"=c("logn", "dlogn", "dlnorm"),
   "boxCox"="tbs",
