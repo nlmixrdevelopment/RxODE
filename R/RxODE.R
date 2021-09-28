@@ -286,13 +286,6 @@ RxODE <- # nolint
            linCmtSens = c("linCmtA", "linCmtB", "linCmtC"),
            indLin = FALSE,
            verbose = FALSE) {
-    if (inherits(model, "function")) {
-      .args <- as.list(match.call())[-1]
-      if (length(.args) != 1L) {
-        stop("model functions can only be called with one argument", call.=FALSE)
-      }
-      return(.rxFunction2ui(model))
-    }
     rxSuppressMsg()
     if (!missing(modName)) {
       if (!checkmate::testCharacter(modName, max.len = 1)) {
@@ -343,6 +336,12 @@ RxODE <- # nolint
           model <- model[-length(model)]
         }
         model <- paste(model, collapse = "\n")
+       } else if (inherits(model, "function")) {
+         .args <- as.list(match.call())[-1]
+         if (length(.args) != 1L) {
+           stop("model functions can only be called with one argument", call.=FALSE)
+         }
+         return(.rxFunction2ui(model))
       } else if (is(model, "RxODE")) {
         package <- get("package", model)
         if (!is.null(package)) {

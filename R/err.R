@@ -1,11 +1,11 @@
 ## This is a list of supported distributions with the number of arguments they currently support.
 .errDist <- list(
-  "dpois" = 0,
-  "pois" = 0,
-  "dbinom" = 0:1,
-  "binom"=0:1,
-  "dbern" = 0,
-  "bern" = 0,
+  "dpois" = 1,
+  "pois" = 1,
+  "dbinom" = 1:2,
+  "binom"=1:2,
+  "dbern" = 1,
+  "bern" = 1,
   "dbeta" = 2:3,
   "beta" = 2:3,
   "dt" = 1:2,
@@ -65,7 +65,7 @@
 .errAddDists <- c("add", "prop", "propT", "propF", "norm", "pow", "powT", "powF", "dnorm", "logn", "lnorm", "dlnorm", "tbs", "tbsYj", "boxCox",
                   "yeoJohnson", "logitNorm", "probitNorm", "combined1", "combined2", "comb1", "comb2", "t")
 
-.errIdenticalDists <- list(
+.errIdDists <- list(
   "add"=c("norm", "dnorm"),
   "lnorm"=c("logn", "dlogn", "dlnorm"),
   "boxCox"="tbs",
@@ -1277,7 +1277,6 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
          )
 }
 
-
 ##' Handle the single error for normal or t distributions
 ##'
 ##' @param env Environment for the parsed model
@@ -1289,10 +1288,10 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
 ##' - `rx_hi_` The upper boundary of the transformation
 ##' - `rx_pred_f_` The prediction function
 ##' - `rx_pred_` The transformed prediction function
-##' - `rx_r_`
+##' - `rx_r_` The transformed variance
 ##' @author Matthew Fidler
 ##' @noRd
-.handleSingleErrTypeNormOrT <- function(env, pred1) {
+.handleSingleErrTypeNormOrTFoceiBase <- function(env, pred1) {
   .ret <- vector("list", 7)
   .yj <- as.double(pred1$transform) - 1
   .ret[[1]] <- bquote(rx_yj_ ~ .(.yj))
@@ -1305,7 +1304,19 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   .ret
 }
 
-.handleSingleErrType <- function(env, i) {
+##' Calculate the focei base information.
+##'
+##' @param env Environment for the parsed model
+##' @param i The error row that is being parsed
+##' @return quoted R lines for the focei setup
+##' @author Matthew Fidler
+##' @noRd
+.handleSingleErrTypeFoceiBase <- function(env, i) {
   .pred1 <- env$predDf[i, ]
-  .handleSingleErrTypeNormOrT(env, .pred1)
+  if (tmp$predDf$distribution %in% c("norm", "t")) {
+    .handleSingleErrTypeNormOrTFoceiBase(env, .pred1)
+  } else {
+    # This is for the non-normal cases
+  }
 }
+

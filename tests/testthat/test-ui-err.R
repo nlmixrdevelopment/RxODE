@@ -972,7 +972,7 @@ rxodeTest({
       ##
       cp = center / v + pdadd.err
       cp ~ prop(prop.err) + add(pkadd.err)
-      effect ~ pois()
+      effect ~ pois(lambda)
     }), lmat) -> mod
 
     expect_equal(paste(mod$predDf$distribution), c("norm", "pois"))
