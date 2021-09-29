@@ -19,8 +19,11 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
 .in <- gsub("@EG@", file.path(find.package("RcppEigen"),"include"), .in)
 .in <- gsub("@RCPAR@", file.path(find.package("RcppParallel"),"include"), .in)
 
-.stanLibs <- '$(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "RcppParallel::RcppParallelLibs()") $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "StanHeaders:::LdFlags()")'
-.stanCxx <- '$(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "RcppParallel::CxxFlags()") $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "StanHeaders:::CxxFlags()")'
+.rcParLibs <- '`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "RcppParallel::RcppParallelLibs()"`'
+# Strip single quotes due to OSX build error
+.stanHLibs <- '`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "cat(gsub(\\\\"\\\'\\\\",\\\\"\\\\",capture.output(StanHeaders:::LdFlags())))"`'
+.stanCxx <- '`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "RcppParallel::CxxFlags()"`'
+.rcparCxx <- '`"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "StanHeaders:::CxxFlags()"`'
 
 .badStan <- ""
 .in <- gsub("@SH@", gsub("-I", "-@ISYSTEM@",
@@ -29,7 +32,10 @@ for (f in c("inst/include/RxODE_RcppExports.h", "src/RcppExports.cpp")) {
                                .badStan)),
             .in)
   
-.in <- gsub("@SL@", .stanLibs, .in)
+.in <- gsub("@RCPAR_L@", .rcParLibs, .in)
+.in <- gsub("@SH_L@", .stanHLibs, .in)
+.in <- gsub("@SH_C@", .stanCxx, .in)
+.in <- gsub("@RCPAR_C@", .rcparCxx, .in)
 
 if (.Platform$OS.type == "windows" && !file.exists("src/Makevars.win")) {
   .in <- gsub("@CXX14STD@", "-std=c++1y", .in)
