@@ -118,26 +118,26 @@
 ## mu-referencing routine
 
 
-##' Change distribution name to the preferred distribution name term
-##'
-##' This is determined by the internal preferred condition name list
-##' `.errIdenticalDists`
-##'
-##' @param dist This is the input distribution
-##' @return Preferred distribution term
-##' @author Matthew Fidler
-##'
-##' @examples
-##'
-##' rxPreferredDistributionName("dnorm")
-##'
-##' rxPreferredDistributionName("add")
-##'
-##' # can be vectorized
-##'
-##' rxPreferredDistributionName(c("add","dnorm"))
-##'
-##' @export
+#' Change distribution name to the preferred distribution name term
+#'
+#' This is determined by the internal preferred condition name list
+#' `.errIdenticalDists`
+#'
+#' @param dist This is the input distribution
+#' @return Preferred distribution term
+#' @author Matthew Fidler
+#'
+#' @examples
+#'
+#' rxPreferredDistributionName("dnorm")
+#'
+#' rxPreferredDistributionName("add")
+#'
+#' # can be vectorized
+#'
+#' rxPreferredDistributionName(c("add","dnorm"))
+#'
+#' @export
 rxPreferredDistributionName <- function(dist) {
   if (length(dist) == 1) {
     .names <- names(.errIdenticalDists)
@@ -220,23 +220,23 @@ rxPreferredDistributionName <- function(dist) {
   "-2LL" #14
 )
 
-##' Demote the error type
-##'
-##' @param errType Error type factor
-##' @return Demoted Error Type
-##' @author Matthew Fidler
-##' @export
-##' @examples
-##' rxErrTypeCombine("add") %>%
-##'   rxErrTypeCombine("prop")
-##'
-##' # This removes the internal additive error
-##' rxErrTypeCombine("add") %>%
-##'   rxErrTypeCombine("prop") %>%
-##'   rxDemoteAddErr()
-##'
-##' # This is used for logitNorm(NA), the additive portion is stripped
-##' @keywords internal
+#' Demote the error type
+#'
+#' @param errType Error type factor
+#' @return Demoted Error Type
+#' @author Matthew Fidler
+#' @export
+#' @examples
+#' rxErrTypeCombine("add") %>%
+#'   rxErrTypeCombine("prop")
+#'
+#' # This removes the internal additive error
+#' rxErrTypeCombine("add") %>%
+#'   rxErrTypeCombine("prop") %>%
+#'   rxDemoteAddErr()
+#'
+#' # This is used for logitNorm(NA), the additive portion is stripped
+#' @keywords internal
 rxDemoteAddErr <- function(errType) {
   if (inherits(errType, "factor")) {
     return(structure(switch(as.character(errType),
@@ -279,13 +279,13 @@ rxDemoteAddErr <- function(errType) {
   .errs <- sort(c(err1, err2))
    paste0("`", .errs[1], "` and `", .errs[2], "` are incompatible")
 }
-##' Combine error types to get the model F type
-##'
-##' @param newAddProp New error type
-##' @param oldAddProp old error type
-##' @return factor of the error type function OR a string indicating a syntax error
-##' @author Matthew Fidler
-##' @noRd
+#' Combine error types to get the model F type
+#'
+#' @param newAddProp New error type
+#' @param oldAddProp old error type
+#' @return factor of the error type function OR a string indicating a syntax error
+#' @author Matthew Fidler
+#' @noRd
 .rxCombineAddProp <- function(newAddProp, oldAddProp="default") {
   .tmp <- as.character(oldAddProp)
   .w <- which(names(.incompatibleAddProp) == .tmp)
@@ -309,13 +309,13 @@ rxDemoteAddErr <- function(errType) {
             class="factor")
 }
 
-##' Combine error types to get the model F type
-##'
-##' @param newErrTypeF New error type
-##' @param oldErrTypeF old error type
-##' @return factor of the error type function OR a string indicating a syntax error
-##' @author Matthew Fidler
-##' @noRd
+#' Combine error types to get the model F type
+#'
+#' @param newErrTypeF New error type
+#' @param oldErrTypeF old error type
+#' @return factor of the error type function OR a string indicating a syntax error
+#' @author Matthew Fidler
+#' @noRd
 .rxCombineErrTypeF <- function(newErrTypeF, oldErrTypeF="none") {
   .tmp <- as.character(oldErrTypeF)
   .w <- which(names(.incompatibleErrTypeF) == .tmp)
@@ -404,13 +404,13 @@ rxDemoteAddErr <- function(errType) {
             .Label=.rxErrType,
             class="factor")
 }
-##' Combine transformations
-##'
-##' @param newTransform New error structure added together
-##' @param oldTransform Old transformation added together
-##' @return A factor describing the transformation type
-##' @author Matthew Fidler
-##' @noRd
+#' Combine transformations
+#'
+#' @param newTransform New error structure added together
+#' @param oldTransform Old transformation added together
+#' @return A factor describing the transformation type
+#' @author Matthew Fidler
+#' @noRd
 .rxCombineTransform <- function(newTransform, oldTransform="untransformed") {
   .tmp <- as.character(oldTransform)
   .w <- which(names(.incompatibleTransformations) == .tmp)
@@ -450,12 +450,12 @@ rxDemoteAddErr <- function(errType) {
             class="factor")
 }
 
-##' This is a wrapper to make sure that the transformation combination returns the correct value
-##'
-##' @param inputList This is either an input list or character vector of length one
-##' @return Either a complete list, or a character vector which represents the parsed error that was encountered
-##' @author Matthew Fidler
-##' @noRd
+#' This is a wrapper to make sure that the transformation combination returns the correct value
+#'
+#' @param inputList This is either an input list or character vector of length one
+#' @return Either a complete list, or a character vector which represents the parsed error that was encountered
+#' @author Matthew Fidler
+#' @noRd
 .rxTransformCombineListOrChar <- function(inputList) {
   if (inherits(inputList, "character")) return(inputList)
   .err  <- NULL
@@ -474,40 +474,40 @@ rxDemoteAddErr <- function(errType) {
 }
 
 
-##' Combine transformations and error structures
-##'
-##' Combine error information to figure out what transformation is
-##' being applied for the current endpoint
-##'
-##'
-##' @param oldErrType This is the old transformation, by default is
-##'   zero representing no prior transformation. This parameter is
-##'   first to allow piping. When the parameter `addTransform` is
-##'   missing and `oldErrType` is a character value, this functions
-##'   swaps `oldErrType` and `addTransform` and assigns
-##'   `oldErrType` to zero assuming that there is no prior
-##'   distribution.
-##'
-##' @param newTransform This is the new distribution that is being
-##'   "added" to the current transformation.  These assumes the inputs
-##'   are in the preferred distribution name, as determined by
-##'   `rxPreferredDistributionName()`
-##'
-##'
-##' @return The new transformation as a factor
-##'
-##' @author Matthew Fidler
-##'
-##' @examples
-##'
-##' rxErrTypeCombine("probitNorm")
-##'
-##' rxErrTypeCombine("probitNorm") %>%
-##'   rxErrTypeCombine("boxCox")
-##'
-##'
-##' @export
-##' @keywords internal
+#' Combine transformations and error structures
+#'
+#' Combine error information to figure out what transformation is
+#' being applied for the current endpoint
+#'
+#'
+#' @param oldErrType This is the old transformation, by default is
+#'   zero representing no prior transformation. This parameter is
+#'   first to allow piping. When the parameter `addTransform` is
+#'   missing and `oldErrType` is a character value, this functions
+#'   swaps `oldErrType` and `addTransform` and assigns
+#'   `oldErrType` to zero assuming that there is no prior
+#'   distribution.
+#'
+#' @param newTransform This is the new distribution that is being
+#'   "added" to the current transformation.  These assumes the inputs
+#'   are in the preferred distribution name, as determined by
+#'   `rxPreferredDistributionName()`
+#'
+#'
+#' @return The new transformation as a factor
+#'
+#' @author Matthew Fidler
+#'
+#' @examples
+#'
+#' rxErrTypeCombine("probitNorm")
+#'
+#' rxErrTypeCombine("probitNorm") %>%
+#'   rxErrTypeCombine("boxCox")
+#'
+#'
+#' @export
+#' @keywords internal
 rxErrTypeCombine <- function(oldErrType, newErrType) {
   if (missing(newErrType) && inherits(oldErrType, "character")) {
     return(.rxTransformCombineListOrChar(list(transform=.rxCombineTransform(oldErrType),
@@ -524,13 +524,13 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   }
 }
 
-##' Checks to see if an expression is numeric
-##'
-##' @param expression quoted expression
-##' @param env Environment to store result in `env$.numeric`
-##' @return TRUE if this is an expression containing a positive or negative expression or FALSE if it is an expression that doesn't contain an expression.
-##' @author Matthew Fidler
-##' @noRd
+#' Checks to see if an expression is numeric
+#'
+#' @param expression quoted expression
+#' @param env Environment to store result in `env$.numeric`
+#' @return TRUE if this is an expression containing a positive or negative expression or FALSE if it is an expression that doesn't contain an expression.
+#' @author Matthew Fidler
+#' @noRd
 .is.numeric <- function(expression, env) {
   if (is.numeric(expression)) {
     env$.numeric <- expression
@@ -567,15 +567,15 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   t=c("d", "e")
 )
 
-##' This handles the error distribution for a single argument.
-##'
-##' @param argumentNumber The argument number of the distribution being processed
-##' @param funName Function name string of the distribution name
-##' @param expression Function expression (including the function name)
-##' @param env Environment where the names and calculations are made for the user interface.
-##' @return None, called for the side effects.
-##' @author Matthew Fidler
-##' @noRd
+#' This handles the error distribution for a single argument.
+#'
+#' @param argumentNumber The argument number of the distribution being processed
+#' @param funName Function name string of the distribution name
+#' @param expression Function expression (including the function name)
+#' @param env Environment where the names and calculations are made for the user interface.
+#' @return None, called for the side effects.
+#' @author Matthew Fidler
+#' @noRd
 .errHandleSingleDistributionArgument <- function(argumentNumber, funName, expression, env) {
   .cur <- expression[[argumentNumber + 1]]
   .isLogitOrProbit <- (funName %in% c("logitNorm", "probitNorm"))
@@ -623,14 +623,14 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   }
 }
 
-##' Checks and modifies the error term as needed in the user interface function.
-##'
-##' @param funName Name of the distributional error
-##' @param expression The R expression (including the function name)
-##' @param env The environment that holds information about the error structure
-##' @return Nothing; Called for the side effects
-##' @author Matthew Fidler
-##' @noRd
+#' Checks and modifies the error term as needed in the user interface function.
+#'
+#' @param funName Name of the distributional error
+#' @param expression The R expression (including the function name)
+#' @param env The environment that holds information about the error structure
+#' @return Nothing; Called for the side effects
+#' @author Matthew Fidler
+#' @noRd
 .errHandleSingleDistributionTerm <- function(funName, expression, env) {
   .nargs <- length(expression) - 1
   .doIt <- FALSE
@@ -667,28 +667,28 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
     }
   }
 }
-##' This handles a function that is not an error term.
-##'
-##' @param funName Function that is being called, as a character
-##' @param expression Expression (including function)
-##' @param env Environment that stores the information about errors
-##' @return Nothing, called for the side effects
-##' @author Matthew Fidler
-##' @noRd
+#' This handles a function that is not an error term.
+#'
+#' @param funName Function that is being called, as a character
+#' @param expression Expression (including function)
+#' @param env Environment that stores the information about errors
+#' @return Nothing, called for the side effects
+#' @author Matthew Fidler
+#' @noRd
 .errHandleSingleTerm <- function(funName, expression, env) {
   env$hasNonErrorTerm <- TRUE
 }
 
-##' Handle the error structure term
-##'
-##' @param expression The error structure term
-##'
-##' @param env The environment that holds information about the error
-##'   structure
-##'
-##' @return Nothing, called for the side efects
-##' @author Matthew Fidler
-##' @noRd
+#' Handle the error structure term
+#'
+#' @param expression The error structure term
+#'
+#' @param env The environment that holds information about the error
+#'   structure
+#'
+#' @return Nothing, called for the side efects
+#' @author Matthew Fidler
+#' @noRd
 .errHandleErrorStructure <- function(expression, env) {
   if (identical(expression[[1]], quote(`+`))) {
     env$isAnAdditiveExpression <- TRUE
@@ -720,23 +720,23 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   }
 }
 
-##' Handle the right hand side conditional expression (if it exists)
-##'
-##' @param expression A right hand side of the tilde equation
-##' @param env Environment for storing information about the expression
-##' @return An expression without a conditional statement.
-##'
-##' @details
-##'
-##' In addition to stripping the conditional statement out of the
-##' expression, the environment is modified when a conditional
-##' expression is present.  First, the environment variable
-##' `needsToBeAnErrorExpression` is changed to `TRUE`.  Second, the
-##' expression `curCondition` is modified to match the information
-##' within the conditional statement.
-##'
-##' @author Matthew Fidler
-##' @noRd
+#' Handle the right hand side conditional expression (if it exists)
+#'
+#' @param expression A right hand side of the tilde equation
+#' @param env Environment for storing information about the expression
+#' @return An expression without a conditional statement.
+#'
+#' @details
+#'
+#' In addition to stripping the conditional statement out of the
+#' expression, the environment is modified when a conditional
+#' expression is present.  First, the environment variable
+#' `needsToBeAnErrorExpression` is changed to `TRUE`.  Second, the
+#' expression `curCondition` is modified to match the information
+#' within the conditional statement.
+#'
+#' @author Matthew Fidler
+#' @noRd
 .errHandleCondition <- function(expression, env) {
   if (identical(expression[[1]], quote(`|`))) {
     env$needsToBeAnErrorExpression  <- TRUE
@@ -746,34 +746,34 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   expression
 }
 
-##' Handle -2LL equivalent for n2ll or `linCmt()` statements for lhs
-##'
-##' @param expression Left handed side of the equation
-##'
-##' @param env Environment for storing information about the error
-##'   structure
-##'
-##' @return Nothing called for side effects
-##'
-##' @details
-##'
-##' The takes the expression
-##'
-##' n2ll(var) ~  log(...)
-##'
-##' And strips the `n2ll` and sets the flag `env$n2ll` to `TRUE`
-##'
-##' Otherwise it leaves the `expression` alone and returns the value
-##'
-##' This takes the expression:
-##'
-##' linCmt() ~ add() ...
-##'
-##' And returns a `rxLinCmt` as the lhs value and sets the linCmt flag to TRUE
-##'
-##'
-##' @author Matthew Fidler
-##' @noRd
+#' Handle -2LL equivalent for n2ll or `linCmt()` statements for lhs
+#'
+#' @param expression Left handed side of the equation
+#'
+#' @param env Environment for storing information about the error
+#'   structure
+#'
+#' @return Nothing called for side effects
+#'
+#' @details
+#'
+#' The takes the expression
+#'
+#' n2ll(var) ~  log(...)
+#'
+#' And strips the `n2ll` and sets the flag `env$n2ll` to `TRUE`
+#'
+#' Otherwise it leaves the `expression` alone and returns the value
+#'
+#' This takes the expression:
+#'
+#' linCmt() ~ add() ...
+#'
+#' And returns a `rxLinCmt` as the lhs value and sets the linCmt flag to TRUE
+#'
+#'
+#' @author Matthew Fidler
+#' @noRd
 .errHandleN2llOrLinCmt <- function(expression, env) {
   if (is.call(expression)) {
     if (identical(expression[[1]], quote(`n2ll`)) &&
@@ -789,13 +789,13 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
 }
 
 
-##' Handle the error expressions
-##'
-##' @param expression Single tilde error expression
-##' @param env Environment with initial estimate data.frame
-##' @return
-##' @author Matthew Fidler
-##' @noRd
+#' Handle the error expressions
+#'
+#' @param expression Single tilde error expression
+#' @param env Environment with initial estimate data.frame
+#' @return
+#' @author Matthew Fidler
+#' @noRd
 .errHandleTilde <- function(expression, env) {
   env$n2ll <- FALSE
   env$linCmt <- FALSE
@@ -874,42 +874,42 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   }
 }
 
-##' Process the errors in the quoted expression
-##'
-##' @param x Quoted expression for parsing
-##' @param df lotri data.frame of estimates
-##' @return Environment with error information setup.
-##' @author Matthew Fidler
-##' @examples
-##' lmat <- lotri({
-##'  ## You may label each parameter with a comment
-##'  tka <- 0.45 # Log Ka
-##'  tcl <- log(c(0, 2.7, 100)) # Log Cl
-##'  ## This works with interactive models
-##'  ## You may also label the preceding line with label("label text")
-##'  tv <- 3.45; label("log V")
-##'  tvp <- 3.45; label("log V")
-##'  cl.wt <- 0.1
-##'  v.wt <- 0.1
-##'  cl.sex <- 0.1
-##'  v.sex <- 0.1
-##'  cl.age <- 0.1
-##'  v.age <- 0.1
-##'  vp.wt <- 1
-##'  vp.sex <- 1
-##'  vp.age <- 1
-##'  ## the label("Label name") works with all models
-##'  eta.ka ~ 0.6
-##'  eta.cl ~ 0.3
-##'  eta.v ~ 0.1
-##'  add.sd <- 0.7
-##'})
-##'
-##'
-##' iniDf <- as.data.frame(lmat)
-##'
-##' .errProcessExpression()
-##' @noRd
+#' Process the errors in the quoted expression
+#'
+#' @param x Quoted expression for parsing
+#' @param df lotri data.frame of estimates
+#' @return Environment with error information setup.
+#' @author Matthew Fidler
+#' @examples
+#' lmat <- lotri({
+#'  ## You may label each parameter with a comment
+#'  tka <- 0.45 # Log Ka
+#'  tcl <- log(c(0, 2.7, 100)) # Log Cl
+#'  ## This works with interactive models
+#'  ## You may also label the preceding line with label("label text")
+#'  tv <- 3.45; label("log V")
+#'  tvp <- 3.45; label("log V")
+#'  cl.wt <- 0.1
+#'  v.wt <- 0.1
+#'  cl.sex <- 0.1
+#'  v.sex <- 0.1
+#'  cl.age <- 0.1
+#'  v.age <- 0.1
+#'  vp.wt <- 1
+#'  vp.sex <- 1
+#'  vp.age <- 1
+#'  ## the label("Label name") works with all models
+#'  eta.ka ~ 0.6
+#'  eta.cl ~ 0.3
+#'  eta.v ~ 0.1
+#'  add.sd <- 0.7
+#'})
+#'
+#'
+#' iniDf <- as.data.frame(lmat)
+#'
+#' .errProcessExpression()
+#' @noRd
 .errProcessExpression <- function(x, ini) {
   # ntheta neta1 neta2   name lower       est   upper   fix  err  label
   # backTransform condition trLow trHi
@@ -987,23 +987,23 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   }
   return(invisible(NULL))
 }
-##' Turn a character expression into quoted symbol
-##'
-##' @param chr Character symbol
-##' @return Quoted symbol
-##' @author Matthew Fidler
-##' @noRd
+#' Turn a character expression into quoted symbol
+#'
+#' @param chr Character symbol
+#' @return Quoted symbol
+#' @author Matthew Fidler
+#' @noRd
 .enQuote <- function(chr) {
   eval(parse(text=paste0("quote(", chr, ")")))
 }
 
-##' Get the lambda value based on the pred information
-##'
-##' @param env Environment that has the environment
-##' @param pred1 Single error data frame
-##' @return Lambda expression
-##' @author Matthew Fidler
-##' @noRd
+#' Get the lambda value based on the pred information
+#'
+#' @param env Environment that has the environment
+#' @param pred1 Single error data frame
+#' @return Lambda expression
+#' @author Matthew Fidler
+#' @noRd
 .rxGetLambdaFromPred1AndIni <- function(env, pred1) {
   if (!is.na(pred1$lambda)) {
     return(.enQuote(pred1$lambda))
@@ -1019,26 +1019,26 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   }
   return(1)
 }
-##' Get the lower boundary condition when the transformation requires it
-##'
-##' @param env  Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return Lower Boundary
-##' @author Matthew Fidler
-##' @noRd
+#' Get the lower boundary condition when the transformation requires it
+#'
+#' @param env  Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return Lower Boundary
+#' @author Matthew Fidler
+#' @noRd
 .rxGetLowBoundaryPred1AndIni <- function(env, pred1) {
   if (.rxTransformHasBounds(pred1$transform)) {
     return(pred1$trLow)
   }
   return(0)
 }
-##' Get the upper boundary condition when the transformation it
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return Upper Boundary
-##' @author Matthew Fidler
-##' @noRd
+#' Get the upper boundary condition when the transformation it
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return Upper Boundary
+#' @author Matthew Fidler
+#' @noRd
 .rxGetHiBoundaryPred1AndIni <- function(env, pred1) {
   if (.rxTransformHasBounds(pred1$transform)) {
     return(pred1$trHi)
@@ -1046,13 +1046,13 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   return(1)
 }
 
-##' Get the prediction name
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The prediction symbol
-##' @author Matthew Fidler
-##' @noRd
+#' Get the prediction name
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The prediction symbol
+#' @author Matthew Fidler
+#' @noRd
 .rxGetPredictionF <- function(env, pred1) {
   .f <- pred1$var
   if (.f == "rxLinCmt") {
@@ -1061,14 +1061,14 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   .enQuote(.f)
 }
 
-##' Get the prediction transformation
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @param yj The transformation number for the current error
-##' @return The transformation expression
-##' @author Matthew Fidler
-##' @noRd
+#' Get the prediction transformation
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @param yj The transformation number for the current error
+#' @return The transformation expression
+#' @author Matthew Fidler
+#' @noRd
 .rxGetPredictionFTransform <- function(env, pred1, yj) {
   if (yj == 2) {
     return(quote(rx_pred_f_))
@@ -1079,13 +1079,13 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   }
 }
 
-##' Get the additive transformation
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The quoted symbolic name of the additive standard deviation
-##' @author Matthew Fidler
-##' @noRd
+#' Get the additive transformation
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The quoted symbolic name of the additive standard deviation
+#' @author Matthew Fidler
+#' @noRd
 .rxGetVarianceForErrorAdd <- function(env, pred1) {
   if (!is.na(pred1$a)) {
     return(.enQuote(pred1$a))
@@ -1100,13 +1100,13 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   bquote((.(.p1)) ^ 2)
 }
 
-##' Based on current error get the F that is used for prop or pow expressions
-##'
-##' @param env Environment of the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The f expression
-##' @author Matthew Fidler
-##' @noRd
+#' Based on current error get the F that is used for prop or pow expressions
+#'
+#' @param env Environment of the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The f expression
+#' @author Matthew Fidler
+#' @noRd
 .rxGetVarianceForErrorPropOrPowF <- function(env, pred1) {
   switch(as.character(pred1$errTypeF),
          untransformed=quote(rx_pred_f_),
@@ -1115,13 +1115,13 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
          none=quote(rx_pred_f_))
 }
 
-##' Get Variance for proportional error
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The quoted proportional error
-##' @author Matthew Fidler
-##' @noRd
+#' Get Variance for proportional error
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The quoted proportional error
+#' @author Matthew Fidler
+#' @noRd
 .rxGetVarianceForErrorProp <- function(env, pred1) {
   .f <- .rxGetVarianceForErrorPropOrPowF(env, pred1)
   if (!is.na(pred1$b)) {
@@ -1138,13 +1138,13 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   return(bquote((.(.f))^2*(.(.p1))^2))
 }
 
-##' Get the Variance for the additive + prop error
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The quoted additive + proportional expression
-##' @author Matthew Fidler
-##' @noRd
+#' Get the Variance for the additive + prop error
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The quoted additive + proportional expression
+#' @author Matthew Fidler
+#' @noRd
 .rxGetVarianceForErrorPow <- function(env, pred1) {
   .f <- .rxGetVarianceForErrorPropOrPowF(env, pred1)
   if (!is.na(pred1$b)) {
@@ -1171,13 +1171,13 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   bquote((.(.f))^(2 * .(.p2))*(.(.p1))^2)
 }
 
-##' Get Variance for proportional error
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The add + prop error expression
-##' @author Matthew Fidler
-##' @noRd
+#' Get Variance for proportional error
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The add + prop error expression
+#' @author Matthew Fidler
+#' @noRd
 .rxGetVarianceForErrorAddProp <- function(env, pred1) {
   if (!is.na(pred1$a)) {
     .p1 <- .enQuote(pred1$a)
@@ -1214,12 +1214,12 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   }
 }
 
-##' Additive + Power
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return additive + power
-##' @author Matthew Fidler
+#' Additive + Power
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return additive + power
+#' @author Matthew Fidler
 .rxGetVarianceForErrorAddPow <- function(env, pred1) {
   if (!is.na(pred1$a)) {
     .p1 <- .enQuote(pred1$a)
@@ -1277,20 +1277,20 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
          )
 }
 
-##' Handle the single error for normal or t distributions
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return A list of the lines added.  The lines will contain
-##' - `rx_yj_` which is an integer that corresponds to the transformation type.
-##' - `rx_lambda_` is the transformation lambda
-##' - `rx_low_` The lower boundary of the transformation
-##' - `rx_hi_` The upper boundary of the transformation
-##' - `rx_pred_f_` The prediction function
-##' - `rx_pred_` The transformed prediction function
-##' - `rx_r_` The transformed variance
-##' @author Matthew Fidler
-##' @noRd
+#' Handle the single error for normal or t distributions
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return A list of the lines added.  The lines will contain
+#' - `rx_yj_` which is an integer that corresponds to the transformation type.
+#' - `rx_lambda_` is the transformation lambda
+#' - `rx_low_` The lower boundary of the transformation
+#' - `rx_hi_` The upper boundary of the transformation
+#' - `rx_pred_f_` The prediction function
+#' - `rx_pred_` The transformed prediction function
+#' - `rx_r_` The transformed variance
+#' @author Matthew Fidler
+#' @noRd
 .handleSingleErrTypeNormOrTFoceiBase <- function(env, pred1) {
   .ret <- vector("list", 7)
   .yj <- as.double(pred1$transform) - 1
@@ -1304,13 +1304,13 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   .ret
 }
 
-##' Calculate the focei base information.
-##'
-##' @param env Environment for the parsed model
-##' @param i The error row that is being parsed
-##' @return quoted R lines for the focei setup
-##' @author Matthew Fidler
-##' @noRd
+#' Calculate the focei base information.
+#'
+#' @param env Environment for the parsed model
+#' @param i The error row that is being parsed
+#' @return quoted R lines for the focei setup
+#' @author Matthew Fidler
+#' @noRd
 .handleSingleErrTypeFoceiBase <- function(env, i) {
   .pred1 <- env$predDf[i, ]
   if (tmp$predDf$distribution %in% c("norm", "t")) {

@@ -1,20 +1,20 @@
-##' Turn a character expression into quoted symbol
-##'
-##' @param chr Character symbol
-##' @return Quoted symbol
-##' @author Matthew Fidler
-##' @noRd
+#' Turn a character expression into quoted symbol
+#'
+#' @param chr Character symbol
+#' @return Quoted symbol
+#' @author Matthew Fidler
+#' @noRd
 .enQuote <- function(chr) {
   eval(parse(text=paste0("quote(", chr, ")")))
 }
 
-##' Get the lambda value based on the pred information
-##'
-##' @param env Environment that has the environment
-##' @param pred1 Single error data frame
-##' @return Lambda expression
-##' @author Matthew Fidler
-##' @noRd
+#' Get the lambda value based on the pred information
+#'
+#' @param env Environment that has the environment
+#' @param pred1 Single error data frame
+#' @return Lambda expression
+#' @author Matthew Fidler
+#' @noRd
 .rxGetLambdaFromPred1AndIni <- function(env, pred1) {
   if (!is.na(pred1$lambda)) {
     return(.enQuote(pred1$lambda))
@@ -30,26 +30,26 @@
   }
   return(1)
 }
-##' Get the lower boundary condition when the transformation requires it
-##'
-##' @param env  Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return Lower Boundary
-##' @author Matthew Fidler
-##' @noRd
+#' Get the lower boundary condition when the transformation requires it
+#'
+#' @param env  Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return Lower Boundary
+#' @author Matthew Fidler
+#' @noRd
 .rxGetLowBoundaryPred1AndIni <- function(env, pred1) {
   if (.rxTransformHasBounds(pred1$transform)) {
     return(pred1$trLow)
   }
   return(0)
 }
-##' Get the upper boundary condition when the transformation it
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return Upper Boundary
-##' @author Matthew Fidler
-##' @noRd
+#' Get the upper boundary condition when the transformation it
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return Upper Boundary
+#' @author Matthew Fidler
+#' @noRd
 .rxGetHiBoundaryPred1AndIni <- function(env, pred1) {
   if (.rxTransformHasBounds(pred1$transform)) {
     return(pred1$trHi)
@@ -57,13 +57,13 @@
   return(1)
 }
 
-##' Get the prediction name
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The prediction symbol
-##' @author Matthew Fidler
-##' @noRd
+#' Get the prediction name
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The prediction symbol
+#' @author Matthew Fidler
+#' @noRd
 .rxGetPredictionF <- function(env, pred1) {
   .f <- pred1$var
   if (.f == "rxLinCmt") {
@@ -72,14 +72,14 @@
   .enQuote(.f)
 }
 
-##' Get the prediction transformation
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @param yj The transformation number for the current error
-##' @return The transformation expression
-##' @author Matthew Fidler
-##' @noRd
+#' Get the prediction transformation
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @param yj The transformation number for the current error
+#' @return The transformation expression
+#' @author Matthew Fidler
+#' @noRd
 .rxGetPredictionFTransform <- function(env, pred1, yj) {
   if (yj == 2) {
     return(quote(rx_pred_f_))
@@ -90,13 +90,13 @@
   }
 }
 
-##' Get the additive transformation
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The quoted symbolic name of the additive standard deviation
-##' @author Matthew Fidler
-##' @noRd
+#' Get the additive transformation
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The quoted symbolic name of the additive standard deviation
+#' @author Matthew Fidler
+#' @noRd
 .rxGetVarianceForErrorAdd <- function(env, pred1) {
   if (!is.na(pred1$a)) {
     return(.enQuote(pred1$a))
@@ -111,13 +111,13 @@
   bquote((.(.p1)) ^ 2)
 }
 
-##' Based on current error get the F that is used for prop or pow expressions
-##'
-##' @param env Environment of the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The f expression
-##' @author Matthew Fidler
-##' @noRd
+#' Based on current error get the F that is used for prop or pow expressions
+#'
+#' @param env Environment of the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The f expression
+#' @author Matthew Fidler
+#' @noRd
 .rxGetVarianceForErrorPropOrPowF <- function(env, pred1) {
   switch(as.character(pred1$errTypeF),
          untransformed=quote(rx_pred_f_),
@@ -126,13 +126,13 @@
          none=quote(rx_pred_f_))
 }
 
-##' Get Variance for proportional error
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The quoted proportional error
-##' @author Matthew Fidler
-##' @noRd
+#' Get Variance for proportional error
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The quoted proportional error
+#' @author Matthew Fidler
+#' @noRd
 .rxGetVarianceForErrorProp <- function(env, pred1) {
   .f <- .rxGetVarianceForErrorPropOrPowF(env, pred1)
   if (!is.na(pred1$b)) {
@@ -149,13 +149,13 @@
   return(bquote((.(.f))^2*(.(.p1))^2))
 }
 
-##' Get the Variance for the additive + prop error
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The quoted additive + proportional expression
-##' @author Matthew Fidler
-##' @noRd
+#' Get the Variance for the additive + prop error
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The quoted additive + proportional expression
+#' @author Matthew Fidler
+#' @noRd
 .rxGetVarianceForErrorPow <- function(env, pred1) {
   .f <- .rxGetVarianceForErrorPropOrPowF(env, pred1)
   if (!is.na(pred1$b)) {
@@ -182,13 +182,13 @@
   bquote((.(.f))^(2 * .(.p2))*(.(.p1))^2)
 }
 
-##' Get Variance for proportional error
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return The add + prop error expression
-##' @author Matthew Fidler
-##' @noRd
+#' Get Variance for proportional error
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return The add + prop error expression
+#' @author Matthew Fidler
+#' @noRd
 .rxGetVarianceForErrorAddProp <- function(env, pred1) {
   if (!is.na(pred1$a)) {
     .p1 <- .enQuote(pred1$a)
@@ -225,12 +225,12 @@
   }
 }
 
-##' Additive + Power
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return additive + power
-##' @author Matthew Fidler
+#' Additive + Power
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return additive + power
+#' @author Matthew Fidler
 .rxGetVarianceForErrorAddPow <- function(env, pred1) {
   if (!is.na(pred1$a)) {
     .p1 <- .enQuote(pred1$a)
@@ -288,20 +288,20 @@
          )
 }
 
-##' Handle the single error for normal or t distributions
-##'
-##' @param env Environment for the parsed model
-##' @param pred1 The `data.frame` of the current error
-##' @return A list of the lines added.  The lines will contain
-##' - `rx_yj_` which is an integer that corresponds to the transformation type.
-##' - `rx_lambda_` is the transformation lambda
-##' - `rx_low_` The lower boundary of the transformation
-##' - `rx_hi_` The upper boundary of the transformation
-##' - `rx_pred_f_` The prediction function
-##' - `rx_pred_` The transformed prediction function
-##' - `rx_r_` The transformed variance
-##' @author Matthew Fidler
-##' @noRd
+#' Handle the single error for normal or t distributions
+#'
+#' @param env Environment for the parsed model
+#' @param pred1 The `data.frame` of the current error
+#' @return A list of the lines added.  The lines will contain
+#' - `rx_yj_` which is an integer that corresponds to the transformation type.
+#' - `rx_lambda_` is the transformation lambda
+#' - `rx_low_` The lower boundary of the transformation
+#' - `rx_hi_` The upper boundary of the transformation
+#' - `rx_pred_f_` The prediction function
+#' - `rx_pred_` The transformed prediction function
+#' - `rx_r_` The transformed variance
+#' @author Matthew Fidler
+#' @noRd
 .handleSingleErrTypeNormOrTFoceiBase <- function(env, pred1) {
   .ret <- vector("list", 7)
   .yj <- as.double(pred1$transform) - 1
@@ -315,13 +315,13 @@
   .ret
 }
 
-##' Calculate the focei base information.
-##'
-##' @param env Environment for the parsed model
-##' @param i The error row that is being parsed
-##' @return quoted R lines for the focei setup
-##' @author Matthew Fidler
-##' @noRd
+#' Calculate the focei base information.
+#'
+#' @param env Environment for the parsed model
+#' @param i The error row that is being parsed
+#' @return quoted R lines for the focei setup
+#' @author Matthew Fidler
+#' @noRd
 .handleSingleErrTypeFoceiBase <- function(env, i) {
   .pred1 <- env$predDf[i, ]
   if (tmp$predDf$distribution %in% c("norm", "t")) {

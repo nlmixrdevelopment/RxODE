@@ -30,21 +30,21 @@ StatAmt <- ggplot2::ggproto("StatAmt", ggplot2::Stat,
 )
 
 
-##' Dosing/Amt geom/stat
-##'
-##' This is a dosing geom that shows the vertical lines where a dose occurs
-##'
-##' Requires the following aesthetics:
-##'
-##' \itemize{
-##' \item x representing the x values, usually time
-##' \item amt representing the dosing values;  They are missing or zero when no dose is given
-##' }
-##'
-##' @return This returns a stat_amt in context of a ggplot2 plot
-##'
-##' @export
-##' @inheritParams ggplot2::stat_identity
+#' Dosing/Amt geom/stat
+#'
+#' This is a dosing geom that shows the vertical lines where a dose occurs
+#'
+#' Requires the following aesthetics:
+#'
+#' \itemize{
+#' \item x representing the x values, usually time
+#' \item amt representing the dosing values;  They are missing or zero when no dose is given
+#' }
+#'
+#' @return This returns a stat_amt in context of a ggplot2 plot
+#'
+#' @export
+#' @inheritParams ggplot2::stat_identity
 stat_amt <- function(mapping = NULL, data = NULL,
                      position = "identity", show.legend = NA,
                      inherit.aes = TRUE, ...) {
@@ -55,6 +55,6 @@ stat_amt <- function(mapping = NULL, data = NULL,
   )
 }
 
-##' @rdname stat_amt
-##' @export
+#' @rdname stat_amt
+#' @export
 geom_amt <- stat_amt

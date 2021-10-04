@@ -1,9 +1,9 @@
-##' Replace comments with label()
-##'
-##' @param src source function
-##' @return character vector with labels("") replaced in function
-##' @author Matthew Fidler
-##' @noRd
+#' Replace comments with label()
+#'
+#' @param src source function
+#' @return character vector with labels("") replaced in function
+#' @author Matthew Fidler
+#' @noRd
 .rxReplaceCommentWithLabel <- function(src) {
   .env <- new.env(parent=emptyenv())
   .env$inIni <- FALSE
@@ -35,12 +35,12 @@
   .ret
 }
 
-##' Convert RxODE/nlmixr model function to a string
-##'
-##' @param fun function name for parsing
-##' @return Modified function
-##' @author Matthew Fidler
-##' @noRd
+#' Convert RxODE/nlmixr model function to a string
+#'
+#' @param fun function name for parsing
+#' @return Modified function
+#' @author Matthew Fidler
+#' @noRd
 .rxFunction2string <- function(fun) {
   .srcRef <- attr(fun, "srcref")
   if (is.null(.srcRef)) {
@@ -60,13 +60,13 @@
 
 .lastIni <- NULL
 .lastIniQ <- NULL
-##' Ini block for RxODE/nlmixr models
-##'
-##' @param x expression
-##' @param ... Other expressions for `ini()` function
-##' @return Ini block
-##' @author Matthew Fidler
-##' @export
+#' Ini block for RxODE/nlmixr models
+#'
+#' @param x expression
+#' @param ... Other expressions for `ini()` function
+#' @return Ini block
+#' @author Matthew Fidler
+#' @export
 ini <- function(x, ..., envir = parent.frame()) {
   if (is(substitute(x), "{")) {
     .ini <- eval(bquote(lotri(.(substitute(x)))), envir=envir)
@@ -77,20 +77,20 @@ ini <- function(x, ..., envir = parent.frame()) {
   UseMethod("ini")
 }
 
-##' @export
-##' @rdname ini
+#' @export
+#' @rdname ini
 ini.default <- function(x, ...) {
 
 }
 
-##' Model block for RxODE/nlmixr models
-##'
-##' @param x model expression
-##' @param ... Other arguments
-##' @inheritParams eval
-##' @return Model block with ini information included.  `ini` must be called before `model` block
-##' @author Matthew Fidler
-##' @export
+#' Model block for RxODE/nlmixr models
+#'
+#' @param x model expression
+#' @param ... Other arguments
+#' @inheritParams eval
+#' @return Model block with ini information included.  `ini` must be called before `model` block
+#' @author Matthew Fidler
+#' @export
 model <- function(x, ..., envir=parent.frame()) {
   if (is(substitute(x), "{")) {
     .ini <- .lastIni
@@ -116,19 +116,19 @@ model <- function(x, ..., envir=parent.frame()) {
   UseMethod("model")
 }
 
-##' @export
-##' @rdname model
+#' @export
+#' @rdname model
 model.default <- function(x, ...) {
 
 }
 
-##' S3 for getting information from UI model
-##'
-##' @param x list of (UIenvironment, exact).  UI environment is the parsed function for RxODE.  `exact` is a boolean that says
-##' @param ... Other arguments
-##' @return value that was requested from the UI object
-##' @author Matthew Fidler
-##' @export
+#' S3 for getting information from UI model
+#'
+#' @param x list of (UIenvironment, exact).  UI environment is the parsed function for RxODE.  `exact` is a boolean that says
+#' @param ... Other arguments
+#' @return value that was requested from the UI object
+#' @author Matthew Fidler
+#' @export
 rxUiGet <- function(x, ...) {
   if (!inherits(x, "rxUiGet")) {
     stop("object is wrong type for `rxUiGet`")
@@ -136,8 +136,8 @@ rxUiGet <- function(x, ...) {
   UseMethod("rxUiGet")
 }
 
-##' @export
-##' @rdname rxUiGet
+#' @export
+#' @rdname rxUiGet
 rxUiGet.fun <- function(x, ...) {
   .x <- x[[1]]
   .ls <- ls(.x$meta, all=TRUE)
@@ -154,30 +154,30 @@ rxUiGet.fun <- function(x, ...) {
   .ret2
 }
 
-##'@export
-##' @rdname rxUiGet
+#'@export
+#' @rdname rxUiGet
 rxUiGet.ini <- function(x, ...) {
   .x <- x[[1]]
   .arg <- class(x)[1]
   bquote(ini(.(.x$.ini)))
 }
 
-##' @export
-##' @rdname rxUiGet
+#' @export
+#' @rdname rxUiGet
 rxUiGet.model <- function(x, ...) {
   .x <- x[[1]]
   bquote(model(.(as.call(c(quote(`{`),.x$lstExpr)))))
 }
 
-##' @export
-##' @rdname rxUiGet
+#' @export
+#' @rdname rxUiGet
 rxUiGet.default <- function(x, ...) {
   .arg <- class(x)[1]
   if (!exists(.arg, envir=x[[1]])) return(NULL)
   get(.arg, x[[1]])
 }
 
-##' @export
+#' @export
 `$.rxUi` <- function(obj, arg, exact = TRUE) {
   .lst <- list(obj, exact)
   class(.lst) <- c(arg, "rxUiGet")
@@ -185,7 +185,7 @@ rxUiGet.default <- function(x, ...) {
 }
 
 
-##' @export
+#' @export
 .DollarNames.rxUi <- function(x, pattern) {
   .cmp <- vapply(as.character(methods("rxUiGet")), function(x){substr(x,9, nchar(x))}, character(1), USE.NAMES = FALSE)
   .cmp <- c(.cmp[.cmp != "default"], ls(x, all=TRUE))

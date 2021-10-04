@@ -165,8 +165,7 @@ rxodeTest({
       })
     }
 
-
-        one.cmt <- function() {
+    one.cmt <- function() {
       ini({
         ## You may label each parameter with a comment
         tka <- 0.45 # Log Ka
@@ -179,15 +178,18 @@ rxodeTest({
         eta.cl ~ 0.3
         eta.v ~ 0.1
         add.sd <- 0.7
+        bLambda <- c(0, 3)
       })
       model({
         ka <- exp(tka + eta.ka)
         cl <- exp(tcl + eta.cl)
         v <- exp(tv + eta.v)
         linCmt() ~ lnorm(add.sd) | tmp
-        tmp ~ n
+        tmp2 ~ dpois(bLambda)
       })
     }
+
+
 
 
   })
