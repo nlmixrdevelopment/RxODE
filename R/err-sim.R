@@ -51,8 +51,8 @@ rxGetDistributionSimulationLines <- function(env, pred1) {
 #' @noRd
 rxGetDistributionSimulationLines.norm <- function(env, pred1) {
   .ret <- vector("list", 2)
-  .ret[[1]] <- bquote(ipredSim=rxTBSi(rx_pred_, rx_lambda_, rx_yj_, rx_low_, rx_hi_))
-  .ret[[2]] <- bquote(sim=rxTBSi(rx_pred_+sqrt(rx_r_) * rnorm(), rx_lambda_, rx_yj_, rx_low_, rx_hi_))
+  .ret[[1]] <- bquote(ipredSim <- rxTBSi(rx_pred_, rx_lambda_, rx_yj_, rx_low_, rx_hi_))
+  .ret[[2]] <- bquote(sim <- rxTBSi(rx_pred_+sqrt(rx_r_) * rnorm(), rx_lambda_, rx_yj_, rx_low_, rx_hi_))
   .ret
 }
 
@@ -60,8 +60,8 @@ rxGetDistributionSimulationLines.norm <- function(env, pred1) {
 #' @noRd
 rxGetDistributionSimulationLines.t <- function(env, pred1) {
   .ret <- vector("list", 2)
-  .ret[[1]] <- bquote(ipredSim=rxTBSi(rx_pred_, rx_lambda_, rx_yj_, rx_low_, rx_hi_))
-  .ret[[2]] <- bquote(sim=rxTBSi(rx_pred_+sqrt(rx_r_) * .(.getQuotedDistributionAndSimulationArgs(env, pred1)), rx_lambda_, rx_yj_, rx_low_, rx_hi_))
+  .ret[[1]] <- bquote(ipredSim <- rxTBSi(rx_pred_, rx_lambda_, rx_yj_, rx_low_, rx_hi_))
+  .ret[[2]] <- bquote(sim <- rxTBSi(rx_pred_+sqrt(rx_r_) * .(.getQuotedDistributionAndSimulationArgs(env, pred1)), rx_lambda_, rx_yj_, rx_low_, rx_hi_))
   .ret
 }
 
@@ -69,6 +69,6 @@ rxGetDistributionSimulationLines.t <- function(env, pred1) {
 #' @noRd
 rxGetDistributionSimulationLines.default <- function(env, pred1) {
   .ret <- vector("list", 1)
-  .ret[[1]] <- bquote(sim=.(.getQuotedDistributionAndSimulationArgs(env, pred1)))
+  .ret[[1]] <- bquote(sim <- .(.getQuotedDistributionAndSimulationArgs(env, pred1)))
   .ret
 }
