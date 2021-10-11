@@ -136,9 +136,9 @@ rxUiGet <- function(x, ...) {
   UseMethod("rxUiGet")
 }
 
-#' @export
 #' @rdname rxUiGet
-rxUiGet.fun <- function(x, ...) {
+#' @export
+rxUiGet.funPrint <- function(x, ...) {
   .x <- x[[1]]
   .ls <- ls(.x$meta, all=TRUE)
   .ret <- vector("list", length(.ls) + 3)
@@ -149,6 +149,13 @@ rxUiGet.fun <- function(x, ...) {
   .len <- length(.ls)
   .ret[[.len + 2]] <- .x$iniFun
   .ret[[.len + 3]] <- .x$modelFun
+  .ret
+}
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.fun <- function(x, ...) {
+  .ret <- rxUiGet.funPrint(x, ...)
   .ret2 <- function(){}
   body(.ret2) <- as.call(.ret)
   .ret2

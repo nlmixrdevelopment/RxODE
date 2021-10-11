@@ -2,6 +2,7 @@
 % Please edit documentation in R/ui.R
 \name{rxUiGet}
 \alias{rxUiGet}
+\alias{rxUiGet.funPrint}
 \alias{rxUiGet.fun}
 \alias{rxUiGet.ini}
 \alias{rxUiGet.iniFun}
@@ -10,6 +11,8 @@
 \title{S3 for getting information from UI model}
 \usage{
 rxUiGet(x, ...)
+
+\method{rxUiGet}{funPrint}(x, ...)
 
 \method{rxUiGet}{fun}(x, ...)
 
