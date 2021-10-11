@@ -205,3 +205,11 @@ rxUiGet.default <- function(x, ...) {
   grep(pattern, .cmp, value = TRUE)
 }
 
+#' @export
+#' @rdname
+print.rxUi <-function(x, ...) {
+  cat(cli::rule(crayon::bold("model")), "\n")
+  print(as.call(tmp$funPrint))
+  cat(cli::rule(line = "bar2"), "\n")
+  return(invisible(x))
+}
