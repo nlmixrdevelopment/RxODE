@@ -147,16 +147,22 @@ rxUiGet.fun <- function(x, ...) {
     .ret[[.i + 1]] <- eval(parse(text=paste("quote(", .ls[.i], "<-", deparse1(.x$meta[[.ls[.i]]]), ")")))
   }
   .len <- length(.ls)
-  .ret[[.len + 2]] <- .x$ini
-  .ret[[.len + 3]] <- .x$model
+  .ret[[.len + 2]] <- .x$iniFun
+  .ret[[.len + 3]] <- .x$modelFun
   .ret2 <- function(){}
   body(.ret2) <- as.call(.ret)
   .ret2
 }
 
-#'@export
+#' @export
 #' @rdname rxUiGet
 rxUiGet.ini <- function(x, ...) {
+  get("iniDf", x[[1]])
+}
+
+#'@export
+#' @rdname rxUiGet
+rxUiGet.iniFun <- function(x, ...) {
   .x <- x[[1]]
   .arg <- class(x)[1]
   bquote(ini(.(.x$.ini)))
@@ -164,7 +170,7 @@ rxUiGet.ini <- function(x, ...) {
 
 #' @export
 #' @rdname rxUiGet
-rxUiGet.model <- function(x, ...) {
+rxUiGet.modelFun <- function(x, ...) {
   .x <- x[[1]]
   bquote(model(.(as.call(c(quote(`{`),.x$lstExpr)))))
 }
