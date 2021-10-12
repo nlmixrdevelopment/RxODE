@@ -1,3 +1,10 @@
+#' @export
+`$.rxUi` <- function(obj, arg, exact = TRUE) {
+  .lst <- list(obj, exact)
+  class(.lst) <- c(arg, "rxUiGet")
+  rxUiGet(.lst)
+}
+
 #' S3 for getting information from UI model
 #'
 #' @param x list of (UIenvironment, exact).  UI environment is the
@@ -138,6 +145,8 @@ rxUiGet.fun <- function(x, ...) {
 rxUiGet.ini <- function(x, ...) {
   get("iniDf", x[[1]])
 }
+attr(rxUiGet.ini, "desc") <- "Model initilizations/bounds object"
+
 
 #'@export
 #' @rdname rxUiGet
@@ -146,6 +155,7 @@ rxUiGet.iniFun <- function(x, ...) {
   .arg <- class(x)[1]
   bquote(ini(.(.x$.ini)))
 }
+attr(rxUiGet.iniFun, "desc") <- "normalized, quoted `ini()` block"
 
 #' @export
 #' @rdname rxUiGet
@@ -153,6 +163,7 @@ rxUiGet.modelFun <- function(x, ...) {
   .x <- x[[1]]
   bquote(model(.(as.call(c(quote(`{`),.x$lstExpr)))))
 }
+attr(rxUiGet.modelFun, "desc") <- "normalized, quoted `model()` block"
 
 #' @export
 #' @rdname rxUiGet
@@ -162,12 +173,6 @@ rxUiGet.default <- function(x, ...) {
   get(.arg, x[[1]])
 }
 
-#' @export
-`$.rxUi` <- function(obj, arg, exact = TRUE) {
-  .lst <- list(obj, exact)
-  class(.lst) <- c(arg, "rxUiGet")
-  rxUiGet(.lst)
-}
 
 #' @export
 .DollarNames.rxUi <- function(x, pattern) {
