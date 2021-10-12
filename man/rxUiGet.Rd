@@ -2,6 +2,9 @@
 % Please edit documentation in R/ui.R
 \name{rxUiGet}
 \alias{rxUiGet}
+\alias{rxUiGet.omega}
+\alias{rxUiGet.muRefTable}
+\alias{rxUiGet.multipleEndpoint}
 \alias{rxUiGet.funPrint}
 \alias{rxUiGet.fun}
 \alias{rxUiGet.ini}
@@ -11,6 +14,12 @@
 \title{S3 for getting information from UI model}
 \usage{
 rxUiGet(x, ...)
+
+\method{rxUiGet}{omega}(x, ...)
+
+\method{rxUiGet}{muRefTable}(x, ...)
+
+\method{rxUiGet}{multipleEndpoint}(x, ...)
 
 \method{rxUiGet}{funPrint}(x, ...)
 
@@ -25,7 +34,9 @@ rxUiGet(x, ...)
 \method{rxUiGet}{default}(x, ...)
 }
 \arguments{
-\item{x}{list of (UIenvironment, exact).  UI environment is the parsed function for RxODE.  \code{exact} is a boolean that says}
+\item{x}{list of (UIenvironment, exact).  UI environment is the
+parsed function for RxODE.  \code{exact} is a boolean that says if an
+exact match is required.}
 
 \item{...}{Other arguments}
 }

@@ -140,6 +140,21 @@ rxUiGet <- function(x, ...) {
 
 #' @export
 #' @rdname rxUiGet
+rxUiGet.omega <- function(x, ...) {
+  .x <- x[[1]]
+  .lotri <- eval(as.call(list(quote(`lotri`), tmp$.ini)))
+  if (inherits(.lotri, "matrix")) {
+    attr(.lotri, "lotriEst") <- NULL
+    class(.lotri) <- NULL
+  } else {
+    attr(.lotri, "lotriEst") <- NULL
+    class(.lotri) <- class(.lotri)[-1]
+  }
+  .lotri
+}
+
+#' @export
+#' @rdname rxUiGet
 rxUiGet.muRefTable <- function(x, ...) {
   .x <- x[[1]]
   .exact <- x[[2]]
@@ -171,6 +186,42 @@ rxUiGet.muRefTable <- function(x, ...) {
       huxtable::set_position("center") %>%
       huxtable::set_all_borders(TRUE)
   }
+}
+
+#' @rdname rxUiGet
+#' @export
+rxUiGet.multipleEndpoint <- function(x, ...) {
+  .x <- x[[1]]
+  .exact <- x[[2]]
+  .info <- get("predDf", .x)
+  if (length(.info$cond) == 1) return(NULL)
+  if (getOption("RxODE.combine.dvid", TRUE)) {
+    .info <- .info[order(.info$dvid), ]
+  }
+  .info <- with(.info, data.frame(
+    variable = paste(var, "~", ifelse(use.utf(), "\u2026", "...")),
+    cmt = paste0("cmt='", cond, "' or cmt=", cmt),
+    "dvid*" = ifelse(is.na(dvid), "",
+                     paste0("dvid='", cond, "' or dvid=", dvid)),
+    check.names = FALSE,
+    stringsAsFactors=FALSE))
+  if (!getOption("RxODE.combine.dvid", TRUE)) {
+    .info <- .info[, names(.info) != "dvid*"]
+  }
+  if (requireNamespace("huxtable", quietly = TRUE)) {
+    .hux <- huxtable::hux(.info) %>%
+      huxtable::add_colnames() %>%
+      huxtable::set_bold(row = 1, col = huxtable::everywhere, value = TRUE) %>%
+      huxtable::set_position("center") %>%
+      huxtable::set_all_borders(TRUE)
+    if (getOption("RxODE.combine.dvid", TRUE)) {
+      .hux <- .hux %>%
+        huxtable::add_footnote("* If dvids are outside this range, all dvids are re-numered sequentially, ie 1,7, 10 becomes 1,2,3 etc")
+    }
+  } else {
+    .hux <- .info
+  }
+  .hux
 }
 
 #' @rdname rxUiGet
@@ -244,14 +295,34 @@ rxUiGet.default <- function(x, ...) {
 #' @export
 #' @rdname
 print.rxUi <-function(x, ...) {
+
+  # Multiple Endpoint
+  .me <- x$multipleEndpoint
+  .hasHux <- requireNamespace("huxtable", quietly = TRUE)
+  if (!is.null(.me)) {
+    .met <- crayon::bold("Multiple Endpoint Model")
+    .med <- crayon::bold$blue("$multipleEndpoint")
+    cat(cli::cli_format_method({
+      cli::cli_h2("{.met} ({.med}):")
+    }), "\n")
+    if (.hasHux) {
+      .me %>%
+        huxtable::print_screen(colnames = FALSE)
+    } else {
+      print(.mu)
+    }
+    cat("\n")
+  }
+
+  # muRefTable
   .mu <- x$muRefTable
   if (!is.null(.mu)) {
-    .muU <- ifelse(use.utf(), "\u03bc", "mu")
+    .muU <- crayon::bold(paste0(ifelse(use.utf(), "\u03bc", "mu"), "-referencing"))
     .muR <- crayon::bold$blue("$muRefTable")
     cat(cli::cli_format_method({
-      cli::cli_h2("{.muU}-referencing ({.muR}):")
+      cli::cli_h2("{.muU} ({.muR}):")
     }), "\n")
-    if (requireNamespace("huxtable", quietly = TRUE)) {
+    if (.hasHux) {
       .mu %>%
         huxtable::print_screen(colnames = FALSE)
     } else {
