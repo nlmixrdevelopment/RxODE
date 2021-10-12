@@ -124,7 +124,9 @@ model.default <- function(x, ...) {
 
 #' S3 for getting information from UI model
 #'
-#' @param x list of (UIenvironment, exact).  UI environment is the parsed function for RxODE.  `exact` is a boolean that says
+#' @param x list of (UIenvironment, exact).  UI environment is the
+#'   parsed function for RxODE.  `exact` is a boolean that says if an
+#'   exact match is required.
 #' @param ... Other arguments
 #' @return value that was requested from the UI object
 #' @author Matthew Fidler
@@ -134,6 +136,41 @@ rxUiGet <- function(x, ...) {
     stop("object is wrong type for `rxUiGet`")
   }
   UseMethod("rxUiGet")
+}
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.muRefTable <- function(x, ...) {
+  .x <- x[[1]]
+  .exact <- x[[2]]
+  .muRef <- get("muRefDataFrame", .x)
+  if (length(.muRef$theta) == 0) return(NULL)
+  .muRefCov <- get("muRefCovariateDataFrame", .x)
+  if (length(.muRefCov$theta) > 0) {
+    .env <- new.env(parent=emptyenv())
+    lapply(seq_along(.muRefCov$theta), function(i){
+      .theta <- .muRefCov$theta[i]
+      .cov <- paste0(.muRefCov$covariate[i], "*", .muRefCov$covariateParameter[i])
+      if (exists(.theta, .env)) {
+        assign(.theta, c(get(.theta, .env), .cov), .env)
+      } else {
+        assign(.theta, .cov, .env)
+      }
+    })
+    .muRef$covariates <- vapply(.muRef$theta, function(theta) {
+      if (exists(theta, .env)) {
+        return(paste(get(theta, .env), collapse=" + "))
+      }
+      return("")
+    }, character(1), USE.NAMES=FALSE)
+  }
+  if (requireNamespace("huxtable", quietly = TRUE)) {
+    .muRef <- huxtable::hux(.muRef) %>%
+      ## huxtable::add_colnames() %>%
+      huxtable::set_bold(row = 1, col = huxtable::everywhere, value = TRUE) %>%
+      huxtable::set_position("center") %>%
+      huxtable::set_all_borders(TRUE)
+  }
 }
 
 #' @rdname rxUiGet
@@ -197,7 +234,6 @@ rxUiGet.default <- function(x, ...) {
   rxUiGet(.lst)
 }
 
-
 #' @export
 .DollarNames.rxUi <- function(x, pattern) {
   .cmp <- vapply(as.character(methods("rxUiGet")), function(x){substr(x,9, nchar(x))}, character(1), USE.NAMES = FALSE)
@@ -208,8 +244,25 @@ rxUiGet.default <- function(x, ...) {
 #' @export
 #' @rdname
 print.rxUi <-function(x, ...) {
-  cat(cli::rule(crayon::bold("model")), "\n")
-  print(as.call(tmp$funPrint))
-  cat(cli::rule(line = "bar2"), "\n")
+  .mu <- x$muRefTable
+  if (!is.null(.mu)) {
+    .muU <- ifelse(use.utf(), "\u03bc", "mu")
+    .muR <- crayon::bold$blue("$muRefTable")
+    cat(cli::cli_format_method({
+      cli::cli_h2("{.muU}-referencing ({.muR}):")
+    }), "\n")
+    if (requireNamespace("huxtable", quietly = TRUE)) {
+      .mu %>%
+        huxtable::print_screen(colnames = FALSE)
+    } else {
+      print(.mu)
+    }
+    cat("\n")
+  }
+  cat(cli::cli_format_method({
+    cli::cli_h2("Model (Normalized Syntax):")
+  }))
+  cat("\nfunction() ")
+  print(as.call(x$funPrint))
   return(invisible(x))
 }
