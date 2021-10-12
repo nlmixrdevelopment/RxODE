@@ -55,7 +55,10 @@
 
 .rxFunction2ui <- function(fun) {
   .fun <- eval(parse(text=paste(.rxFunction2string(fun), collapse="\n")))
-  .fun()
+  .ret <- .fun()
+  # Save $model like nlmixr UI used to...
+  assign("model", fun, envir=.ret)
+  .ret
 }
 
 .lastIni <- NULL

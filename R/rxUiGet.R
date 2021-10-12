@@ -28,6 +28,7 @@ rxUiGet.theta <- function(x, ...) {
   .w <- !is.na(.ini$ntheta)
   setNames(.ini$est[.w], .ini$name[.w])
 }
+attr(rxUiGet.theta, "desc") <- "Inital Population/Fixed Effects estimates, theta"
 
 #' @export
 #' @rdname rxUiGet
@@ -43,6 +44,7 @@ rxUiGet.omega <- function(x, ...) {
   }
   .lotri
 }
+#attr(rxUiGet.omega, "desc") <- "Initial Random Effects variability matrix, omega"
 
 #' @export
 #' @rdname rxUiGet
@@ -77,7 +79,9 @@ rxUiGet.muRefTable <- function(x, ...) {
       huxtable::set_position("center") %>%
       huxtable::set_all_borders(TRUE)
   }
+  .muRef
 }
+attr(rxUiGet.muRefTable, "desc") <- "table/huxtable of mu-referenced items in a model"
 
 #' @rdname rxUiGet
 #' @export
@@ -114,6 +118,7 @@ rxUiGet.multipleEndpoint <- function(x, ...) {
   }
   .hux
 }
+attr(rxUiGet.multipleEndpoint, "desc") <- "table/huxtable of multiple endpoint translations"
 
 #' @rdname rxUiGet
 #' @export
@@ -130,6 +135,7 @@ rxUiGet.funPrint <- function(x, ...) {
   .ret[[.len + 3]] <- .x$modelFun
   .ret
 }
+attr(rxUiGet.funPrint, "desc") <- "Normalized, quoted model function (for printing)"
 
 #' @export
 #' @rdname rxUiGet
@@ -139,6 +145,7 @@ rxUiGet.fun <- function(x, ...) {
   body(.ret2) <- as.call(.ret)
   .ret2
 }
+attr(rxUiGet.fun, "desc") <- "Normalized model function"
 
 #' @export
 #' @rdname rxUiGet
@@ -172,12 +179,44 @@ rxUiGet.default <- function(x, ...) {
   if (!exists(.arg, envir=x[[1]])) return(NULL)
   get(.arg, x[[1]])
 }
+.rxUiGetEnvInfo <- c("model"="Original Model (with comments if available)")
 
+.rxUiGetSupportedDollars <- function() {
+  .v <- as.character(methods("rxUiGet"))
+  .v <- .v[.v != "rxUiGet.default"]
+  .cls <- vapply(.v, function(methodStr){
+    substr(methodStr,9,nchar(methodStr))
+  }, character(1), USE.NAMES=FALSE)
+  .v <- vapply(.cls, function(cls){
+    .desc <- attr(utils::getS3method("rxUiGet", cls), "desc")
+    if (is.null(.desc)) .desc <- ""
+    .desc
+  }, character(1), USE.NAMES=TRUE)
+  # Take out any "hidden methods"
+  .w <- which(.v != "")
+  .v <- c(.v[.w], .rxUiGetEnvInfo)
+  .v
+}
+
+#' @export
+str.rxUi <- function(object, ...) {
+  cat("Rx model function\n")
+  .s <- .rxUiGetSupportedDollars()
+  cat(paste(strtrim(paste(vapply(names(.s), function(x){
+    .nchar <- nchar(x)
+    if (.nchar >= 10) {
+      return(paste0(" $ ", x, ": "))
+    } else {
+      return(paste0(" $ ",x, paste(rep(" ", 10 - .nchar), collapse=""), ": "))
+    }
+  }, character(1), USE.NAMES=FALSE), .s), 128), collapse="\n"))
+  cat("\n")
+  invisible()
+}
 
 #' @export
 .DollarNames.rxUi <- function(x, pattern) {
-  .cmp <- vapply(as.character(methods("rxUiGet")), function(x){substr(x,9, nchar(x))}, character(1), USE.NAMES = FALSE)
-  .cmp <- c(.cmp[.cmp != "default"], ls(x, all=TRUE))
+  .cmp <- names(.rxUiGetSupportedDollars())
   grep(pattern, .cmp, value = TRUE)
 }
 
