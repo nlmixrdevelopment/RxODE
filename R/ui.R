@@ -137,12 +137,20 @@ rxUiGet <- function(x, ...) {
   }
   UseMethod("rxUiGet")
 }
+#' @export
+#' @rdname rxUiGet
+rxUiGet.theta <- function(x, ...) {
+  .x <- x[[1]]
+  .ini <- .x$iniDf
+  .w <- !is.na(.ini$ntheta)
+  setNames(.ini$est[.w], .ini$name[.w])
+}
 
 #' @export
 #' @rdname rxUiGet
 rxUiGet.omega <- function(x, ...) {
   .x <- x[[1]]
-  .lotri <- eval(as.call(list(quote(`lotri`), tmp$.ini)))
+  .lotri <- eval(as.call(list(quote(`lotri`), .x$.ini)))
   if (inherits(.lotri, "matrix")) {
     attr(.lotri, "lotriEst") <- NULL
     class(.lotri) <- NULL
@@ -295,6 +303,16 @@ rxUiGet.default <- function(x, ...) {
 #' @export
 #' @rdname
 print.rxUi <-function(x, ...) {
+  cat(cli::cli_format_method({
+    cli::cli_h2("Initalization:")
+  }), "\n")
+  cat(paste0(crayon::bold("Fixed Effects"), " (", crayon::bold$blue("$theta"), "):"), "\n")
+  print(x$theta)
+  .omega <- x$omega
+  if (dim(.omega)[1] > 0) {
+    cat(paste0("\n", crayon::bold("Omega"), " (", crayon::bold$blue("$omega"), "):"), "\n")
+    print(.omega)
+  }
 
   # Multiple Endpoint
   .me <- x$multipleEndpoint

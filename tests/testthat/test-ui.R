@@ -283,6 +283,53 @@ rxodeTest({
       })
     }
 
-  })
+
+  turnover.emax.noeta <- function() {
+    ini({
+      tktr <- log(1)
+      tka <- log(1)
+      tcl <- log(0.1)
+      tv <- log(10)
+      ##
+      prop.err <- 0.1
+      pkadd.err <- 0.1
+      ##
+      temax <- logit(0.8)
+      #temax <- 7.5
+      tec50 <- log(0.5)
+      tkout <- log(0.05)
+      te0 <- log(100)
+      ##
+      pdadd.err <- 10
+    })
+    model({
+      ktr <- exp(tktr)
+      ka <- exp(tka)
+      cl <- exp(tcl)
+      v <- exp(tv)
+      ##
+      #poplogit = log(temax/(1-temax))
+      emax=expit(temax)
+      ec50 =  exp(tec50)
+      kout = exp(tkout)
+      e0 = exp(te0)
+      ##
+      DCP = center/v
+      PD=1-emax*DCP/(ec50+DCP)
+      ##
+      effect(0) = e0
+      kin = e0*kout
+      ##
+      d/dt(depot) = -ktr * depot
+      d/dt(gut) =  ktr * depot -ka * gut
+      d/dt(center) =  ka * gut - cl / v * center
+      d/dt(effect) = kin*PD -kout*effect
+      ##
+      cp = center / v
+      cp ~ prop(prop.err) + add(pkadd.err)
+      effect ~ add(pdadd.err)
+    })
+  }
+})
 
 }, test="lvl2")

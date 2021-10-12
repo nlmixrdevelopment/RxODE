@@ -2,6 +2,7 @@
 % Please edit documentation in R/ui.R
 \name{rxUiGet}
 \alias{rxUiGet}
+\alias{rxUiGet.theta}
 \alias{rxUiGet.omega}
 \alias{rxUiGet.muRefTable}
 \alias{rxUiGet.multipleEndpoint}
@@ -14,6 +15,8 @@
 \title{S3 for getting information from UI model}
 \usage{
 rxUiGet(x, ...)
+
+\method{rxUiGet}{theta}(x, ...)
 
 \method{rxUiGet}{omega}(x, ...)
 
