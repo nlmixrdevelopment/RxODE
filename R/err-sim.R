@@ -1,5 +1,16 @@
 # This handles the errors for simulations
 
+.createSimLineObject <- function(x, line) {
+  .predDf <- get("predDf", x)
+  if (line > nrow(.predDf)) {
+    return(NULL)
+  }
+  .predLine <- .predDf[line, ]
+  .ret <- list(x, .predLine)
+  class(.ret) <- c(paste(.predLine$distribution), "rxGetDistributionSimulationLines")
+  .ret
+}
+
 #' This is a S3 method for getting the distribution lines for a RxODE simulation
 #'
 #' @param env Parsed RxODE model environment
