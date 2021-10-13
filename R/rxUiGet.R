@@ -1,7 +1,14 @@
+# backward-compatible list
+.rxUiBackward <- c(
+  "model.desc"="modelDesc"
+)
+
 #' @export
 `$.rxUi` <- function(obj, arg, exact = TRUE) {
   .lst <- list(obj, exact)
-  class(.lst) <- c(arg, "rxUiGet")
+  .arg <- .rxUiBackward[arg]
+  if (is.na(.arg)) .arg <- arg
+  class(.lst) <- c(.arg, "rxUiGet")
   rxUiGet(.lst)
 }
 
@@ -174,12 +181,35 @@ attr(rxUiGet.modelFun, "desc") <- "normalized, quoted `model()` block"
 
 #' @export
 #' @rdname rxUiGet
+rxUiGet.modelDesc <- function(x, ...) {
+  .mv <- get("mv0", x[[1]])
+  if (.mv$flags["linCmt"] != -100L) {
+
+    return(sprintf(
+      "RxODE-based solved PK %s-compartment model%s%s", .mv$flags["ncmt"],
+      ifelse(.mv$extraCmt == 2, " with first-order absorption", ""),
+      ifelse(length(.mv$state) == 0L, "",
+             sprintf(" mixed with free from %d-cmt ODE model",
+                     length(.mv$state)))
+    ))
+  } else if (.mv$extraCmt == 0) {
+    return(sprintf("RxODE-based free-form %d-cmt ODE model", length(.mv$state)))
+  } else {
+    return("RxODE-based Pred model")
+  }
+}
+attr(rxUiGet.modelDesc, "desc") <- "Model description (ie linear compartment, pred, ode etc)"
+
+#' @export
+#' @rdname rxUiGet
 rxUiGet.default <- function(x, ...) {
   .arg <- class(x)[1]
   if (!exists(.arg, envir=x[[1]])) return(NULL)
   get(.arg, x[[1]])
 }
 .rxUiGetEnvInfo <- c("model"="Original Model (with comments if available)")
+
+
 
 .rxUiGetSupportedDollars <- function() {
   .v <- as.character(methods("rxUiGet"))
@@ -200,7 +230,7 @@ rxUiGet.default <- function(x, ...) {
 
 #' @export
 str.rxUi <- function(object, ...) {
-  cat("Rx model function\n")
+  cat("RxODE model function\n")
   .s <- .rxUiGetSupportedDollars()
   cat(paste(strtrim(paste(vapply(names(.s), function(x){
     .nchar <- nchar(x)
@@ -219,4 +249,6 @@ str.rxUi <- function(object, ...) {
   .cmp <- names(.rxUiGetSupportedDollars())
   grep(pattern, .cmp, value = TRUE)
 }
+
+
 

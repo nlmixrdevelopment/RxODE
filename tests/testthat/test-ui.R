@@ -283,7 +283,6 @@ rxodeTest({
       })
     }
 
-
   turnover.emax.noeta <- function() {
     ini({
       tktr <- log(1)

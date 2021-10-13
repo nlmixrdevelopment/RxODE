@@ -128,6 +128,10 @@ model.default <- function(x, ...) {
 #' @export
 #' @rdname
 print.rxUi <-function(x, ...) {
+  .md <- x$modelDesc
+  cat(cli::cli_format_method({
+        cli::cli_h1("{.md}")
+    }), "\n")
   cat(cli::cli_format_method({
     cli::cli_h2("Initalization:")
   }), "\n")

@@ -11,6 +11,7 @@
 \alias{rxUiGet.ini}
 \alias{rxUiGet.iniFun}
 \alias{rxUiGet.modelFun}
+\alias{rxUiGet.modelDesc}
 \alias{rxUiGet.default}
 \title{S3 for getting information from UI model}
 \usage{
@@ -33,6 +34,8 @@ rxUiGet(x, ...)
 \method{rxUiGet}{iniFun}(x, ...)
 
 \method{rxUiGet}{modelFun}(x, ...)
+
+\method{rxUiGet}{modelDesc}(x, ...)
 
 \method{rxUiGet}{default}(x, ...)
 }
