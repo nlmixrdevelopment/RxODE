@@ -125,19 +125,20 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 5){
       if (foundF){
-	int nnn = tb.de.n;
-	if (tb.linCmt){
-	  if (tb.hasKa){
-	    nnn+=2;
-	  } else {
-	    nnn+=1;
-	  }
-	}
-	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){\n  int _itwhile = 0;\n  (void)_itwhile;\n  double *_f=_solveData->subjects[_cSub].cF;\n  (void)_f;\n  double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
-		prefix, nnn);
-	for (int jjj = nnn; jjj--;){
-	  sAppend(&sbOut, "  _f[%d]=1.0;\n",jjj);
-	}
+        REprintf("tb.de.n: %d\n", tb.de.n);
+        int nnn = tb.de.n;
+        if (tb.linCmt){
+          if (tb.hasKa){
+            nnn+=2;
+          } else {
+            nnn+=1;
+          }
+        }
+        sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){\n  int _itwhile = 0;\n  (void)_itwhile;\n  double *_f=_solveData->subjects[_cSub].cF;\n  (void)_f;\n  double t = __t + _solveData->subjects[_cSub].curShift;\n  (void)t;\n  ",
+                prefix, nnn);
+        for (int jjj = nnn; jjj--;){
+          sAppend(&sbOut, "  _f[%d]=1.0;\n",jjj);
+        }
       } else {
 	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double __t, double *__zzStateVar__){\n return _amt;\n",
 		prefix);
