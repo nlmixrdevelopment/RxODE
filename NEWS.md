@@ -2,6 +2,8 @@
 
 * Fix disconnect between number of compartments and the extra number
   of compartments used for translating data to RxODE format. See Issue #465
+  
+* Remove warnings about `dur()` and `rate()` mismatches for now
 
 
 # RxODE 1.1.1 

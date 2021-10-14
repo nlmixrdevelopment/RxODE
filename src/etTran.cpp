@@ -982,9 +982,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	if (flg == 40){
 	  stop(_("when using steady state constant infusion modeling duration does not make sense (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
-	if (!(needSort & needSortDur)) {
-	  warning(_("data specified modeled duration (=-2) but no dur() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
-	}
 	rateI = 8;
 	durModeled = true;
       } else if (rate > 0){
