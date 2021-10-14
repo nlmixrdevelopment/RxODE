@@ -76,7 +76,7 @@ static inline void printDdtDefine(int show_ode, int scenario) {
   if (show_ode == ode_jac || show_ode == ode_lhs){
     //__DDtStateVar_#__
     // These will be defined and used in Jacobian or LHS functions
-    for (int i = 0; i < codgenGetN0(); i++){
+    for (int i = 0; i < tb.de.n; i++){
       if (scenario == print_double){
         sAppend(&sbOut,"  double  __DDtStateVar_%d__;\n",i);
       } else {
@@ -108,7 +108,7 @@ static inline void printPDStateVar(int show_ode, int scenario) {
 static inline int isStateLhsI(int i) {
   if (tb.lh[i] == isState){
     int doCont=0;
-    for (int j = 0; j < codgenGetN0(); j++) {
+    for (int j = 0; j < tb.de.n; j++) {
       if (tb.di[j] == i) {
         if (!tb.idu[j]) doCont = 1;
         break;
