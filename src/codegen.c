@@ -75,18 +75,6 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sFree(&bufw);
 }
 
-static inline int codegenGetNCmt() {
-  int nnn = tb.de.n;
-  if (tb.linCmt) {
-    if (tb.hasKa) {
-      nnn+=2;
-    } else {
-      nnn+=1;
-    }
-  }
-  return nnn;
-}
-
 
 void codegen(char *model, int show_ode, const char *prefix, const char *libname, const char *pMd5, const char *timeId, const char *libname2) {
   if (show_ode == 4) {
@@ -241,7 +229,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
       prnt_vars(print_populateParameters, 1, "", "\n",show_ode);                   /* pass system pars */
       if (show_ode != 9 && show_ode != 11){
-        for (i=0; i<tb.de.n; i++) {                   /* name state vars */
+        for (i=0; i < codgenGetN0(); i++) {                   /* name state vars */
           buf = tb.ss.line[tb.di[i]];
           if(tb.idu[i] != 0){
             if (show_ode == 6 || show_ode == 8 || show_ode == 7){
@@ -380,7 +368,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppendN(&sbOut,  "}\n", 2);
     } else if (show_ode == 3){
       if (foundF0){
-        for (i = 0; i < tb.de.n; i++) {
+        for (i = 0; i < codgenGetN0(); i++) {
           if (tb.idu[i]) {
             buf=tb.ss.line[tb.di[i]];
             sAppend(&sbOut, "  __zzStateVar__[%d]=((double)(_ON[%d]))*(",i,i);
@@ -525,9 +513,9 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
     for (int i=tb.de.n; i--;) {                     /* name state vars */
       buf=tb.ss.line[tb.di[i]];
       if (tb.hasKa == 1 && !strcmp(buf,"depot")){
-	badDepot=true;
+        badDepot=true;
       } else if (!strcmp(buf, "central")) {
-	badCentral=true;
+        badCentral=true;
       }
     }
     if (badCentral && badDepot){

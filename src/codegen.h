@@ -22,6 +22,22 @@
 #include "tran.h"
 #include "sbuf.h"
 
+static inline int codgenGetN0() {
+  return tb.de.n - tb.nExtra;
+}
+
+static inline int codegenGetNCmt() {
+  int nnn = tb.de.n - tb.nExtra;
+  if (tb.linCmt) {
+    if (tb.hasKa) {
+      nnn+=2;
+    } else {
+      nnn+=1;
+    }
+  }
+  return nnn;
+}
+
 // show_ode = 1 dydt
 // show_ode = 2 Jacobian
 // show_ode = 3 Ini statement
@@ -60,11 +76,11 @@ static inline void printDdtDefine(int show_ode, int scenario) {
   if (show_ode == ode_jac || show_ode == ode_lhs){
     //__DDtStateVar_#__
     // These will be defined and used in Jacobian or LHS functions
-    for (int i = 0; i < tb.de.n; i++){
+    for (int i = 0; i < codgenGetN0(); i++){
       if (scenario == print_double){
-	sAppend(&sbOut,"  double  __DDtStateVar_%d__;\n",i);
+        sAppend(&sbOut,"  double  __DDtStateVar_%d__;\n",i);
       } else {
-	sAppend(&sbOut,"  (void)__DDtStateVar_%d__;\n",i);
+        sAppend(&sbOut,"  (void)__DDtStateVar_%d__;\n",i);
       }
     }
   }
@@ -92,10 +108,10 @@ static inline void printPDStateVar(int show_ode, int scenario) {
 static inline int isStateLhsI(int i) {
   if (tb.lh[i] == isState){
     int doCont=0;
-    for (int j = 0; j < tb.de.n; j++) {
+    for (int j = 0; j < codgenGetN0(); j++) {
       if (tb.di[j] == i) {
-	if (!tb.idu[j]) doCont = 1;
-	break;
+        if (!tb.idu[j]) doCont = 1;
+        break;
       }
     }
     if (doCont) return 1;
@@ -317,6 +333,5 @@ void writeSb(sbuf *sbb, FILE *fp);
 
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 		    SEXP pMd5, SEXP timeId, SEXP mvLast);
-
 
 #endif // __CODEGEN_H__

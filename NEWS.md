@@ -1,3 +1,9 @@
+# RxODE 1.1.2
+
+* Fix disconnect between number of compartments and the extra number
+  of compartments used for translating data to RxODE format. See Issue #465
+
+
 # RxODE 1.1.1 
 
 * Fix the LTO issue that CRAN identified.
