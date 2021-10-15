@@ -42,6 +42,19 @@ rxodeTest({
       cmt(cp)
     })
 
+    d <- qs::qread("issue-464.qs")
+
+    theta <- c(-0.6931472, -6.9077553, -3.5065579, 0.4054651, 0.0100000, 1.0000000)
+
+    theta <- setNames(theta, paste0("THETA[", seq_along(theta), "]"))
+
+    eta <- c(0, 0)
+
+    eta <- setNames(eta, paste0("ETA[", seq_along(eta), "]"))
+
+    p <- c(theta, eta)
+
+    expect_error(rxSolve(rx, p, d), NA)
 
   })
 })
