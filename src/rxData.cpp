@@ -3596,6 +3596,7 @@ static inline void rxSolve_normalizeParms(const RObject &obj, const List &rxCont
 	  // Hmax defined above.
 	  ind->sim = simNum+1;
 	  ind->lhs = &_globals.glhs[cid];
+	  ind->lhs = &_globals.glhs[cid*op->nlhs];
 	  ind->rc = &_globals.grc[cid];
 	  ind->slvr_counter = &_globals.slvr_counter[cid];
 	  ind->dadt_counter = &_globals.dadt_counter[cid];
