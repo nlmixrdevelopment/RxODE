@@ -1,9 +1,11 @@
 # RxODE 1.1.2
 
-* Fix disconnect between number of compartments and the extra number
-  of compartments used for translating data to RxODE format. See Issue #465
+* Change the RxODE to not allocate or initialize memory for the extra
+  declared compartments that are used in nlmixr. See Issue #465.
   
-* Remove warnings about `dur()` and `rate()` mismatches for now
+* Fix subject initialization for `focei`, fixing #465.
+  
+* Remove warnings about `dur()` and `rate()` mismatches for now.
 
 
 # RxODE 1.1.1 
