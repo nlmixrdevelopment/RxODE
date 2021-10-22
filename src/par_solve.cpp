@@ -1976,7 +1976,7 @@ extern "C" void ind_solve(rx_solve *rx, unsigned int cid,
       break;
     }
   }
-  iniSubject(op->neq, 1, &(rx->subjects[cid]), op, rx, u_inis);
+  iniSubject(cid, 1, &(rx->subjects[cid]), op, rx, u_inis);
   par_progress_0=0;
 }
 

@@ -973,18 +973,18 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (rate == -1.0){
 	// rate is modeled
 	rateI = 9;
-	if (!(needSort & needSortRate)) {
-	  warning(_("data specified modeled rate (=-1) but no rate() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
-	}
+	// if (!(needSort & needSortRate)) {
+	//   warning(_("data specified modeled rate (=-1) but no rate() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
+	// }
 	rateModeled = true;
       } else if (rate == -2.0){
 	// duration is modeled
 	if (flg == 40){
 	  stop(_("when using steady state constant infusion modeling duration does not make sense (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
 	}
-	if (!(needSort & needSortDur)) {
-	  warning(_("data specified modeled duration (=-2) but no dur() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
-	}
+	// if (!(needSort & needSortDur)) {
+	//   warning(_("data specified modeled duration (=-2) but no dur() in the model (id: %s, row: %d)"), CHAR(idLvl[cid-1]), i+1);
+	// }
 	rateI = 8;
 	durModeled = true;
       } else if (rate > 0){
