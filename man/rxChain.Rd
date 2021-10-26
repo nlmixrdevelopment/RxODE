@@ -24,3 +24,4 @@ Add item to solved system of equations
 \author{
 Matthew L. Fidler
 }
+\keyword{internal}
