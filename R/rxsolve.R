@@ -1306,6 +1306,7 @@ solve.rxEt <- solve.rxSolve
 #'
 #' @author Matthew L.Fidler
 #' @export
+#' @keywords internal
 is.rxSolve <- function(x) {
   .Call(`_RxODE_rxIs`, x, "rxSolve")
 }

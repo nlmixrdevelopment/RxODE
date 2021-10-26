@@ -94,12 +94,12 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
 })
 #' Setup Rtools path
 #'
-#' @param rm.rtools Remove the Rtools from the current path specs.
+#' @inheritParams rxWinSetup
 #'
 #' @param retry Should you retry to find Rtools?  If NA, don't throw
 #'     an error if it isn't found.
-#'
 #' @author Matthew L. Fidler
+#' @noRd
 .rxWinRtoolsPath <- function(rm.rtools = TRUE, retry = FALSE) {
   ## Note that devtools seems to assume that rtools/bin is setup
   ## appropriately, and figures out the c compiler from there.
@@ -209,7 +209,8 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
 }
 #' Setup Windows components for RxODE
 #'
-#' @inheritParams .rxWinRtoolsPath
+#' @param rm.rtools Remove the Rtools from the current path specs.
+#'
 #' @author Matthew L. Fidler
 #' @return nothing, used for its side effects
 #' @export

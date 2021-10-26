@@ -116,6 +116,7 @@ print.rxEt <- function(x, ...) {
 #' @author Matthew L.Fidler
 #' @return original object
 #' @export
+#' @keywords internal
 print.RxODE <- function(x, ...) {
   rxModelVars(x)
   x <- .getReal(x)

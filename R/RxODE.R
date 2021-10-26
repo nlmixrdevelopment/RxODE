@@ -820,6 +820,8 @@ rxGetModel <- function(model, calcSens = NULL, calcJac = NULL, collapseModel = N
 #'
 #' @author Matthew L. Fidler
 #'
+#' @keywords internal
+#'
 #' @export
 rxChain <- function(obj1, obj2) {
   .args <- rev(as.list(match.call())[-1])
@@ -949,6 +951,7 @@ rxChain2.EventTable <- function(obj, solvedObject) {
 #'     parameters.
 #' * `RxODE` is the referring RxODE object
 #' @author Matthew L.Fidler
+#' @keywords internal
 #' @importFrom stats coef
 #'
 #' @export

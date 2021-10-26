@@ -149,6 +149,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
 #'     extra states (statef) and dvid translation information
 #'     (dvid). This is used in generating the final RxODE model.
 #' @author Matthew Fidler
+#' @noRd
 .rxGenFunState <- function(obj) {
   .mv0 <- rxModelVars(obj)
   .curDvid <- .mv0$dvid
@@ -224,6 +225,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
 #' @return A list of (1) RxODE model variables augmented with
 #'     pred/error information and (2) extra error variables created.
 #' @author Matthew L Fidler
+#' @noRd
 .rxGenPred <- function(obj, predfn, errfn, init,
                        addProp = c("combined2", "combined1")) {
   .extraPars <- NULL
@@ -437,6 +439,7 @@ rxExpandGrid <- function(x, y, type = 0L) {
 #'   `optExpression` is `TRUE`.
 #' @return RxODE text
 #' @author Matthew Fidler
+#' @keywords internal
 #' @export
 rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod = FALSE, optExpression = TRUE,
                       loadSymengine = TRUE) {
@@ -545,6 +548,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod = FALSE, optExpressio
 #' @inheritParams rxSEinner
 #' @return RxODE/symengine environment
 #' @author Matthew L. Fidler
+#' @noRd
 .rxGenEtaS <- function(obj, predfn, pkpars = NULL, errfn = NULL,
                        init = NULL, promoteLinSens = TRUE,
                        theta = FALSE, addProp = c("combined2", "combined1")) {
@@ -575,6 +579,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod = FALSE, optExpressio
 #' @inheritParams rxSEinner
 #' @return RxODE/symengine environment
 #' @author Matthew L. Fidler
+#' @noRd
 .rxGenHdEta <- function(obj, predfn, pkpars = NULL, errfn = NULL,
                         init = NULL, pred.minus.dv = TRUE,
                         promoteLinSens = TRUE,
@@ -630,6 +635,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod = FALSE, optExpressio
 #' @inheritParams rxSEinner
 #' @return Nothing
 #' @author Matthew L Fidler
+#' @noRd
 .rxFinalizePred <- function(.s, sum.prod = FALSE,
                             optExpression = TRUE) {
   .prd <- get("rx_pred_", envir = .s)
@@ -696,6 +702,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod = FALSE, optExpressio
 #' @inheritParams rxSEinner
 #' @return Nothing
 #' @author Matthew L Fidler
+#' @noRd
 .rxFinalizeInner <- function(.s, sum.prod = FALSE,
                              optExpression = TRUE) {
   .rxErrEnvInit()
@@ -770,6 +777,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod = FALSE, optExpressio
 #' @inheritParams rxSEinner
 #' @return RxODE/symengine environment
 #' @author Matthew L. Fidler
+#' @noRd
 .rxGenFocei <- function(obj, predfn, pkpars = NULL, errfn = NULL,
                         init = NULL, pred.minus.dv = TRUE,
                         sum.prod = FALSE,
@@ -811,6 +819,7 @@ rxGenSaem <- function(obj, predfn, pkpars = NULL, sum.prod = FALSE, optExpressio
 #' @inheritParams rxSEinner
 #' @return RxODE/symengine environment
 #' @author Matthew L. Fidler
+#' @noRd
 .rxGenEBE <- function(obj, predfn, pkpars = NULL, errfn = NULL,
                       init = NULL, pred.minus.dv = TRUE,
                       sum.prod = FALSE, optExpression = TRUE,

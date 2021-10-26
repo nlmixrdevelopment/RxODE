@@ -79,6 +79,7 @@ ggplot2::waiver
 #' @inheritParams ggplot2::guide_none
 #' @return nothing, simply included to be compatible with ggplot 3.2
 #' @export
+#' @keywords internal
 guide_none <- function(title = waiver(), position = waiver()) {
   stop("needs \"ggplot2\" 3.3.0", call. = FALSE)
 }
