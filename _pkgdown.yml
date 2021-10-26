@@ -6,9 +6,14 @@ template:
       api_key: 038b4d83946a52a95a9f8bdafe822dbe
       index_name: rxode
 reference:
-- title: Creating RxODE compiled objects
+- title: Creating/Deleting/Loading RxODE compiled objects
   contents:
   - RxODE
+  - rxClean
+  - rxCompile
+  - rxCreateCache
+  - rxDelete
+  - rxUnloadAll
 - title: Creating RxODE event tables/data frames
   contents:
   - et
@@ -23,6 +28,7 @@ reference:
 - title: Solving, Simulating and Solving options
   contents:
   - rxSolve
+  - rxCbindStudyIndividual
 - title: Exploring RxODE and creating models with Shiny
   contents:
   - rxShiny
@@ -44,18 +50,25 @@ reference:
   - rxnorm
   - rxpois
   - rxt
+  - rxf
+  - rxgamma
+  - rxgeom
   - rxunif
   - rxweibull
+  - rxSimThetaOmega
 - title: Optimizing models and/or adding precision
   contents:
   - rxOptExpr
   - rxSumProdModel
   - rxSetProd
   - rxSetSum
+- title: Adding/Modifying RxODE C-based functions and derivatives
+  contents:
+  - rxD
 - title: Running unit tests in RxODE
   contents:
   - rxValidate
-- title: Special Functions
+- title: Special Functions for RxODE
   contents:
     - gammap
     - gammapDer
@@ -67,13 +80,62 @@ reference:
     - lowergamma
     - phi
     - probit
+    - rxRmvn
+    - rxSetSeed
 - title: Parallel processing support commands
   contents:
-  -  getRxThreads  
+  -  getRxThreads
 - title: ggplot2 support functions
   contents:
   - stat_cens
   - stat_amt
+- title: RxODE utility functions
+  contents:
+  - rxDerived
+  - rxInv
+  - rxIsCurrent
+  - rxLhs
+  - rxLock
+  - rxNorm
+  - rxParams
+  - rxProgress
+  - rxRandNV
+  - rxState
+  - rxSymInvChol
+  - uppergamma
+- title: Internal Functions
+  contents:
+  - .rxGenFoce
+  - .rxWithOptions
+  - .rxWithWd
+  - invWR1d
+  - rLKJ1
+  - rxAllowUnload
+  - rxAssignPtr
+  - rxChain
+  - rxDfdy
+  - rxEvid
+  - rxFun
+  - rxGetLin
+  - rxGetRxODE
+  - rxHtml
+  - rxIndLinState
+  - rxRateDur
+  - rxReservedKeywords
+  - rxS
+  - rxSetIni0
+  - rxSetProgressBar
+  - rxStack
+  - rxSupportedFuns
+  - rxSuppressMsg
+  - rxSyncOptions
+  - rxSyntaxFunctions
+  - rxTempDir
+  - rxTheme
+  - rxToSE
+  - rxTrans
+  - rxWinSetup
+  - summary.RxODE
 navbar:
   left:
   - text: Articles
