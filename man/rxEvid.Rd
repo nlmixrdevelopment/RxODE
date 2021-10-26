@@ -7,8 +7,6 @@
 \alias{[.rxEvid}
 \alias{as.character.rxEvid}
 \alias{[[.rxEvid}
-\alias{type_sum.rxEvid}
-\alias{pillar_shaft.rxEvid}
 \alias{c.rxRateDur}
 \alias{format.rxEvid}
 \alias{format.rxRateDur}
@@ -26,10 +24,6 @@ as.rxEvid(x)
 \method{as.character}{rxEvid}(x, ...)
 
 \method{[[}{rxEvid}(x, ...)
-
-\method{type_sum}{rxEvid}(x)
-
-pillar_shaft.rxEvid(x, ...)
 
 \method{c}{rxRateDur}(x, ...)
 

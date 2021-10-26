@@ -6,8 +6,6 @@
 \alias{as.rxRateDur}
 \alias{as.character.rxRateDur}
 \alias{[[.rxRateDur}
-\alias{type_sum.rxRateDur}
-\alias{pillar_shaft.rxRateDur}
 \title{Creates a rxRateDur object}
 \usage{
 rxRateDur(x)
@@ -19,10 +17,6 @@ as.rxRateDur(x)
 \method{as.character}{rxRateDur}(x, ...)
 
 \method{[[}{rxRateDur}(x, ...)
-
-\method{type_sum}{rxRateDur}(x)
-
-pillar_shaft.rxRateDur(x, ...)
 }
 \arguments{
 \item{x}{rxRateDur data}
