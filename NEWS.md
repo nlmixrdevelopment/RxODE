@@ -7,6 +7,8 @@
 
 * Remove warnings for duration and rate
 
+* Don't export pillar methods any more (simply register at load if present)
+
 # RxODE 1.1.1 
 
 * Fix the LTO issue that CRAN identified.
