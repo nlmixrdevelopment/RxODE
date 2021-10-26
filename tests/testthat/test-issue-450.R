@@ -109,7 +109,7 @@ rxodeTest({
                  Vp = par.pk$Vp[par.pk$sim.id == id],
                  alag = par.pk$alag[par.pk$sim.id == id],
                  D = par.pk$D[par.pk$sim.id == id])
-      res.id = data.frame(sim.id=id, expect_warning(rxSolve(mod, theta, ev.new, returnType="data.frame"), "dur()"))
+      res.id = data.frame(sim.id=id, rxSolve(mod, theta, ev.new, returnType="data.frame"))
 
       expect_equal(theta, unlist(bar3x$params[bar3x$params$sim.id == id, -1]))
 
