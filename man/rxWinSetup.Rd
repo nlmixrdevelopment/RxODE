@@ -6,6 +6,9 @@
 \usage{
 rxWinSetup(rm.rtools = TRUE)
 }
+\arguments{
+\item{rm.rtools}{Remove the Rtools from the current path specs.}
+}
 \value{
 nothing, used for its side effects
 }
