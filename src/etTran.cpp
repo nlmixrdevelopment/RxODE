@@ -45,7 +45,8 @@ bool forderForceBase_ = false;
 //' forderForceBase(TRUE) # Use base `order` for RxODE sorts
 //' forderForceBase(FALSE) # Use `data.table` for RxODE sorts
 //' }
-//'@export
+//' @export
+//' @keywords internal
 //[[Rcpp::export]]
 RObject forderForceBase(bool forceBase = false){
   forderForceBase_=forceBase;

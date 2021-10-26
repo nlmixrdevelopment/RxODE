@@ -221,6 +221,7 @@ rxExpandIfElse <- function(model, removeInis = TRUE, removePrint = TRUE) {
 #' @return RxODE lines with inis removed.
 #' @author Matthew L. Fidler
 #' @keywords internal
+#' @noRd
 .rxRmIni <- function(x) {
   x <- x[regexpr(rex::rex(
     start, any_spaces,
@@ -239,6 +240,7 @@ rxExpandIfElse <- function(model, removeInis = TRUE, removePrint = TRUE) {
 #' @param x RxODE lines to remove
 #' @return RxODE with print lines removed.
 #' @author Matthew L. Fidler
+#' @noRd
 .rxRmPrint <- function(x) {
   return(x[regexpr(getFromNamespace("regPrint", "RxODE"), x) == -1])
 }
@@ -249,6 +251,7 @@ rxExpandIfElse <- function(model, removeInis = TRUE, removePrint = TRUE) {
 #' @param ret boolean stating if a return statement will be added.
 #' @return Function with parens removed and add a return statment.
 #' @author Matthew L. Fidler
+#' @noRd
 rxAddReturn <- function(fn, ret = TRUE) {
   txt <- deparse(body(fn))
   if (txt[1] == "{") {

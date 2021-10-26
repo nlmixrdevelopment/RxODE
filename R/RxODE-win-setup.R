@@ -100,6 +100,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates = FALSE) {
 #'     an error if it isn't found.
 #'
 #' @author Matthew L. Fidler
+#' @noRd
 .rxWinRtoolsPath <- function(rm.rtools = TRUE, retry = FALSE) {
   ## Note that devtools seems to assume that rtools/bin is setup
   ## appropriately, and figures out the c compiler from there.

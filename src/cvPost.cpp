@@ -164,6 +164,7 @@ void rgbeta(int d, double shape, double* out){
 //' 
 //' @author Matthew Fidler (translated to RcppArmadillo) and Emma Schwager
 //' @export
+//' @keywords internal
 //[[Rcpp::export]]
 arma::mat rLKJ1(int d, double eta = 1.0, bool cholesky = false){
   if (d < 2){
@@ -238,6 +239,7 @@ arma::mat rLKJcvLsd1(arma::vec logSd, arma::vec logSdSD, double eta = 1.0){
 //' @return One correlation sample from the inverse wishart
 //' 
 //' @author Matthew Fidler
+//' @keywords internal
 //' @export
 //[[Rcpp::export]]
 arma::mat invWR1d(int d, double nu, bool omegaIsChol = false){

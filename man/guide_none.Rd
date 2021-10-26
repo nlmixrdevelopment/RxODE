@@ -22,3 +22,4 @@ nothing, simply included to be compatible with ggplot 3.2
 This empty guide draws nothing; It is included in RxODE for
 compatibility with ggplot 3.2
 }
+\keyword{internal}

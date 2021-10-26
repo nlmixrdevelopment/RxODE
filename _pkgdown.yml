@@ -44,6 +44,21 @@ reference:
 - title: Running unit tests in RxODE
   contents:
   - rxValidate
+- title: Special Functions
+  contents:
+    - gammap
+    - gammapDer
+    - gammapInv
+    - gammaq
+    - gammaqInv
+    - forderForceBase
+    - logit
+    - lowergamma
+    - phi
+    - probit
+- title: Parallel processing support commands:
+    contents:
+      -  getRxThreads
 navbar:
   left:
   - text: Articles

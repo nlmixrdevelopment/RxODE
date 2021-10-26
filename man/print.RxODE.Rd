@@ -20,3 +20,4 @@ This prints the model name and its status for being able to be solved
 \author{
 Matthew L.Fidler
 }
+\keyword{internal}

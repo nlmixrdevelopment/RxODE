@@ -1130,6 +1130,7 @@ as_tibble.rxEt <- function(x, ...) {
 #'
 #' @author Matthew L.Fidler
 #' @export
+#' @keywords internal
 is.rxEt <- function(x) {
   .Call(`_RxODE_rxIs`, x, "rxEt")
 }

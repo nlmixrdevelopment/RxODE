@@ -21,3 +21,4 @@ Check to see if this is an rxSolve object.
 \author{
 Matthew L.Fidler
 }
+\keyword{internal}

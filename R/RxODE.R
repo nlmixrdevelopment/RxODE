@@ -943,6 +943,7 @@ rxChain2.EventTable <- function(obj, solvedObject) {
 #'     parameters.
 #' * `RxODE` is the referring RxODE object
 #' @author Matthew L.Fidler
+#' @keywords internal
 #' @importFrom stats coef
 #'
 #' @export
