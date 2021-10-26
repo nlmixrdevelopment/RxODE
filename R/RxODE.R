@@ -814,6 +814,8 @@ rxGetModel <- function(model, calcSens = NULL, calcJac = NULL, collapseModel = N
 #'
 #' @author Matthew L. Fidler
 #'
+#' @keywords internal
+#'
 #' @export
 rxChain <- function(obj1, obj2) {
   .args <- rev(as.list(match.call())[-1])

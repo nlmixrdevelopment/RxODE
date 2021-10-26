@@ -15,6 +15,7 @@ reference:
   - etRbind
   - etRep
   - etSeq
+  - etExpand
   - as.et
   - eventTable
   - add.dosing
@@ -35,6 +36,16 @@ reference:
   - cvPost
   - rinvchisq
   - rxPp
+  - rxbeta
+  - rxbinom
+  - rxcauchy
+  - rxchisq
+  - rxexp
+  - rxnorm
+  - rxpois
+  - rxt
+  - rxunif
+  - rxweibull
 - title: Optimizing models and/or adding precision
   contents:
   - rxOptExpr
@@ -56,9 +67,13 @@ reference:
     - lowergamma
     - phi
     - probit
-- title: Parallel processing support commands:
-    contents:
-      -  getRxThreads
+- title: Parallel processing support commands
+  contents:
+  -  getRxThreads  
+- title: ggplot2 support functions
+  contents:
+  - stat_cens
+  - stat_amt
 navbar:
   left:
   - text: Articles
