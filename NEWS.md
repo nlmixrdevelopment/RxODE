@@ -9,6 +9,8 @@
 
 * Don't export pillar methods any more (simply register at load if present)
 
+* As requested by CRAN, change fortran and C binding for BLAS an LINPACK
+
 # RxODE 1.1.1 
 
 * Fix the LTO issue that CRAN identified.
