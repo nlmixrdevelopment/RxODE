@@ -1,4 +1,5 @@
 // Author: Kevin Ushey, David Cooley
+#define USE_FC_LEN_T
 #define STRICT_R_HEADER
 #include <Rcpp.h>
 using namespace Rcpp;

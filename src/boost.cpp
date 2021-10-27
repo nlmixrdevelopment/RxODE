@@ -1,4 +1,5 @@
 // Ignore error so that boost doesn't abort
+#define USE_FC_LEN_T
 #define BOOST_MATH_DOMAIN_ERROR_POLICY ignore_error
 #define BOOST_MATH_POLE_ERROR_POLICY ignore_error
 #define BOOST_MATH_OVERFLOW_ERROR_POLICY ignore_error

@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 #include "lsoda.h"
 #include "common.h"
 #include "lsoda_internal.h"

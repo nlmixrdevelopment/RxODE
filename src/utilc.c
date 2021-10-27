@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 #define STRICT_R_HEADER
 #include <sys/stat.h> 
 #include <fcntl.h>

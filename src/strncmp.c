@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 #include "strncmp.h"
 
 // This is modified from the open source code

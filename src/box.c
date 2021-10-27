@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 #include "../inst/include/RxODE.h"
 
 double powerDi(double x, double lambda, int yj){

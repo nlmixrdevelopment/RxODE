@@ -1,4 +1,5 @@
 //#undef NDEBUG
+#define USE_FC_LEN_T
 #define STRICT_R_HEADER
 #include <stan/math.hpp>
 #include <Rcpp.h>

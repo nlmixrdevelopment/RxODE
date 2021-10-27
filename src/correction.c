@@ -1,4 +1,4 @@
-
+#define USE_FC_LEN_T
 #include <math.h>
 #include "lsoda.h"
 #include "common.h"
