@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 #error this file is deprecated ewset is a marco in lsoda.c
 #if 0
 

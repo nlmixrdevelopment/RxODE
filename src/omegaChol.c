@@ -1,4 +1,5 @@
 //Generated from refresh.R for 12 dimensions
+#define USE_FC_LEN_T
 #define STRICT_R_HEADER
 #include <R.h>
 #include <Rdefines.h>

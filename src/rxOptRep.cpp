@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 //#undef NDEBUG
 #define STRICT_R_HEADER
 #include <Rcpp.h>

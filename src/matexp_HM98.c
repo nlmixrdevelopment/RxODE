@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 // Taken from expm::expm; Its not exported as a C call.
 /* Copyright (C) 2013-2014 Drew Schmidt.
    Copyright (C) 2014      Martin Maechler
@@ -31,6 +32,10 @@
 #include <Rinternals.h>
 #include <R_ext/Lapack.h>
 #include <R_ext/BLAS.h>
+#ifndef FCONE
+# define FCONE
+#endif
+
 
 
 #define SGNEXP(x,pow) (x==0?(pow==0?1:0):(x>0?1:(pow%2==0?1:(-1))))
@@ -43,8 +48,7 @@
 static inline void matprod(int n, double *A, double *B, double *C)
 {
     const double one = 1.0, zero = 0.0;
-    const char trans = 'N';
-    F77_CALL(dgemm)(&trans, &trans, &n, &n, &n, &one, A, &n, B, &n, &zero, C, &n);
+    F77_CALL(dgemm)("N", "N", &n, &n, &n, &one, A, &n, B, &n, &zero, C, &n FCONE FCONE);
 }
 
 
@@ -52,9 +56,7 @@ static inline void matprod(int n, double *A, double *B, double *C)
 // Copy A ONTO B, i.e. B = A
 static inline void matcopy(int n, double *A, double *B)
 {
-  const char uplo = 'A';
-
-  F77_CALL(dlacpy)(&uplo, &n, &n, A, &n, B, &n);
+  F77_CALL(dlacpy)("A", &n, &n, A, &n, B, &n FCONE);
 }
 
 

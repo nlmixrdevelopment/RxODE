@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 #define STRICT_R_HEADER
 #include "rxomp.h"
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )

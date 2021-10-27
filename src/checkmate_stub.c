@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 #define STRICT_R_HEADERS
 #include <R.h>
 #include <Rinternals.h>

@@ -1,4 +1,4 @@
-
+#define USE_FC_LEN_T
 /***********
  * dscal.c *
  ***********/

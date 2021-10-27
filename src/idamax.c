@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 /************
  * idamax.c *
  ************/

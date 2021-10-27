@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>

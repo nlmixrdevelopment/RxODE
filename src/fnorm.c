@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 #include <math.h>
 
 double fnorm0(int n, double **a, double *w)

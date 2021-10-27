@@ -1,3 +1,4 @@
+#define USE_FC_LEN_T
 // [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 //#undef NDEBUG
