@@ -183,16 +183,16 @@ attr(rxUiGet.modelFun, "desc") <- "normalized, quoted `model()` block"
 #' @rdname rxUiGet
 rxUiGet.modelDesc <- function(x, ...) {
   .mv <- get("mv0", x[[1]])
-  if (.mv$flags["linCmt"] != -100L) {
-
+  .mvL <- get("mvL", x[[1]])
+  if (!is.null(.mvL)){
     return(sprintf(
-      "RxODE-based solved PK %s-compartment model%s%s", .mv$flags["ncmt"],
+      "RxODE-based solved PK %s-compartment model%s%s", .mvL$flags["ncmt"],
       ifelse(.mv$extraCmt == 2, " with first-order absorption", ""),
-      ifelse(length(.mv$state) == 0L, "",
+      ifelse(length(.mvL$state) == 0L, "",
              sprintf(" mixed with free from %d-cmt ODE model",
-                     length(.mv$state)))
+                     length(.mvL$state)))
     ))
-  } else if (.mv$extraCmt == 0) {
+  } else if (length(.mv$state) > 0) {
     return(sprintf("RxODE-based free-form %d-cmt ODE model", length(.mv$state)))
   } else {
     return("RxODE-based Pred model")

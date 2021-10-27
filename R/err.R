@@ -910,7 +910,9 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
 #'
 #' .errProcessExpression()
 #' @noRd
-.errProcessExpression <- function(x, ini) {
+.errProcessExpression <- function(x, ini,
+                                  linCmtSens = c("linCmtA", "linCmtB", "linCmtC"),
+                                  verbose=FALSE) {
   # ntheta neta1 neta2   name lower       est   upper   fix  err  label
   # backTransform condition trLow trHi
   .env <- new.env(parent=emptyenv())
@@ -958,7 +960,29 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
       if (!is.null(.env$errGlobal)) {
         stop(paste(.env$errGlobal, collapse="\n"), call.=FALSE)
       }
-      .env$mv0 <- rxModelVars(paste(.env$lstChr[-.env$predDf$line], collapse="\n"))
+      if (any(.env$predDf$linCmt)) {
+        .env$mv0 <- rxModelVars(paste(c(.env$lstChr[-.env$predDf$line], "rxLinCmt ~ linCmt()"), collapse="\n"))
+      } else {
+        .env$mv0 <- rxModelVars(paste(.env$lstChr[-.env$predDf$line], collapse="\n"))
+      }
+      if (.Call(`_RxODE_isLinCmt`) == 1L) {
+        .env$.linCmtM <- rxNorm(.env$mv0)
+        .vars <- c(.env$mv0$params, .env$mv0$lhs, .env$mv0$slhs)
+        .env$mvL <- rxGetModel(.Call(
+          `_RxODE_linCmtGen`,
+          length(.env$mv0$state),
+          .vars,
+          setNames(
+            c(
+              "linCmtA" = 1L, "linCmtB" = 2L,
+              "linCmtC" = 3L
+            )[match.arg(linCmtSens)],
+            NULL
+          ), verbose
+        ))
+      } else {
+        .env$mvL <- NULL
+      }
       .env$curCmt <- length(.env$mv0$state)
       .env$extraCmt <- NULL
       .env$predDf$cmt <- vapply(seq_along(.env$predDf$line),
