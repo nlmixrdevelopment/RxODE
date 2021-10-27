@@ -108,6 +108,7 @@ reference:
   - .rxGenFoce
   - .rxWithOptions
   - .rxWithWd
+  - .setWarnIdSort
   - invWR1d
   - rLKJ1
   - rxAllowUnload
@@ -120,6 +121,7 @@ reference:
   - rxGetRxODE
   - rxHtml
   - rxIndLinState
+  - rxIndLinStrategy
   - rxRateDur
   - rxReservedKeywords
   - rxS
