@@ -102,6 +102,22 @@ rxGetDistributionSimulationLines.rxUi <- function(line) {
   })
 }
 
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.simulationModel <- function(x, ...) {
+  .x <- x[[1]]
+  .exact <- x[[2]]
+  if (!exists(".simulationModel", envir=.x)) {
+
+    assign(".simulationModel", eval(rxCombineErrorLines(.x)), envir=.x)
+  }
+  get(".simulationModel", envir=.x)
+}
+
+attr(rxUiGet.simulationModel, "desc") <- "simulation model from UI"
+
+
 #' Combine Error Lines and create RxODE expression
 #'
 #' @param uiModel UI model
@@ -112,8 +128,12 @@ rxGetDistributionSimulationLines.rxUi <- function(line) {
 #' @export
 #' @author Matthew L. Fidler
 #' @keywords internal
-#' @examples
+#' @details
 #'
+#' This is exported to allow other functions to mangle the error lines
+#' to make other types of estimation methods (if needed)
+#'
+#' @examples
 #'
 #' one.cmt <- function() {
 #'    ini({
@@ -145,7 +165,7 @@ rxGetDistributionSimulationLines.rxUi <- function(line) {
 #' # You can then get the compiled model by simply evaluting the model:
 #' r <- eval(rxCombineErrorLines(f))
 #'
-#' # This also works with the
+#' # This also works with multile endpoint models:
 #' pk.turnover.emax <- function() {
 #'   ini({
 #'     tktr <- log(1)
@@ -199,6 +219,15 @@ rxGetDistributionSimulationLines.rxUi <- function(line) {
 #'     effect ~ add(pdadd.err)
 #'   })
 #' }
+#'
+#' f <- RxODE(pk.turnover.emax)
+#' rxCombineErrorLines(f)
+#'
+#' # Note that in the parsed form, you can also get the compiled RxODE
+#' # model with $simulationModel
+#'
+#' f$simulationModel
+#'
 rxCombineErrorLines <- function(uiModel, errLines=NULL) {
   if(!inherits(uiModel, "rxUi")) {
     stop("uiModel must be a evaluated UI model by RxODE(modelFunction) or modelFunction()",
@@ -217,7 +246,6 @@ rxCombineErrorLines <- function(uiModel, errLines=NULL) {
       length(errLines[[i]])
     }, integer(1)))
   }
-  print(.if)
   .expr <- uiModel$lstExpr
   .lenLines <- .lenLines + length(uiModel$lstExpr) - length(.predDf$line)
   .ret <- vector("list", .lenLines + 1)
@@ -228,7 +256,8 @@ rxCombineErrorLines <- function(uiModel, errLines=NULL) {
     if (.i %in% .predDf$line) {
       .curErr <- errLines[[.curErrLine]]
       if (.if) {
-        .ret[[.k]] <- as.call(list(quote(`if`), as.call(list(quote(`==`), quote(`CMT`), as.numeric(.predDf$cmt[.curErrLine]))),
+        .ret[[.k]] <- as.call(list(quote(`if`),
+                                   as.call(list(quote(`==`), quote(`CMT`), as.numeric(.predDf$cmt[.curErrLine]))),
                                    as.call(c(list(quote(`{`)), .curErr))))
         .k <- .k + 1
       } else {
