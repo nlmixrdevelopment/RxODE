@@ -132,8 +132,8 @@ rxGetDistributionSimulationLines.rxUi <- function(line) {
 #'    model({
 #'      ka <- exp(tka + eta.ka)
 #'      cl <- exp(tcl + eta.cl)
-#'       v <- exp(tv + eta.v)
-#'       linCmt() ~ add(add.sd)
+#'      v <- exp(tv + eta.v)
+#'      linCmt() ~ add(add.sd)
 #'    })
 #' }
 #'
@@ -145,6 +145,60 @@ rxGetDistributionSimulationLines.rxUi <- function(line) {
 #' # You can then get the compiled model by simply evaluting the model:
 #' r <- eval(rxCombineErrorLines(f))
 #'
+#' # This also works with the
+#' pk.turnover.emax <- function() {
+#'   ini({
+#'     tktr <- log(1)
+#'     tka <- log(1)
+#'     tcl <- log(0.1)
+#'     tv <- log(10)
+#'     ##
+#'     eta.ktr ~ 1
+#'     eta.ka ~ 1
+#'     eta.cl ~ 2
+#'     eta.v ~ 1
+#'     prop.err <- 0.1
+#'     pkadd.err <- 0.1
+#'     ##
+#'     temax <- logit(0.8)
+#'     tec50 <- log(0.5)
+#'     tkout <- log(0.05)
+#'     te0 <- log(100)
+#'     ##
+#'     eta.emax ~ .5
+#'     eta.ec50  ~ .5
+#'     eta.kout ~ .5
+#'     eta.e0 ~ .5
+#'     ##
+#'     pdadd.err <- 10
+#'   })
+#'   model({
+#'     ktr <- exp(tktr + eta.ktr)
+#'     ka <- exp(tka + eta.ka)
+#'     cl <- exp(tcl + eta.cl)
+#'     v <- exp(tv + eta.v)
+#'     ##
+#'     emax=expit(temax+eta.emax)
+#'     ec50 =  exp(tec50 + eta.ec50)
+#'     kout = exp(tkout + eta.kout)
+#'     e0 = exp(te0 + eta.e0)
+#'     ##
+#'     DCP = center/v
+#'     PD=1-emax*DCP/(ec50+DCP)
+#'     ##
+#'     effect(0) = e0
+#'     kin = e0*kout
+#'     ##
+#'     d/dt(depot) = -ktr * depot
+#'     d/dt(gut) =  ktr * depot -ka * gut
+#'     d/dt(center) =  ka * gut - cl / v * center
+#'     d/dt(effect) = kin*PD -kout*effect
+#'     ##
+#'     cp = center / v
+#'     cp ~ prop(prop.err) + add(pkadd.err)
+#'     effect ~ add(pdadd.err)
+#'   })
+#' }
 rxCombineErrorLines <- function(uiModel, errLines=NULL) {
   if(!inherits(uiModel, "rxUi")) {
     stop("uiModel must be a evaluated UI model by RxODE(modelFunction) or modelFunction()",
@@ -153,11 +207,18 @@ rxCombineErrorLines <- function(uiModel, errLines=NULL) {
   if (is.null(errLines)) {
     errLines <- rxGetDistributionSimulationLines(uiModel)
   }
-  .lenLines <- sum(vapply(seq_along(errLines), function(i){
-    length(errLines[[i]])
-  }, integer(1)))
-  .expr <- uiModel$lstExpr
   .predDf <- uiModel$predDf
+  .if <- FALSE
+  if (length(.predDf$line) > 1) {
+    .lenLines <- length(.predDf$line)
+    .if <- TRUE
+  } else {
+    .lenLines <- sum(vapply(seq_along(errLines), function(i){
+      length(errLines[[i]])
+    }, integer(1)))
+  }
+  print(.if)
+  .expr <- uiModel$lstExpr
   .lenLines <- .lenLines + length(uiModel$lstExpr) - length(.predDf$line)
   .ret <- vector("list", .lenLines + 1)
   .curErrLine <- 1
@@ -166,9 +227,15 @@ rxCombineErrorLines <- function(uiModel, errLines=NULL) {
   for (.i in seq_along(.expr)) {
     if (.i %in% .predDf$line) {
       .curErr <- errLines[[.curErrLine]]
-      for (.j in seq_along(.curErr)) {
-        .ret[[.k]] <- .curErr[[.j]]
+      if (.if) {
+        .ret[[.k]] <- as.call(list(quote(`if`), as.call(list(quote(`==`), quote(`CMT`), as.numeric(.predDf$cmt[.curErrLine]))),
+                                   as.call(c(list(quote(`{`)), .curErr))))
         .k <- .k + 1
+      } else {
+        for (.j in seq_along(.curErr)) {
+          .ret[[.k]] <- .curErr[[.j]]
+          .k <- .k + 1
+        }
       }
       .curErrLine <- .curErrLine + 1
     } else {
