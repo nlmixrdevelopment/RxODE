@@ -117,7 +117,6 @@ rxUiGet.simulationModel <- function(x, ...) {
 
 attr(rxUiGet.simulationModel, "desc") <- "simulation model from UI"
 
-
 #' Combine Error Lines and create RxODE expression
 #'
 #' @param uiModel UI model

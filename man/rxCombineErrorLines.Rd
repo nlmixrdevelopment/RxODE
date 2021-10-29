@@ -25,7 +25,6 @@ to make other types of estimation methods (if needed)
 }
 \examples{
 
-
 one.cmt <- function() {
    ini({
      ## You may label each parameter with a comment

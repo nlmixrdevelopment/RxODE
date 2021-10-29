@@ -13,6 +13,9 @@
 \alias{rxUiGet.iniFun}
 \alias{rxUiGet.modelFun}
 \alias{rxUiGet.modelDesc}
+\alias{rxUiGet.params}
+\alias{rxUiGet.thetaLower}
+\alias{rxUiGet.thetaUpper}
 \alias{rxUiGet.default}
 \title{S3 for getting information from UI model}
 \usage{
@@ -39,6 +42,12 @@ rxUiGet(x, ...)
 \method{rxUiGet}{modelFun}(x, ...)
 
 \method{rxUiGet}{modelDesc}(x, ...)
+
+\method{rxUiGet}{params}(x, ...)
+
+\method{rxUiGet}{thetaLower}(x, ...)
+
+\method{rxUiGet}{thetaUpper}(x, ...)
 
 \method{rxUiGet}{default}(x, ...)
 }
