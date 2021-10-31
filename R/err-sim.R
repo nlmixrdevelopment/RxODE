@@ -65,9 +65,11 @@ rxGetDistributionSimulationLines <- function(line) {
 rxGetDistributionSimulationLines.norm <- function(line) {
   env <- line[[1]]
   pred1 <- line[[2]]
-  .ret <- vector("list", 2)
-  .ret[[1]] <- bquote(ipredSim <- rxTBSi(rx_pred_, rx_lambda_, rx_yj_, rx_low_, rx_hi_))
-  .ret[[2]] <- bquote(sim <- rxTBSi(rx_pred_+sqrt(rx_r_) * rnorm(), rx_lambda_, rx_yj_, rx_low_, rx_hi_))
+  .err <- .enQuote(paste0("err.", pred1$var))
+  .ret <- vector("list", 3)
+  .ret[[1]] <- bquote(.(.err) <- 0)
+  .ret[[2]] <- bquote(ipredSim <- rxTBSi(rx_pred_, rx_lambda_, rx_yj_, rx_low_, rx_hi_))
+  .ret[[3]] <- bquote(sim <- rxTBSi(rx_pred_+sqrt(rx_r_) * .(.err), rx_lambda_, rx_yj_, rx_low_, rx_hi_))
   c(.handleSingleErrTypeNormOrTFoceiBase(env, pred1), .ret)
 }
 
@@ -102,6 +104,25 @@ rxGetDistributionSimulationLines.rxUi <- function(line) {
   })
 }
 
+#' @export
+#' @rdname rxUiGet
+rxUiGet.simulationSigma <- function(x, ...) {
+  .x <- x[[1]]
+  .exact <- x[[2]]
+  .predDf <- get("predDf", .x)
+  .sigmaNames <- vapply(seq_along(.predDf$var), function(i) {
+    if (.predDf$distribution[i] == "norm") {
+      paste0("err.", .predDf$var[i])
+    } else {
+      ""
+    }
+  }, character(1))
+  .sigmaNames <- .sigmaNames[.sigmaNames != ""]
+  .sigma <- diag(length(.sigmaNames))
+  dimnames(.sigma) <- list(.sigmaNames, .sigmaNames)
+  .sigma
+}
+attr(rxUiGet.simulationSigma, "desc") <- "simulation sigma"
 
 #' @export
 #' @rdname rxUiGet
@@ -109,12 +130,10 @@ rxUiGet.simulationModel <- function(x, ...) {
   .x <- x[[1]]
   .exact <- x[[2]]
   if (!exists(".simulationModel", envir=.x)) {
-
     assign(".simulationModel", eval(rxCombineErrorLines(.x)), envir=.x)
   }
   get(".simulationModel", envir=.x)
 }
-
 attr(rxUiGet.simulationModel, "desc") <- "simulation model from UI"
 
 #' Combine Error Lines and create RxODE expression

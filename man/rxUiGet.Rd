@@ -13,7 +13,6 @@
 \alias{rxUiGet.iniFun}
 \alias{rxUiGet.modelFun}
 \alias{rxUiGet.modelDesc}
-\alias{rxUiGet.params}
 \alias{rxUiGet.thetaLower}
 \alias{rxUiGet.thetaUpper}
 \alias{rxUiGet.default}
@@ -42,8 +41,6 @@ rxUiGet(x, ...)
 \method{rxUiGet}{modelFun}(x, ...)
 
 \method{rxUiGet}{modelDesc}(x, ...)
-
-\method{rxUiGet}{params}(x, ...)
 
 \method{rxUiGet}{thetaLower}(x, ...)
 

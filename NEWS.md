@@ -1,3 +1,8 @@
+# RxODE mu#
+
+* The UI functions of `nlmixr` have been ported to work in `RxODE`
+  directly.
+
 # RxODE 1.1.2
 
 * Fix subject initialization of `focei` problem (#464)

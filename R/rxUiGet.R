@@ -200,26 +200,13 @@ rxUiGet.modelDesc <- function(x, ...) {
 }
 attr(rxUiGet.modelDesc, "desc") <- "Model description (ie linear compartment, pred, ode etc)"
 
-.rxUiGetThetaEstimateDf <- function(x) {
-  x$iniDf[is.na(x$iniDf$condition), ]
-}
-
-#' @export
-#' @rdname rxUiGet
-rxUiGet.params <- function(x, ...) {
-  .x <- x[[1]]
-  .pdf <- .rxUiGetThetaEstimateDf(.x)
-  setNames(.pdf$est, .pdf$name)
-}
-attr(rxUiGet.params, "desc") <- "Population parameters for model simulations"
-
-
 #' @export
 #' @rdname rxUiGet
 rxUiGet.thetaLower <- function(x, ...) {
   .x <- x[[1]]
-  .pdf <- .rxUiGetThetaEstimateDf(.x)
-  setNames(.pdf$lower, .pdf$name)
+  .ini <- .x$iniDf
+  .w <- !is.na(.ini$ntheta)
+  setNames(.ini$lower[.w], .ini$name[.w])
 }
 attr(rxUiGet.thetaLower, "desc") <- "thetaLower"
 
@@ -228,11 +215,11 @@ attr(rxUiGet.thetaLower, "desc") <- "thetaLower"
 #' @rdname rxUiGet
 rxUiGet.thetaUpper <- function(x, ...) {
   .x <- x[[1]]
-  .pdf <- .rxUiGetThetaEstimateDf(.x)
-  setNames(.pdf$upper, .pdf$name)
+  .ini <- .x$iniDf
+  .w <- !is.na(.ini$ntheta)
+  setNames(.ini$upper[.w], .ini$name[.w])
 }
 attr(rxUiGet.thetaUpper, "desc") -> "thetaUpper"
-
 
 #' @export
 #' @rdname rxUiGet
