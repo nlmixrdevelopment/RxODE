@@ -905,9 +905,18 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
 
 #' @rdname rxSolve
 #' @export
+rxSolve.function <- function(object, params = NULL, events = NULL, inits = NULL, ...,
+                             theta = NULL, eta = NULL) {
+  .object <- RxODE(object)
+  do.call("rxSolve", c(list(object=.object, params = params, events = events, inits = inits),
+                       list(...),
+                       list(theta = theta, eta = eta)))
+}
+#' @rdname rxSolve
+#' @export
 rxSolve.rxUi <- function(object, params = NULL, events = NULL, inits = NULL, ...,
                          theta = NULL, eta = NULL) {
-  .rxControl <- rxSolve(params = params, events = events, inits = inits, ...,
+  .rxControl <- rxSolve(NULL, params = params, events = events, inits = inits, ...,
                         theta = theta, eta = eta)
   if (rxIs(params, "rx.event")) {
     if (!is.null(events)) {
