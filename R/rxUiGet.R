@@ -161,7 +161,6 @@ rxUiGet.ini <- function(x, ...) {
 }
 attr(rxUiGet.ini, "desc") <- "Model initilizations/bounds object"
 
-
 #'@export
 #' @rdname rxUiGet
 rxUiGet.iniFun <- function(x, ...) {
