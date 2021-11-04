@@ -38,7 +38,7 @@ ini.function <- function(x, ..., envir=parent.frame()) {
                             eval(call("quote", callInfo[[i]])))))
       }
     }
-    eval(call("quote", callInfo[i]))
+    eval(call("quote", callInfo[[i]]))
   })
 }
 
