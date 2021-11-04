@@ -1,0 +1,180 @@
+#'  This copies the RxODE UI object so it can be modifed
+#'
+#' @param ui Original UI object
+#' @return Copied UI object
+#' @author Matthew L. Fidler
+#' @noRd
+.copyUi <- function(ui) {
+  .ret <- new.env(parent=emptyenv())
+  lapply(ls(ui, envir=ui, all.names=TRUE), function(item){
+    assign(item, get(item, envir=ui), envir=.ret)
+  })
+  class(.ret) <- class(ui)
+  .ret
+}
+
+#' @export
+#' @rdname ini
+ini.function <- function(x, ..., envir=parent.frame()) {
+  .ui <- RxODE(x)
+  ini(x=.ui, ..., envir=envir)
+}
+
+#'  Returns quoted call information
+#'
+#' @param callInfo Call information
+#' @return Quote call information.  for `name=expression`, change to
+#'   `name<-expression` in quoted call list
+#' @author Matthew L. Fidler
+#' @noRd
+.iniQuoteLines <- function(callInfo) {
+  lapply(seq_along(callInfo), function(i) {
+    .name <- names(callInfo)[i]
+    if (!is.null(.name)) {
+      if (.name != "") {
+        # Changed named items to
+        # quote(name <- expression)
+        return(as.call(list(quote(`<-`), .enQuote(.name),
+                            eval(call("quote", callInfo[[i]])))))
+      }
+    }
+    eval(call("quote", callInfo[i]))
+  })
+}
+
+#' Modify the population estimate in the internal `iniDf` data.frame
+#'
+#' @param ini This is the data frame for modifying
+#' @param lhs This is the left hand expression as a character
+#' @param rhs This is the right handed expression
+#' @param doFix Fix the estimation variable
+#' @param doUnfix Unfix the estimation variable
+#' @param maxLen The maximum length is either 3 or 1
+#' @return Modified ini variable
+#' @author Matthew L. Fidler
+#' @noRd
+.iniModifyThetaOrSingleEtaDf <- function(ini, lhs, rhs, doFix, doUnfix, maxLen) {
+  .w <- which(ini$name == lhs)
+  if (length(.w) != 1) {
+    stop("Error updating parameter name '", lhs, "'", call.=FALSE)
+  }
+  .curFix <- ini$fix[.w]
+  if (doFix) {
+    if (.curFix) {
+      warning("trying to fix '", lhs, "', but already fixed",
+              call.=FALSE)
+    } else {
+      ini$fix[.w] <- TRUE
+    }
+  } else if (doUnfix) {
+    if (.curFix) {
+      ini$fix[.w] <- FALSE
+    } else {
+      warning("trying to unfix '", lhs, "', but already unfixed",
+              call.=FALSE)
+    }
+  }
+
+  if (is.null(rhs)) {
+  } else if (length(rhs) == 1)  {
+    ini$est[.w] <- rhs
+  } else {
+    if (maxLen == 1) {
+      stop("piping for '", lhs, "' failed, the estimate should only be 1 value",
+           call.=FALSE)
+    } else if (length(rhs) == 2) {
+      ini$lower[.w] <- rhs[1]
+      ini$est[.w] <- rhs[2]
+    } else if (length(rhs) == 3) {
+      ini$lower[.w] <- rhs[1]
+      ini$est[.w] <- rhs[2]
+      ini$upper[.w] <- rhs[3]
+    } else {
+      stop("piping for '", lhs, "' failed, the estimates should be between 1-3 values",
+           call.=FALSE)
+    }
+  }
+  ini
+}
+
+#' Handle a fix or unfixed single expressionon for population or single eta
+#'
+#' This updates the `iniDf` within the RxODE UI object
+#'
+#' @param expr Single assignment expression
+#' @param rxui RxODE UI object
+#' @param envir Environment where the evaulation occurs
+#' @param maxLen
+#' @return Nothing, called for side effects
+#' @author Matthew L. Fidler
+#' @noRd
+.iniHandleFixOrUnfixEqual <- function(expr, rxui, envir=parent.frame(), maxLen=3L) {
+  .lhs <- as.character(expr[[2]])
+  .rhs <- expr[[3]]
+  .doFix <- .doUnfix <- FALSE
+  if (is.name(.rhs)) {
+    if (identical(.rhs, quote(`fix`)) ||
+          identical(.rhs, quote(`fixed`)) ||
+          identical(.rhs, quote(`FIX`)) ||
+          identical(.rhs, quote(`FIXED`))) {
+      .doFix <- TRUE
+    } else if (identical(.rhs, quote(`unfix`)) ||
+                 identical(.rhs, quote(`unfixed`)) ||
+                 identical(.rhs, quote(`UNFIX`)) ||
+                 identical(.rhs, quote(`UNFIXED`))) {
+      .doUnfix <- TRUE
+    }
+    .rhs <- NULL
+  } else if (identical(.rhs[[1]], quote(`fix`)) ||
+               identical(.rhs[[1]], quote(`fixed`)) ||
+               identical(.rhs[[1]], quote(`FIX`)) ||
+               identical(.rhs[[1]], quote(`FIXED`))) {
+    .doFix <- TRUE
+    .rhs[[1]] <- quote(`c`)
+  } else if (identical(.rhs[[1]], quote(`unfix`)) ||
+               identical(.rhs[[1]], quote(`unfixed`)) ||
+               identical(.rhs[[1]], quote(`UNFIX`)) ||
+               identical(.rhs[[1]], quote(`UNFIXED`))) {
+    .doUnfix <- TRUE
+    .rhs[[1]] <- quote(`c`)
+  }
+  if (!is.null(.rhs)) {
+    .rhs <- eval(.rhs, envir=envir)
+  }
+  assign("iniDf", .iniModifyThetaOrSingleEtaDf(rxui$ini, .lhs, .rhs, .doFix, .doUnfix, maxLen=maxLen),
+         envir=rxui)
+  invisible()
+}
+
+#'  Handle Fix or Unfix an expression
+#'
+#' It will update the iniDf data frame with fixed/unfixed value
+#'
+#' @param expr Expression for parsing
+#' @param rxui User interface function
+#' @param envir Environment for parsing
+#' @return Nothing, called for side effects
+#' @author Matthew L. Fidler
+#' @noRd
+.iniHandleFixOrUnfix <- function(expr, rxui, envir=parent.frame()) {
+  .assignOp <- expr[[1]]
+  if (identical(.assignOp, quote(`<-`)) ||
+        identical(.assignOp, quote(`=`))) {
+    .iniHandleFixOrUnfixEqual(expr=expr, rxui=rxui, envir=envir)
+  } else if (identical(.assignOp, quote(`~`))) {
+    .iniHandleFixOrUnfixEqual(expr=expr, rxui=rxui, envir=envir, maxLen=1L)
+  } else if (identical(.assignOp, quote(`+`))){
+    # Lower triangular matrix
+  }
+}
+
+#' @export
+#' @rdname ini
+ini.rxUi <- function(x, ..., envir=parent.frame()) {
+  .ret <- .copyUi(x) # copy so (as expected) old UI isn't affected by the call
+  .iniLines <- .iniQuoteLines(match.call(expand.dots = TRUE)[-(1:2)])
+  lapply(.iniLines, function(line){
+    .iniHandleFixOrUnfix(line, .ret, envir=envir)
+  })
+  .ret
+}
