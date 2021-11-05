@@ -56,7 +56,7 @@ ini.function <- function(x, ..., envir=parent.frame()) {
 .iniModifyThetaOrSingleEtaDf <- function(ini, lhs, rhs, doFix, doUnfix, maxLen) {
   .w <- which(ini$name == lhs)
   if (length(.w) != 1) {
-    stop("Error updating parameter name '", lhs, "'", call.=FALSE)
+    stop("Cannot find parameter '", lhs, "'", call.=FALSE)
   }
   .curFix <- ini$fix[.w]
   if (doFix) {
@@ -146,6 +146,88 @@ ini.function <- function(x, ..., envir=parent.frame()) {
   invisible()
 }
 
+#'  Add a covariance term between two eta values
+#'
+#' @param ini Data frame of initial estimates
+#' @param neta1 Name of the first eta term
+#' @param neta2 Name of the second eta term
+#' @param est Estimate of the covariance
+#' @param doFix Should this term be fixed
+#' @return A modified (unsorted) data frame with the new covariance term appended
+#' @author Matthew L. Fidler
+#' @noRd
+.iniAddCovarianceBetweenTwoEtaValues <- function(ini, neta1, neta2, est, doFix) {
+  .w1 <- which(ini$name == neta1)
+  .w2 <- which(ini$name == neta2)
+  if (length(.w1) != 1) stop("Cannot find parameter '", neta1, "'", call.=FALSE)
+  if (length(.w2) != 1) stop("Cannot find parameter '", neta2, "'", call.=FALSE)
+  if (ini$neta1[.w1] < ini$neta1[.w2]) {
+    .tmp <- .w1
+    .w1 <- .w2
+    .w2 <- .tmp
+
+    .tmp <- neta1
+    neta1 <- neta2
+    neta2 <- .tmp
+  }
+  .fix <- FALSE
+  if (doFix) .fix <- TRUE
+  print(ini)
+  rbind(ini,
+        data.frame(ntheta= NA_integer_, neta1=ini$neta1[.w1], neta2=ini$neta1[.w2],
+                   name=paste0("(", neta1, ",", neta2, ")"), lower= -Inf, est=est, upper=Inf,
+                   fix=.fix, label=NA_character_, backTransform=NA_character_, condition="id",
+                   err=NA_character_))
+}
+
+#'  This function handles the lotri process and integrates into current UI
+#'
+#'  This will update the matrix and integrate the initial estimates in the UI
+#'
+#' @param mat Lotri processed matrix from the piping ini function
+#'
+#' @param rxui RxODE UI function
+#'
+#' @return Nothing, called for side effects
+#'
+#' @author Matthew L. Fidler
+#'
+#' @noRd
+.iniHandleLotriMatrix <- function(mat, rxui) {
+  .fixMatrix <- attr(mat, "lotriFix")
+  .unfixMatrix <- attr(mat, "lotriUnfix")
+  .n <- dimnames(mat)[[1]]
+  .df <- as.data.frame(mat)
+  lapply(seq_along(.df$neta1), function(i) {
+    if (!is.na(.df$neta1[i])) {
+      .doFix <- FALSE
+      .doUnfix <- FALSE
+      if (!is.null(.fixMatrix) && .df$fix[i]) {
+        .doFix <- TRUE
+      }
+      if (!is.null(.unfixMatrix) && !.df$fix[i]) {
+        .doUnfix <- TRUE
+      }
+      if (.df$neta1[i] == .df$neta2[i]) {
+        assign("iniDf", .iniModifyThetaOrSingleEtaDf(rxui$iniDf, as.character(.df$name[i]), .df$est[i], .doFix, .doUnfix, 1L),
+               envir=rxui)
+      } else {
+        .n1 <- .df$name[i]
+        if (!any(rxui$iniDf$name == .n1)) .n1 <- paste0("(", .n[.df$neta1[i]], ",", .n[.df$neta2[i]], ")")
+        if (any(rxui$iniDf$name == .n1)) {
+          assign("iniDf", .iniModifyThetaOrSingleEtaDf(rxui$iniDf, .n1, .df$est[i], .doFix, .doUnfix, 1L),
+               envir=rxui)
+        } else {
+          assign("iniDf", .iniAddCovarianceBetweenTwoEtaValues(rxui$iniDf, .n[.df$neta1[i]], .n[.df$neta2[i]], .df$est[i],
+                                                               .doFix),
+                 envir=rxui)
+        }
+       }
+    }
+  })
+}
+
+
 #'  Handle Fix or Unfix an expression
 #'
 #' It will update the iniDf data frame with fixed/unfixed value
@@ -162,9 +244,18 @@ ini.function <- function(x, ..., envir=parent.frame()) {
         identical(.assignOp, quote(`=`))) {
     .iniHandleFixOrUnfixEqual(expr=expr, rxui=rxui, envir=envir)
   } else if (identical(.assignOp, quote(`~`))) {
+    .rhs <- expr[[2]]
+    if (length(.rhs) > 1) {
+      if (identical(.rhs[[1]], quote(`+`))) {
+        .iniHandleLotriMatrix(eval(as.call(list(quote(`lotri`), as.call(list(quote(`{`), expr)))),
+                                   envir=envir),
+                              rxui)
+        return(invisible())
+      }
+    }
+    expr[[3]] <- eval(as.call(list(quote(`lotri`), as.call(list(quote(`{`), expr)))),
+                      envir=envir)[1, 1]
     .iniHandleFixOrUnfixEqual(expr=expr, rxui=rxui, envir=envir, maxLen=1L)
-  } else if (identical(.assignOp, quote(`+`))){
-    # Lower triangular matrix
   }
 }
 
