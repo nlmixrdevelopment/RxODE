@@ -104,7 +104,7 @@ ini.function <- function(x, ..., envir=parent.frame()) {
 #' @param expr Single assignment expression
 #' @param rxui RxODE UI object
 #' @param envir Environment where the evaulation occurs
-#' @param maxLen
+#' @param maxLen Maximum length of the argument
 #' @return Nothing, called for side effects
 #' @author Matthew L. Fidler
 #' @noRd
