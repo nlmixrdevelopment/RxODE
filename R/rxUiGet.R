@@ -41,7 +41,7 @@ attr(rxUiGet.theta, "desc") <- "Inital Population/Fixed Effects estimates, theta
 #' @rdname rxUiGet
 rxUiGet.omega <- function(x, ...) {
   .x <- x[[1]]
-  .lotri <- eval(as.call(list(quote(`lotri`), .x$.ini)))
+  .lotri <- lotri::as.lotri(.x$iniDf)
   if (inherits(.lotri, "matrix")) {
     attr(.lotri, "lotriEst") <- NULL
     class(.lotri) <- NULL
@@ -166,7 +166,7 @@ attr(rxUiGet.ini, "desc") <- "Model initilizations/bounds object"
 rxUiGet.iniFun <- function(x, ...) {
   .x <- x[[1]]
   .arg <- class(x)[1]
-  bquote(ini(.(.x$.ini)))
+  lotri::lotriDataFrameToLotriExpression(.x$iniDf, useIni=TRUE)
 }
 attr(rxUiGet.iniFun, "desc") <- "normalized, quoted `ini()` block"
 

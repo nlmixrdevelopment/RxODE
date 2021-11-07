@@ -105,7 +105,6 @@ model <- function(x, ..., envir=parent.frame()) {
     assignInMyNamespace(".lastIni", NULL)
     assignInMyNamespace(".lastIniQ", NULL)
     .mod <- .rxMuRef(eval(bquote(.errProcessExpression(quote(.(substitute(x))), .ini))))
-    .mod$.ini <- .iniQ
     .meta <- new.env(parent=emptyenv())
     if (!identical(envir, globalenv())) {
       for (.i in ls(envir, all=TRUE)) {
