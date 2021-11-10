@@ -21,7 +21,7 @@ model.function <- function(x, ..., envir=parent.frame()) {
 #' @rdname model
 model.rxUi <- function(x, ..., envir=parent.frame()) {
   .ret <- .copyUi(x) # copy so (as expected) old UI isn't affected by the call
-  .modelLines <- .iniQuoteLines(match.call(expand.dots = TRUE)[-(1:2)])
+  .modelLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)])
 }
 
 #' Find the line of the original expression

@@ -1,18 +1,3 @@
-#'  This copies the RxODE UI object so it can be modifed
-#'
-#' @param ui Original UI object
-#' @return Copied UI object
-#' @author Matthew L. Fidler
-#' @noRd
-.copyUi <- function(ui) {
-  .ret <- new.env(parent=emptyenv())
-  lapply(ls(ui, envir=ui, all.names=TRUE), function(item){
-    assign(item, get(item, envir=ui), envir=.ret)
-  })
-  class(.ret) <- class(ui)
-  .ret
-}
-
 #' @export
 #' @rdname ini
 ini.function <- function(x, ..., envir=parent.frame()) {
@@ -20,27 +5,6 @@ ini.function <- function(x, ..., envir=parent.frame()) {
   ini(x=.ui, ..., envir=envir)
 }
 
-#'  Returns quoted call information
-#'
-#' @param callInfo Call information
-#' @return Quote call information.  for `name=expression`, change to
-#'   `name<-expression` in quoted call list
-#' @author Matthew L. Fidler
-#' @noRd
-.iniQuoteLines <- function(callInfo) {
-  lapply(seq_along(callInfo), function(i) {
-    .name <- names(callInfo)[i]
-    if (!is.null(.name)) {
-      if (.name != "") {
-        # Changed named items to
-        # quote(name <- expression)
-        return(as.call(list(quote(`<-`), .enQuote(.name),
-                            eval(call("quote", callInfo[[i]])))))
-      }
-    }
-    eval(call("quote", callInfo[[i]]))
-  })
-}
 
 #' Modify the population estimate in the internal `iniDf` data.frame
 #'
@@ -263,7 +227,7 @@ ini.function <- function(x, ..., envir=parent.frame()) {
 #' @rdname ini
 ini.rxUi <- function(x, ..., envir=parent.frame()) {
   .ret <- .copyUi(x) # copy so (as expected) old UI isn't affected by the call
-  .iniLines <- .iniQuoteLines(match.call(expand.dots = TRUE)[-(1:2)])
+  .iniLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)])
   lapply(.iniLines, function(line){
     .iniHandleFixOrUnfix(line, .ret, envir=envir)
   })
