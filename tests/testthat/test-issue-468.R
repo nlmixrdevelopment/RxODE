@@ -8,19 +8,19 @@ rxodeTest({
       THETA_Vc = 70.0
       THETA_Ka = 1.0
 
-      TVCl  = THETA_Cl*((BW/75)^1.5)*(0.75^SEX);
-      TVVc  = THETA_Vc;
-      TVKa  = THETA_Ka;
+      TVCl  = THETA_Cl*((BW/75)^1.5)*(0.75^SEX)
+      TVVc  = THETA_Vc
+      TVKa  = THETA_Ka
 
-      Cl    = TVCl*exp(ETA_Cl);
-      Vc    = TVVc*exp(ETA_Vc);
-      Ka    = TVKa*exp(ETA_Ka);
+      Cl    = TVCl*exp(ETA_Cl)
+      Vc    = TVVc*exp(ETA_Vc)
+      Ka    = TVKa*exp(ETA_Ka)
 
-      K20   = Cl/Vc;
-      IPRED = centr/Vc;
+      K20   = Cl/Vc
+      IPRED = centr/Vc
 
-      d/dt(depot)  = - Ka*depot;
-      d/dt(centr)  =   Ka*depot - K20*centr;
+      d/dt(depot)  = - Ka*depot
+      d/dt(centr)  =   Ka*depot - K20*centr
     })
 
     # IV to centr
@@ -85,6 +85,9 @@ rxodeTest({
                             solver="NONMEM"),
                       cbind(run302_tab[run302_tab$ID == 1,c("time","IPRED")],run="IV",
                             solver="NONMEM"))
+
+    library(ggplot2)
+    ggplot(simu_30x,aes(time,IPRED,color=solver)) + geom_line() + facet_grid(cols = vars(run)) + theme_bw()
 
     expect_equal(as.data.frame(rx_301_1[,c("time","IPRED")]),
                  as.data.frame(run301_tab[run301_tab$ID == 1,c("time","IPRED")]),
