@@ -1,7 +1,12 @@
-# RxODE mu#
+# RxODE mu
 
 * The UI functions of `nlmixr` have been ported to work in `RxODE`
   directly.
+
+# RxODE 1.1.3
+
+* Change handling of missing covariates while interpolating "nocb" so
+  that the time-varying covariates use "nocb" interpolation (#469)
 
 # RxODE 1.1.2
 
