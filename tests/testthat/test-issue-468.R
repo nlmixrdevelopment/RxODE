@@ -86,8 +86,6 @@ rxodeTest({
                       cbind(run302_tab[run302_tab$ID == 1,c("time","IPRED")],run="IV",
                             solver="NONMEM"))
 
-    library(ggplot2)
-    ggplot(simu_30x,aes(time,IPRED,color=solver)) + geom_line() + facet_grid(cols = vars(run)) + theme_bw()
 
     expect_equal(as.data.frame(rx_301_1[,c("time","IPRED")]),
                  as.data.frame(run301_tab[run301_tab$ID == 1,c("time","IPRED")]),
