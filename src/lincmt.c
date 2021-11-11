@@ -102,31 +102,50 @@ extern int _locateTimeIndex(double obs_time,  rx_solving_options_ind *ind){
    - Use getTime(to allow model-based changes to dose timing
    - Use getValue to ignore NA values for time-varying covariates
 */
-static inline double getValue(int idx, double *y, rx_solving_options_ind *ind){
+static inline double getValue(int idx, double *y, rx_solving_options_ind *ind, rx_solving_options *op){
   int i = idx;
   double ret = y[ind->ix[idx]];
   if (ISNA(ret)){
-    // FIXME consisent with NOCB
-    // Go backward.
-    while (ISNA(ret) && i != 0){
-      i--; ret = y[ind->ix[i]];
-    }
-    if (ISNA(ret)){
-      // Still not found go forward.
-      i = idx;
+    if (op->f2 == 1.0 && op->f1 == 0.0) {
+      // use nocb
+      // Go forward
       while (ISNA(ret) && i != ind->n_all_times){
-	i++; ret = y[ind->ix[i]];
+        i++; ret = y[ind->ix[i]];
       }
       if (ISNA(ret)){
-	// All Covariates values for a single individual are NA.
-	ind->allCovWarn=1;
+        // Still not found go backward
+        i = idx;
+        while (ISNA(ret) && i != 0){
+          i--; ret = y[ind->ix[i]];
+        }
+        if (ISNA(ret)){
+          // All Covariates values for a single individual are NA.
+          ind->allCovWarn=1;
+        }
       }
+    } else {
+      // Go backward.
+      while (ISNA(ret) && i != 0){
+        i--; ret = y[ind->ix[i]];
+      }
+      if (ISNA(ret)){
+        // Still not found go forward.
+        i = idx;
+        while (ISNA(ret) && i != ind->n_all_times){
+          i++; ret = y[ind->ix[i]];
+        }
+        if (ISNA(ret)){
+          // All Covariates values for a single individual are NA.
+          ind->allCovWarn=1;
+        }
+      }
+
     }
   }
   return ret;
 }
 #define T(i) getTime(id->ix[i], id)
-#define V(i) getValue(i, y, id)
+#define V(i) getValue(i, y, id, Meth)
 double rx_approxP(double v, double *y, int n,
 		  rx_solving_options *Meth, rx_solving_options_ind *id){
   /* Approximate  y(v),  given (x,y)[i], i = 0,..,n-1 */
@@ -164,6 +183,7 @@ double rx_approxP(double v, double *y, int n,
 }/* approx1() */
 
 #undef T
+#undef V
 
 /* End approx from R */
 
@@ -222,10 +242,10 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx) {
 	    idxSample = idx;
 	  }
 	  double *y = indSample->cov_ptr + indSample->n_all_times*k;
-	  ind->par_ptr[op->par_cov[k]-1] = getValue(idxSample, y, indSample);
+	  ind->par_ptr[op->par_cov[k]-1] = getValue(idxSample, y, indSample, op);
 	  if (idx == 0){
 	    ind->cacheME=0;
-	  } else if (getValue(idxSample, y, indSample) != getValue(idxSample-1, y, indSample)) {
+	  } else if (getValue(idxSample, y, indSample, op) != getValue(idxSample-1, y, indSample, op)) {
 	    ind->cacheME=0;
 	  }
 	}
@@ -257,14 +277,14 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx) {
 	    par_ptr[op->par_cov[k]-1] = y[0];
 	    ind->cacheME=0;
 	  } else if (idxSample > 0 && idxSample < indSample->n_all_times && fabs(t- all_times[idxSample]) < DBL_EPSILON) {
-	    par_ptr[op->par_cov[k]-1] = getValue(idxSample, y, indSample);
-	    if (getValue(idxSample, y, indSample) != getValue(idxSample-1, y, indSample)) {
+	    par_ptr[op->par_cov[k]-1] = getValue(idxSample, y, indSample, op);
+	    if (getValue(idxSample, y, indSample, op) != getValue(idxSample-1, y, indSample, op)) {
 	      ind->cacheME=0;
 	    }
 	  } else {
 	    // Use the same methodology as approxfun.
-	    indSample->ylow = getValue(0, y, indSample);/* cov_ptr[ind->n_all_times*k]; */
-	    indSample->yhigh = getValue(indSample->n_all_times-1, y, indSample);/* cov_ptr[ind->n_all_times*k+ind->n_all_times-1]; */
+	    indSample->ylow = getValue(0, y, indSample, op);/* cov_ptr[ind->n_all_times*k]; */
+	    indSample->yhigh = getValue(indSample->n_all_times-1, y, indSample, op);/* cov_ptr[ind->n_all_times*k+ind->n_all_times-1]; */
 	    par_ptr[op->par_cov[k]-1] = rx_approxP(t, y, indSample->n_all_times, op, indSample);
 	    // Don't need to reset ME because solver doesn't use the
 	    // times in-between.

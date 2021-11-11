@@ -1,6 +1,7 @@
 rxodeTest({
 
   test_that("nocb infusion RxODE vs NONMEM", {
+
     # RxODE model
     mod_run30x <- RxODE({
       THETA_Cl = 4.0
@@ -38,7 +39,6 @@ rxodeTest({
                             BW=c(77,113,92,132,126,128,41,56,68,45,93,126),
                             SEX=c(0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1))
 
-
     eta_302_1 <- c(ETA_Cl=0.398845969, ETA_Vc=0.0762201167, ETA_Ka=0)  # NONMEM
 
     rx_302_1   <- RxODE::rxSolve(mod_run30x,eta_302_1,pat_302_1,
@@ -71,12 +71,13 @@ rxodeTest({
     # import NONMEM output
     lst <- qs::qread("test-issue-468.qs")
 
-    run301_tab <- lst[[1]]
-    run302_tab <- lst[[2]]
+    run301_tab <- as.data.frame(lst[[1]])
+    run302_tab <- as.data.frame(lst[[2]])
 
     # plotting
     run301_tab$time <- run301_tab$TIME
     run302_tab$time <- run302_tab$TIME
+
 
     simu_30x <- rbind(cbind(rx_301_1[,c("time","IPRED")],run="oral",solver="RxODE"),
                       cbind(rx_302_1[,c("time","IPRED")],run="IV",solver="RxODE"),
@@ -90,11 +91,11 @@ rxodeTest({
                  tol=1e-5)
 
     expect_equal(as.data.frame(rx_302_1[,c("time","IPRED")]),
-                 as.data.frame(run301_tab[run302_tab$ID == 1,c("time","IPRED")]),
+                 as.data.frame(run302_tab[run302_tab$ID == 1,c("time","IPRED")]),
                  tol=1e-5)
 
   })
 
 
-  },
-  test="lvl2")
+},
+test="lvl2")
