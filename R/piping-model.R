@@ -72,6 +72,40 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
   if (!errorLine && length(expr) == 2L) {
     .expr1 <- expr[[1]]
     .expr2 <- expr[[2]]
+    .rep <- function(with) {
+      .expr3 <- eval(parse(text=paste0("quote(", with, "(",as.character(.expr2),"))")))
+      for (.i in seq_along(.origLines)) {
+        .expr <- .origLines[[.i]]
+        if (identical(.expr[[2]], .expr3)) {
+          return(.i)
+        }
+      }
+      return(NULL)
+    }
+    if (identical(.expr1, quote(`f`))) {
+      .ret <- .rep("F")
+      if (!is.null(.ret)) {
+        return(.ret)
+      }
+    }
+    if (identical(.expr1, quote(`F`))) {
+      .ret <- .rep("f")
+      if (!is.null(.ret)) {
+        return(.ret)
+      }
+    }
+    if (identical(.expr1, quote(`alag`))) {
+      .ret <- .rep("lag")
+      if (!is.null(.ret)) {
+        return(.ret)
+      }
+    }
+    if (identical(.expr1, quote(`lag`))) {
+      .ret <- .rep("alag")
+      if (!is.null(.ret)) {
+        return(.ret)
+      }
+    }
     if (identical(.expr1, quote(`f`)) ||
           identical(.expr1, quote(`F`)) ||
           identical(.expr1, quote(`alag`)) ||

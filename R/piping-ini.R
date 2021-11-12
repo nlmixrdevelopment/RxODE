@@ -53,9 +53,6 @@ ini.function <- function(x, ..., envir=parent.frame()) {
       ini$lower[.w] <- rhs[1]
       ini$est[.w] <- rhs[2]
       ini$upper[.w] <- rhs[3]
-    } else {
-      stop("piping for '", lhs, "' failed, the estimates should be between 1-3 values",
-           call.=FALSE)
     }
   }
   ini
@@ -101,9 +98,15 @@ ini.function <- function(x, ..., envir=parent.frame()) {
                identical(.rhs[[1]], quote(`UNFIXED`))) {
     .doUnfix <- TRUE
     .rhs[[1]] <- quote(`c`)
+  } else if (is.null(.rhs)) {
+    stop("a NULL value for '", .lhs, "' piping does not make sense")
   }
   if (!is.null(.rhs)) {
     .rhs <- eval(.rhs, envir=envir)
+    checkmate::assertNumeric(.rhs, any.missing=FALSE, min.len=1, max.len=3, .var.name=.lhs)
+    if (!all(sort(.rhs) == .rhs)) {
+      stop("the '", .lhs, "' piping lower, estimate, and/or upper estimate is in the wrong order")
+    }
   }
   assign("iniDf", .iniModifyThetaOrSingleEtaDf(rxui$ini, .lhs, .rhs, .doFix, .doUnfix, maxLen=maxLen),
          envir=rxui)
@@ -136,12 +139,11 @@ ini.function <- function(x, ..., envir=parent.frame()) {
   }
   .fix <- FALSE
   if (doFix) .fix <- TRUE
-  print(ini)
-  rbind(ini,
-        data.frame(ntheta= NA_integer_, neta1=ini$neta1[.w1], neta2=ini$neta1[.w2],
-                   name=paste0("(", neta1, ",", neta2, ")"), lower= -Inf, est=est, upper=Inf,
-                   fix=.fix, label=NA_character_, backTransform=NA_character_, condition="id",
-                   err=NA_character_))
+  .ini2 <- data.frame(ntheta= NA_integer_, neta1=ini$neta1[.w1], neta2=ini$neta1[.w2],
+                      name=paste0("(", neta2, ",", neta1, ")"), lower= -Inf, est=est, upper=Inf,
+                      fix=.fix, label=NA_character_, backTransform=NA_character_, condition="id",
+                      err=NA_character_)
+  rbind(ini,.ini2)
 }
 
 #'  This function handles the lotri process and integrates into current UI
@@ -161,7 +163,10 @@ ini.function <- function(x, ..., envir=parent.frame()) {
   .fixMatrix <- attr(mat, "lotriFix")
   .unfixMatrix <- attr(mat, "lotriUnfix")
   .n <- dimnames(mat)[[1]]
-  .df <- as.data.frame(mat)
+  .mat <- mat
+  if (!inherits(.mat, "lotriFix"))
+    class(.mat) <- c("lotriFix", class(.mat))
+  .df <- as.data.frame(.mat)
   lapply(seq_along(.df$neta1), function(i) {
     if (!is.na(.df$neta1[i])) {
       .doFix <- FALSE
