@@ -52,6 +52,24 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
   .origLines <- rxui$lstExpr
   .errLines <- rxui$predDf$line
   .ret <- NA_integer_
+  .expr0 <- expr
+  .expr3 <- NULL
+  if (length(.expr0) == 2L) {
+    .expr1 <- .expr0[[1]]
+    .expr2 <- .expr0[[2]]
+    if (identical(.expr1, quote(`f`))) {
+      .expr3 <- eval(parse(text=paste0("quote(F(",as.character(.expr2),"))")))
+    }
+    if (identical(.expr1, quote(`F`))) {
+      .expr3 <- eval(parse(text=paste0("quote(f(",as.character(.expr2),"))")))
+    }
+    if (identical(.expr1, quote(`lag`))) {
+      .expr3 <- eval(parse(text=paste0("quote(alag(",as.character(.expr2),"))")))
+    }
+    if (identical(.expr1, quote(`alag`))) {
+      .expr3 <- eval(parse(text=paste0("quote(lag(",as.character(.expr2),"))")))
+    }
+  }
   for (.i in seq_along(.origLines)) {
     .isErrorLine <- .i %in% .errLines
     if ((errorLine && .isErrorLine) ||
@@ -63,6 +81,14 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
         } else {
           return(NULL)
         }
+      } else if (!is.null(.expr3)) {
+        if (identical(.expr[[2]], .expr3)) {
+          if (is.na(.ret)) {
+            .ret <- .i
+          } else {
+            return(NULL)
+          }
+        }
       }
     }
   }
@@ -72,40 +98,6 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
   if (!errorLine && length(expr) == 2L) {
     .expr1 <- expr[[1]]
     .expr2 <- expr[[2]]
-    .rep <- function(with) {
-      .expr3 <- eval(parse(text=paste0("quote(", with, "(",as.character(.expr2),"))")))
-      for (.i in seq_along(.origLines)) {
-        .expr <- .origLines[[.i]]
-        if (identical(.expr[[2]], .expr3)) {
-          return(.i)
-        }
-      }
-      return(NULL)
-    }
-    if (identical(.expr1, quote(`f`))) {
-      .ret <- .rep("F")
-      if (!is.null(.ret)) {
-        return(.ret)
-      }
-    }
-    if (identical(.expr1, quote(`F`))) {
-      .ret <- .rep("f")
-      if (!is.null(.ret)) {
-        return(.ret)
-      }
-    }
-    if (identical(.expr1, quote(`alag`))) {
-      .ret <- .rep("lag")
-      if (!is.null(.ret)) {
-        return(.ret)
-      }
-    }
-    if (identical(.expr1, quote(`lag`))) {
-      .ret <- .rep("alag")
-      if (!is.null(.ret)) {
-        return(.ret)
-      }
-    }
     if (identical(.expr1, quote(`f`)) ||
           identical(.expr1, quote(`F`)) ||
           identical(.expr1, quote(`alag`)) ||
@@ -116,9 +108,16 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
       for (.i in seq_along(.origLines)) {
         .expr <- .origLines[[.i]]
         if (identical(.expr[[2]], .expr3)) {
-          return(-.i)
+          if (is.na(.ret)) {
+            .ret <- -.i
+          } else {
+            .ret <- min(-.i, .ret)
+          }
         }
       }
+    }
+    if (!is.na(.ret)) {
+      return(.ret)
     }
   }
   return(NA_integer_)
