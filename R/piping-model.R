@@ -162,7 +162,9 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
   .expr0 <- expr
   .expr3 <- .getModelLineEquivalentLhsExpression(expr)
   .ret <- .getModelineFromExperssionsAndOriginalLines(expr, .expr3, errorLine, .errLines, .origLines)
-  if (!is.na(.ret)) {
+  if (is.null(.ret)) {
+    return(NULL)
+  } else if (!is.na(.ret)) {
     return(.ret)
   }
   .getNegativeModelLineForDiffFromProperty(expr, .origLines, errorLine)
