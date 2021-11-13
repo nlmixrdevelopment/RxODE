@@ -1,15 +1,3 @@
-.thetamodelVars <- rex::rex(or("tv", "t", "pop", "POP", "Pop", "TV", "T", "cov", "err", "eff"))
-.thetaModelReg <- rex::rex(or(
-  group(start, .thetamodelVars),
-  group(.thetamodelVars, end)))
-
-.etaParts <- c(
-  "eta", "ETA", "Eta", "ppv", "PPV", "Ppv", "iiv", "Iiv", "bsv", "Bsv", "BSV",
-  "bpv", "Bpv", "BPV", "psv", "PSV", "Psv")
-
-.etaModelReg <- rex::rex(or(group(start, or(.etaParts)), group(or(.etaParts), end)))
-
-
 #' @export
 #' @rdname model
 model.function <- function(x, ..., envir=parent.frame()) {
@@ -23,7 +11,6 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
   .ret <- .copyUi(x) # copy so (as expected) old UI isn't affected by the call
   .modelLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)])
 }
-
 
 #' This gives a equivalent left handed expression
 #'
@@ -156,11 +143,10 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
 #' @author Matthew L. Fidler
 #'
 #' @noRd
-.getModelLineFromExpression <- function(expr, rxui, errorLine=FALSE) {
+.getModelLineFromExpression <- function(lhsExpr, rxui, errorLine=FALSE) {
   .origLines <- rxui$lstExpr
   .errLines <- rxui$predDf$line
-  .expr0 <- expr
-  .expr3 <- .getModelLineEquivalentLhsExpression(expr)
+  .expr3 <- .getModelLineEquivalentLhsExpression(lhsExpr)
   .ret <- .getModelineFromExperssionsAndOriginalLines(expr, .expr3, errorLine, .errLines, .origLines)
   if (is.null(.ret)) {
     return(NULL)
@@ -170,3 +156,42 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
   .getNegativeModelLineForDiffFromProperty(expr, .origLines, errorLine)
 }
 
+.thetamodelVars <- rex::rex(or("tv", "t", "pop", "POP", "Pop", "TV", "T", "cov", "err", "eff"))
+.thetaModelReg <- rex::rex(or(
+  group(start, .thetamodelVars),
+  group(.thetamodelVars, end)))
+
+.etaParts <- c(
+  "eta", "ETA", "Eta", "ppv", "PPV", "Ppv", "iiv", "Iiv", "bsv", "Bsv", "BSV",
+  "bpv", "Bpv", "BPV", "psv", "PSV", "Psv")
+
+.etaModelReg <- rex::rex(or(group(start, or(.etaParts)), group(or(.etaParts), end)))
+
+#' Find the variables in the expression
+#'
+#' @param x Expression
+#' @return Character vector of variables in the expression
+#' @author Matthew L. Fidler
+#' @noRd
+.findVariablesInExpression <- function(x) {
+  if (is.atomic(x)) {
+    character()
+  } else if (is.name(x)) {
+    return(as.character(x))
+  } else {
+    if (is.call(x)) {
+      .x1 <- x[-1]
+    } else {
+      .x1 <- x
+    }
+    unique(unlist(lapply(.x1, .findVariablesInExpression)))
+  }
+}
+
+#' @export
+rxUiGet.mvFromExpression <- function(x, ...) {
+  .x <- x[[1]]
+  .exact <- x[[2]]
+  eval(call("rxModelVars",as.call(c(list(quote(`{`)), .x$lstExpr[-.x$predDf$line]))))
+}
+attr(rxUiGet.mvFromExpression, "desc") <- "Calculate model variables from stored (possibly changed) expression"
