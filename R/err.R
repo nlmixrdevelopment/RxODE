@@ -870,7 +870,6 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
                                      linCmt=env$linCmt))
       env$curDvid <- env$curDvid + 1L
     }
-
   }
 }
 
@@ -965,6 +964,7 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
       } else {
         .env$mv0 <- rxModelVars(paste(.env$lstChr[-.env$predDf$line], collapse="\n"))
       }
+      .env$errParams0 <- rxUiGet.errParams(list(.env, TRUE))
       if (.Call(`_RxODE_isLinCmt`) == 1L) {
         .env$.linCmtM <- rxNorm(.env$mv0)
         .vars <- c(.env$mv0$params, .env$mv0$lhs, .env$mv0$slhs)

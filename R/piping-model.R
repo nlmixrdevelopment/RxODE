@@ -10,6 +10,19 @@ model.function <- function(x, ..., envir=parent.frame()) {
 model.rxUi <- function(x, ..., envir=parent.frame()) {
   .ret <- .copyUi(x) # copy so (as expected) old UI isn't affected by the call
   .modelLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)])
+  .modifyModelLines(.modelLines, .ret)
+  .v <- .getAddedOrRemovedVariablesFromNonErrorLines(.ret)
+  if (length(.v$rm) > 0) {
+    lapply(.v$rm, function(x){
+      .removeVariableFromIniDf(x, .ret)
+    })
+  }
+  if (length(.v$new) > 0) {
+    lapply(.v$new, function(x){
+      .addVariableToIniDf(x, .ret)
+    })
+  }
+  .ret$fun()
 }
 
 #' This gives a equivalent left handed expression
@@ -147,13 +160,146 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
   .origLines <- rxui$lstExpr
   .errLines <- rxui$predDf$line
   .expr3 <- .getModelLineEquivalentLhsExpression(lhsExpr)
-  .ret <- .getModelineFromExperssionsAndOriginalLines(expr, .expr3, errorLine, .errLines, .origLines)
+  .ret <- .getModelineFromExperssionsAndOriginalLines(lhsExpr, .expr3, errorLine, .errLines, .origLines)
   if (is.null(.ret)) {
     return(NULL)
   } else if (!is.na(.ret)) {
     return(.ret)
   }
   .getNegativeModelLineForDiffFromProperty(expr, .origLines, errorLine)
+}
+
+
+#' @export
+rxUiGet.mvFromExpression <- function(x, ...) {
+  .x <- x[[1]]
+  .exact <- x[[2]]
+  eval(call("rxModelVars",as.call(c(list(quote(`{`)), .x$lstExpr[-.x$predDf$line]))))
+}
+attr(rxUiGet.mvFromExpression, "desc") <- "Calculate model variables from stored (possibly changed) expression"
+
+#'  Modify the error lines/expression
+#'
+#' @param lines quoted lines to modify
+#' @param rxui UI to save information
+#' @return Nothing, called for the side effects
+#' @author Matthew L. Fidler
+#' @noRd
+.modifyModelLines <- function(lines, rxui) {
+  .err <- NULL
+  .env <- environment()
+  lapply(lines, function(line){
+    .isErr <- identical(line[[1]], quote(`~`))
+    .ret <- .getModelLineFromExpression(line[[2]], rxui, .isErr)
+    if (.isErr && is.na(.ret)) {
+      .isErr <- FALSE
+      .ret <- .getModelLineFromExpression(line[[2]], rxui, .isErr)
+    }
+    if (is.null(.ret)) {
+      assign(".err",
+             c(.err, paste0("the lhs expression '", paste0(as.charcter(line[[2]])), "' is duplicated in the model and cannot be modified by piping")),
+             envir=.env)
+    } else if (is.na(.ret)) {
+      assign(".err",
+             c(.err, paste0("the lhs expression '", paste0(as.charcter(line[[2]])), "' is not in model and cannot be modified by piping")),
+             envir=.env)
+    } else if (.ret > 0) {
+      .lstExpr <- get("lstExpr", rxui)
+      .lstExpr[[.ret]] <- line
+      assign("lstExpr", .lstExpr, rxui)
+      assign(".recalculate", TRUE, rxui)
+    } else {
+      .lstExpr <- get("lstExpr", rxui)
+      .lstExpr[[length(.lstExpr) + 1]] <- line
+      assign("lstExpr", .lstExpr, rxui)
+    }
+    NULL
+  })
+  if (!is.null(.err)) {
+    stop(paste(.err, collapse="\n"), call.=FALSE)
+  }
+}
+#' Get the Variables from the expression
+#'
+#' @param x Expression
+#' @return Character vector of variables
+#' @author Matthew L. Fidler
+#' @noRd
+.getVariablesFromExpression <- function(x) {
+  if (is.atomic(x)) {
+    character()
+  } else if (is.name(x)) {
+    return(as.character(x))
+  } else  {
+    if (is.call(x)) {
+      x1 <- x[-1]
+    } else {
+      x1 <- x
+    }
+    unique(unlist(lapply(x1, .getVariablesFromExpression)))
+  }
+}
+
+#' @export
+rxUiGet.errParams <- function(x, ...) {
+  .x <- x[[1]]
+  .exact <- x[[2]]
+  unlist(lapply(.x$lstExpr[.x$predDf$line], function(x){
+    .getVariablesFromExpression(x[[3]])
+  }))
+}
+attr(rxUiGet.errParams, "desc") <- "Get the error-associated variables"
+
+#' Get the added or removed variables
+#'
+#' @param rxui This is the RxODE UI object
+#'
+#' @return A list with the removed and added error objects
+#'
+#' @author Matthew L. Fidler
+#'
+#' @noRd
+.getAddedOrRemovedVariablesFromNonErrorLines <- function(rxui) {
+
+  .old <- rxui$mv0$params
+  .new <- rxui$mvFromExpression$params
+  .both <- intersect(.old, .new)
+  .rm1 <- setdiff(.old, .both)
+  .new1 <- setdiff(.new, .both)
+
+  .old <- rxui$errParams0
+  .new <- rxui$errParams
+  .both <- intersect(.old, .new)
+  .rm2 <- setdiff(.old, .both)
+  .new2 <- setdiff(.new, .both)
+
+
+  list(rm=c(.rm1, .rm2), new=c(.new1, .new2))
+}
+
+#' Remove a single variable from the initialization data frame
+#'
+#' @param var Variable that is removed
+#' @param rxui UI function where the initial estimate data frame is modified
+#' @return Nothing, called for side effects
+#' @author Matthew L. Fidler
+#' @noRd
+.removeVariableFromIniDf <- function(var, rxui) {
+  .iniDf <- rxui$iniDf
+  .w <- which(.iniDf$name == var)
+  if (length(.w) == 1L) {
+    .neta <- .iniDf$neta1[.w]
+    .iniDf <- .iniDf[-.w, ]
+    if (!is.na(.neta)) {
+      # Here we remove any assocaited covariance terms that remain
+      .w1 <- which(.iniDf$neta1 == .neta)
+      if (length(.w1) > 0) .iniDf <- .iniDf[-.w1, ]
+      .w1 <- which(.iniDf$neta2 == .neta)
+      if (length(.w1) > 0) .iniDf <- .iniDf[-.w1, ]
+    }
+    assign("iniDf", .iniDf, rxui)
+  }
+  invisible()
 }
 
 .thetamodelVars <- rex::rex(or("tv", "t", "pop", "POP", "Pop", "TV", "T", "cov", "err", "eff"))
@@ -167,31 +313,48 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
 
 .etaModelReg <- rex::rex(or(group(start, or(.etaParts)), group(or(.etaParts), end)))
 
-#' Find the variables in the expression
+.rxIniDfTemplate <-
+  data.frame(
+    ntheta = NA_integer_,
+    neta1 = NA_real_,
+    neta2 = NA_real_,
+    name = NA_character_,
+    lower = -Inf,
+    est = NA_real_,
+    upper = Inf,
+    fix = FALSE,
+    label = NA_character_,
+    backTransform = NA_character_,
+    condition = NA_character_,
+    err = NA_character_
+  )
+
+
+#' Add a single variable from the initialization data frame
 #'
-#' @param x Expression
-#' @return Character vector of variables in the expression
+#' @param var Variable that is added
+#' @param rxui UI function where the initial estimate data frame is modified
+#' @return Nothing, called for side effects
 #' @author Matthew L. Fidler
 #' @noRd
-.findVariablesInExpression <- function(x) {
-  if (is.atomic(x)) {
-    character()
-  } else if (is.name(x)) {
-    return(as.character(x))
+.addVariableToIniDf <- function(var, rxui) {
+  .iniDf <- rxui$iniDf
+  if (regexpr(.etaModelReg, var) != -1) {
+    .eta <- max(.iniDf$neta1, na.rm=TRUE) + 1
+    .extra <- .rxIniDfTemplate
+    .extra$est <- 1
+    .extra$neta1 <- .eta
+    .extra$neta2 <- .eta
+    .extra$name <- var
+    .extra$condition <- "id"
+    assign("iniDf", rbind(.iniDf, .extra), envir=rxui)
   } else {
-    if (is.call(x)) {
-      .x1 <- x[-1]
-    } else {
-      .x1 <- x
-    }
-    unique(unlist(lapply(.x1, .findVariablesInExpression)))
+    .theta <- max(.iniDf$ntheta, na.rm=TRUE) + 1
+    .extra <- .rxIniDfTemplate
+    .extra$est <- 1
+    .extra$ntheta <- .theta
+    .extra$name <- var
+    assign("iniDf", rbind(.iniDf, .extra), envir=rxui)
   }
+  invisible()
 }
-
-#' @export
-rxUiGet.mvFromExpression <- function(x, ...) {
-  .x <- x[[1]]
-  .exact <- x[[2]]
-  eval(call("rxModelVars",as.call(c(list(quote(`{`)), .x$lstExpr[-.x$predDf$line]))))
-}
-attr(rxUiGet.mvFromExpression, "desc") <- "Calculate model variables from stored (possibly changed) expression"
