@@ -1753,6 +1753,15 @@ rxModels_ <- # nolint
 #' @author Matthew L. Fidler
 #' @export
 rxModelVars <- function(obj) {
+  if (is(substitute(obj), "{")) {
+    .obj <- deparse(substitute(obj))
+    if (.obj[1] == "{") {
+      .obj <- .obj[-1]
+      .obj <- .obj[-length(.obj)]
+    }
+    .obj <- paste(.obj, collapse = "\n")
+    return(rxModelVars_(.obj))
+  }
   if (is(obj, "rxModelVars")) {
     return(obj)
   }

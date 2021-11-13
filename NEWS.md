@@ -3,6 +3,8 @@
 * The UI functions of `nlmixr` have been ported to work in `RxODE`
   directly.
 
+* `rxModelVars({})` is now supported. 
+
 # RxODE 1.1.3
 
 * Change handling of missing covariates while interpolating "nocb" so
