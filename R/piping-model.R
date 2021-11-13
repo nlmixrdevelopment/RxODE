@@ -5,24 +5,28 @@ model.function <- function(x, ..., envir=parent.frame()) {
   model(x=.ui, ..., envir=envir)
 }
 
+.modelHandleModelLines <- function(modelLines, rxui) {
+  .modifyModelLines(modelLines, rxui)
+  .v <- .getAddedOrRemovedVariablesFromNonErrorLines(rxui)
+  if (length(.v$rm) > 0) {
+    lapply(.v$rm, function(x){
+      .removeVariableFromIniDf(x, rxui)
+    })
+  }
+  if (length(.v$new) > 0) {
+    lapply(.v$new, function(x){
+      .addVariableToIniDf(x, rxui)
+    })
+  }
+  rxui$fun()
+}
+
 #' @export
 #' @rdname model
 model.rxUi <- function(x, ..., envir=parent.frame()) {
   .ret <- .copyUi(x) # copy so (as expected) old UI isn't affected by the call
   .modelLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)])
-  .modifyModelLines(.modelLines, .ret)
-  .v <- .getAddedOrRemovedVariablesFromNonErrorLines(.ret)
-  if (length(.v$rm) > 0) {
-    lapply(.v$rm, function(x){
-      .removeVariableFromIniDf(x, .ret)
-    })
-  }
-  if (length(.v$new) > 0) {
-    lapply(.v$new, function(x){
-      .addVariableToIniDf(x, .ret)
-    })
-  }
-  .ret$fun()
+  .modelHandleModelLines(.modelLines, .ret)
 }
 
 #' This gives a equivalent left handed expression
