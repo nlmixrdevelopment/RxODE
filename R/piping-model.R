@@ -4,9 +4,18 @@ model.function <- function(x, ..., envir=parent.frame()) {
   .ui <- RxODE(x)
   model(x=.ui, ..., envir=envir)
 }
-
-.modelHandleModelLines <- function(modelLines, rxui) {
-  .modifyModelLines(modelLines, rxui)
+#'  Handle model lines
+#'
+#'
+#' @param modelLines The model lines that are being considered
+#' @param rxui The RxODE UI object
+#' @param modifyIni Should the ini({}) be considered
+#' @param envir Environment for evaluation
+#' @return New UI
+#' @author Matthew L. Fidler
+#' @noRd
+.modelHandleModelLines <- function(modelLines, rxui, modifyIni=FALSE, envir) {
+  .modifyModelLines(modelLines, rxui, modifyIni, envir)
   .v <- .getAddedOrRemovedVariablesFromNonErrorLines(rxui)
   if (length(.v$rm) > 0) {
     lapply(.v$rm, function(x){
@@ -26,7 +35,7 @@ model.function <- function(x, ..., envir=parent.frame()) {
 model.rxUi <- function(x, ..., envir=parent.frame()) {
   .ret <- .copyUi(x) # copy so (as expected) old UI isn't affected by the call
   .modelLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)])
-  .modelHandleModelLines(.modelLines, .ret)
+  .modelHandleModelLines(.modelLines, .ret, modifyIni=FALSE, envir)
 }
 
 #' This gives a equivalent left handed expression
@@ -186,36 +195,42 @@ attr(rxUiGet.mvFromExpression, "desc") <- "Calculate model variables from stored
 #'
 #' @param lines quoted lines to modify
 #' @param rxui UI to save information
+#' @param modifyIni Modify ini({}) types of calls
+#' @param envir Environment
 #' @return Nothing, called for the side effects
 #' @author Matthew L. Fidler
 #' @noRd
-.modifyModelLines <- function(lines, rxui) {
+.modifyModelLines <- function(lines, rxui, modifyIni=FALSE, envir) {
   .err <- NULL
   .env <- environment()
   lapply(lines, function(line){
-    .isErr <- identical(line[[1]], quote(`~`))
-    .ret <- .getModelLineFromExpression(line[[2]], rxui, .isErr)
-    if (.isErr && is.na(.ret)) {
-      .isErr <- FALSE
-      .ret <- .getModelLineFromExpression(line[[2]], rxui, .isErr)
-    }
-    if (is.null(.ret)) {
-      assign(".err",
-             c(.err, paste0("the lhs expression '", paste0(as.charcter(line[[2]])), "' is duplicated in the model and cannot be modified by piping")),
-             envir=.env)
-    } else if (is.na(.ret)) {
-      assign(".err",
-             c(.err, paste0("the lhs expression '", paste0(as.charcter(line[[2]])), "' is not in model and cannot be modified by piping")),
-             envir=.env)
-    } else if (.ret > 0) {
-      .lstExpr <- get("lstExpr", rxui)
-      .lstExpr[[.ret]] <- line
-      assign("lstExpr", .lstExpr, rxui)
-      assign(".recalculate", TRUE, rxui)
+    if (modifyIni && .isQuotedLineRhsModifiesEstimates(line, rxui)) {
+      .iniHandleFixOrUnfix(line, .ret, envir=envir)
     } else {
-      .lstExpr <- get("lstExpr", rxui)
-      .lstExpr[[length(.lstExpr) + 1]] <- line
-      assign("lstExpr", .lstExpr, rxui)
+      .isErr <- identical(line[[1]], quote(`~`))
+      .ret <- .getModelLineFromExpression(line[[2]], rxui, .isErr)
+      if (.isErr && is.na(.ret)) {
+        .isErr <- FALSE
+        .ret <- .getModelLineFromExpression(line[[2]], rxui, .isErr)
+      }
+      if (is.null(.ret)) {
+        assign(".err",
+               c(.err, paste0("the lhs expression '", paste0(as.charcter(line[[2]])), "' is duplicated in the model and cannot be modified by piping")),
+               envir=.env)
+      } else if (is.na(.ret)) {
+        assign(".err",
+               c(.err, paste0("the lhs expression '", paste0(as.charcter(line[[2]])), "' is not in model and cannot be modified by piping")),
+               envir=.env)
+      } else if (.ret > 0) {
+        .lstExpr <- get("lstExpr", rxui)
+        .lstExpr[[.ret]] <- line
+        assign("lstExpr", .lstExpr, rxui)
+        assign(".recalculate", TRUE, rxui)
+      } else {
+        .lstExpr <- get("lstExpr", rxui)
+        .lstExpr[[length(.lstExpr) + 1]] <- line
+        assign("lstExpr", .lstExpr, rxui)
+      }
     }
     NULL
   })

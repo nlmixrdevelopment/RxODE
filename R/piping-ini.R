@@ -238,3 +238,19 @@ ini.rxUi <- function(x, ..., envir=parent.frame()) {
   })
   .ret
 }
+
+#' This tells if the line is modifying an estimate instead of a line of the model
+#'
+#' @param line Quoted line
+#' @param rxui RxODE UI object
+#' @return boolean inticating if the line defines an `ini` change.
+#' @author Matthew L. Fidler
+#' @noRd
+.isQuotedLineRhsModifiesEstimates <- function(line, rxui) {
+  .rhs <- line[[2]]
+  if (identical(.rhs[[1]], quote(`+`)))
+    return(TRUE)
+  .c <- as.character(.rhs[[1]])
+  if (any(rxui$iniDf$name == .c)) return(TRUE)
+  return(FALSE)
+}
