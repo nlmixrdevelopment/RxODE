@@ -232,7 +232,7 @@ ini.function <- function(x, ..., envir=parent.frame()) {
 #' @rdname ini
 ini.rxUi <- function(x, ..., envir=parent.frame()) {
   .ret <- .copyUi(x) # copy so (as expected) old UI isn't affected by the call
-  .iniLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)])
+  .iniLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)], envir=envir)
   lapply(.iniLines, function(line){
     .iniHandleFixOrUnfix(line, .ret, envir=envir)
   })
@@ -247,10 +247,14 @@ ini.rxUi <- function(x, ..., envir=parent.frame()) {
 #' @author Matthew L. Fidler
 #' @noRd
 .isQuotedLineRhsModifiesEstimates <- function(line, rxui) {
+  if (length(line) != 3) return(FALSE)
   .rhs <- line[[2]]
-  if (identical(.rhs[[1]], quote(`+`)))
-    return(TRUE)
-  .c <- as.character(.rhs[[1]])
+  if (length(.rhs) > 1) {
+    if (identical(.rhs[[1]], quote(`+`))) {
+      return(TRUE)
+    }
+  }
+  .c <- as.character(.rhs)
   if (any(rxui$iniDf$name == .c)) return(TRUE)
   return(FALSE)
 }
