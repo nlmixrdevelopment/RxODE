@@ -3,8 +3,8 @@ rxodeTest({
   .rx <- loadNamespace("RxODE")
 
    testPipeQuote <- function(..., envir=parent.frame()) {
-    .quoteCallInfoLines(match.call(expand.dots = TRUE)[-1], envir=envir)
-  }
+    .rx$.quoteCallInfoLines(match.call(expand.dots = TRUE)[-1], envir=envir)
+   }
 
   test_that("test of standard quoting of piping arguments", {
 
@@ -1053,13 +1053,15 @@ rxodeTest({
       .ui <- one.cmt %>% update({
         linCmt() ~ add(add.err) + prop(prop.err)
       })
-      expect_true(inherits(.ui, "rxUI"))
+
+      expect_true(inherits(.ui, "rxUi"))
 
     })
 
     context("piping looks through parent environments")
 
     test_that("Looks through prior frames for the correct object", {
+
       fit <- RxODE(one.compartment)
       fits <- lapply(seq(-1, -0.1, 0.1), function(kainit) {
         RxODE(update(fit, tka = kainit))
@@ -1069,8 +1071,33 @@ rxodeTest({
 
       expect_error(lapply(seq(-1, -0.1, 0.1), function(kainit) {
         RxODE(update(fit, tka = matt))
-      }), "object 'matt' not found")
+      }))
+
+
     })
+
+
+    one.compartment <- function() {
+      ini({
+        tka <- 0.45 # Log Ka
+        tcl <- 1 # Log Cl
+        tv <- 3.45 # Log V
+        eta.ka ~ 0.6
+        eta.cl ~ 0.3
+        eta.v ~ 0.1
+        add.err <- 0.7
+      })
+      model({
+        ka <- exp(tka + eta.ka)
+        cl <- exp(tcl + eta.cl)
+        v <- exp(tv + eta.v)
+        d / dt(depot) <- -ka * depot
+        d / dt(center) <- ka * depot - cl / v * center
+        cp <- center / v
+        cp ~ add(add.err)
+      })
+    }
+
 
     f <- RxODE(one.compartment)
 

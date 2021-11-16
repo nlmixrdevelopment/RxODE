@@ -336,6 +336,8 @@ RxODE <- # nolint
           model <- model[-length(model)]
         }
         model <- paste(model, collapse = "\n")
+      } else if (inherits(model, "rxUi")) {
+        return(model)
        } else if (inherits(model, "function")) {
          .args <- as.list(match.call())[-1]
          if (length(.args) != 1L) {

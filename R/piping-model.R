@@ -1,8 +1,9 @@
 #' @export
 #' @rdname model
 model.function <- function(x, ..., envir=parent.frame()) {
-  .ui <- RxODE(x)
-  model(x=.ui, ..., envir=envir)
+  .modelLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)], envir=envir)
+  .ret <- RxODE(x)
+  .modelHandleModelLines(.modelLines, .ret, modifyIni=FALSE, envir)
 }
 #'  Handle model lines
 #'
@@ -33,8 +34,8 @@ model.function <- function(x, ..., envir=parent.frame()) {
 #' @export
 #' @rdname model
 model.rxUi <- function(x, ..., envir=parent.frame()) {
-  .ret <- .copyUi(x) # copy so (as expected) old UI isn't affected by the call
   .modelLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)], envir=envir)
+  .ret <- .copyUi(x) # copy so (as expected) old UI isn't affected by the call
   .modelHandleModelLines(.modelLines, .ret, modifyIni=FALSE, envir)
 }
 
@@ -179,7 +180,7 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
   } else if (!is.na(.ret)) {
     return(.ret)
   }
-  .getNegativeModelLineForDiffFromProperty(lhs, .origLines, errorLine)
+  .getNegativeModelLineForDiffFromProperty(lhsExpr, .origLines, errorLine)
 }
 
 

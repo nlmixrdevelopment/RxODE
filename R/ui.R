@@ -114,7 +114,7 @@ model <- function(x, ..., envir=parent.frame()) {
     .mod$meta <- .meta
     class(.mod) <- "rxUi"
     return(.mod)
-   }
+  }
   UseMethod("model")
 }
 

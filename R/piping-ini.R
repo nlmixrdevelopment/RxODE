@@ -1,11 +1,3 @@
-#' @export
-#' @rdname ini
-ini.function <- function(x, ..., envir=parent.frame()) {
-  .ui <- RxODE(x)
-  ini(x=.ui, ..., envir=envir)
-}
-
-
 #' Modify the population estimate in the internal `iniDf` data.frame
 #'
 #' @param ini This is the data frame for modifying
@@ -79,13 +71,14 @@ ini.function <- function(x, ..., envir=parent.frame()) {
           identical(.rhs, quote(`FIX`)) ||
           identical(.rhs, quote(`FIXED`))) {
       .doFix <- TRUE
+      .rhs <- NULL
     } else if (identical(.rhs, quote(`unfix`)) ||
                  identical(.rhs, quote(`unfixed`)) ||
                  identical(.rhs, quote(`UNFIX`)) ||
                  identical(.rhs, quote(`UNFIXED`))) {
       .doUnfix <- TRUE
+      .rhs <- NULL
     }
-    .rhs <- NULL
   } else if (identical(.rhs[[1]], quote(`fix`)) ||
                identical(.rhs[[1]], quote(`fixed`)) ||
                identical(.rhs[[1]], quote(`FIX`)) ||
@@ -101,11 +94,13 @@ ini.function <- function(x, ..., envir=parent.frame()) {
   } else if (is.null(.rhs)) {
     stop("a NULL value for '", .lhs, "' piping does not make sense")
   }
+
   if (!is.null(.rhs)) {
     .rhs <- eval(.rhs, envir=envir)
     checkmate::assertNumeric(.rhs, any.missing=FALSE, min.len=1, max.len=3, .var.name=.lhs)
     if (!all(sort(.rhs) == .rhs)) {
-      stop("the '", .lhs, "' piping lower, estimate, and/or upper estimate is in the wrong order")
+      stop("the '", .lhs, "' piping lower, estimate, and/or upper estimate is in the wrong order",
+           call.=FALSE)
     }
   }
   assign("iniDf", .iniModifyThetaOrSingleEtaDf(rxui$ini, .lhs, .rhs, .doFix, .doUnfix, maxLen=maxLen),
@@ -238,6 +233,18 @@ ini.rxUi <- function(x, ..., envir=parent.frame()) {
   })
   .ret
 }
+
+#' @export
+#' @rdname ini
+ini.function <- function(x, ..., envir=parent.frame()) {
+  .ret <- RxODE(x)
+  .iniLines <- .quoteCallInfoLines(match.call(expand.dots = TRUE)[-(1:2)], envir=envir)
+  lapply(.iniLines, function(line){
+    .iniHandleFixOrUnfix(line, .ret, envir=envir)
+  })
+  .ret
+}
+
 
 #' This tells if the line is modifying an estimate instead of a line of the model
 #'
