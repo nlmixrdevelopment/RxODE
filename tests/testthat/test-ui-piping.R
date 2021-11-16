@@ -1106,11 +1106,11 @@ rxodeTest({
         0.2,
         0.01, 0.2
       )),
-      has = c("tka", "tcl", "tv", "eta.ka", "eta.cl", "eta.v", "add.err", "(eta.cl,eta.ka)"),
+      has = c("tka", "tcl", "tv", "eta.ka", "eta.cl", "eta.v", "add.err", "(eta.ka,eta.cl)"),
       exclude = "matt",
       values = c(
         tka = 0.45, tcl = 1, tv = 3.45, eta.ka = 0.2, eta.cl = 0.2, eta.v = 0.1, add.err = 0.7,
-        `(eta.cl,eta.ka)` = 0.01
+        `(eta.ka,eta.cl)` = 0.01
       )
       )
     })
@@ -1129,10 +1129,10 @@ rxodeTest({
           0.2,
           0.01, 0.2
         )),
-        c("tka", "tcl", "tv", "eta.ka", "eta.cl", "eta.v", "add.err", "(eta.cl,eta.ka)"),
+        c("tka", "tcl", "tv", "eta.ka", "eta.cl", "eta.v", "add.err", "(eta.ka,eta.cl)"),
         "matt", c(
           tka = 0.45, tcl = 1, tv = 3.45, eta.ka = 0.2, eta.cl = 0.2, eta.v = 0.1, add.err = 0.7,
-          `(eta.cl,eta.ka)` = 0.01
+          `(eta.ka,eta.cl)` = 0.01
         )
       )
     })
