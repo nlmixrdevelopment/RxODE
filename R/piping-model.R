@@ -179,7 +179,7 @@ model.rxUi <- function(x, ..., envir=parent.frame()) {
   } else if (!is.na(.ret)) {
     return(.ret)
   }
-  .getNegativeModelLineForDiffFromProperty(expr, .origLines, errorLine)
+  .getNegativeModelLineForDiffFromProperty(lhs, .origLines, errorLine)
 }
 
 
@@ -205,7 +205,7 @@ attr(rxUiGet.mvFromExpression, "desc") <- "Calculate model variables from stored
   .env <- environment()
   lapply(lines, function(line){
     if (modifyIni && .isQuotedLineRhsModifiesEstimates(line, rxui)) {
-      .iniHandleFixOrUnfix(line, .ret, envir=envir)
+      .iniHandleFixOrUnfix(line, rxui, envir=envir)
     } else {
       .isErr <- identical(line[[1]], quote(`~`))
       .ret <- .getModelLineFromExpression(line[[2]], rxui, .isErr)

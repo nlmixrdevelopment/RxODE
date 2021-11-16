@@ -278,7 +278,7 @@ rxodeTest({
            quote(eta.v + eta.cl ~ unfix(cor(sd(0.3, 0.02, 0.1)))))
       )
 
-  m})
+  })
 
   one.compartment <- function() {
     ini({
@@ -947,8 +947,10 @@ rxodeTest({
   }
 
   test_that("update: Test Base model", {
+
     testUi(f, c("tka", "tcl", "tv", "eta.ka", "eta.cl", "eta.v", "add.err"),
            "matt", c(tka = 0.45, tcl = 1, tv = 3.45, eta.ka = 0.6, eta.cl = 0.3, eta.v = 0.1, add.err = 0.7))
+
   })
 
   test_that("UI updates work correctly", {
@@ -1052,6 +1054,7 @@ rxodeTest({
         linCmt() ~ add(add.err) + prop(prop.err)
       })
       expect_true(inherits(.ui, "rxUI"))
+
     })
 
     context("piping looks through parent environments")
