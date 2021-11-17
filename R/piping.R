@@ -63,7 +63,7 @@
           stop("cannot figure out what to do with the unnamed vector", call.=FALSE)
         }
         .unlistedBrackets <- lapply(names(.cur), function(.n){
-          bquote(.(eval(parse(text=paste0("quote(",.n, ")")))) <- .(setNames(.cur[.n], NULL)))
+          bquote(.(.enQuote(.n)) <- .(setNames(.cur[.n], NULL)))
         })
       } else if (inherits(.cur, "list")){
         if (is.null(names(.cur))) {
@@ -72,7 +72,7 @@
         .unlistedBrackets <- lapply(names(.cur), function(.n){
           .v <- .cur[[.n]]
           if (inherits(.v, "numeric")) {
-            bquote(.(eval(parse(text=paste0("quote(",.n, ")")))) <- .(setNames(.cur[[.n]], NULL)))
+            bquote(.(.enQuote(.n)) <- .(setNames(.cur[[.n]], NULL)))
           } else {
             stop("one of the list items supplied to piping is non-numeric", call.=FALSE)
           }
