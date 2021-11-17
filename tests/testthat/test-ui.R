@@ -352,6 +352,35 @@ rxodeTest({
       effect ~ add(pdadd.err)
     })
   }
+
+  f <- function() {
+    ini({
+      lKA <- log(0.294)
+      CL <- 18.6
+      V2 <- 40.2
+      Q <- 10.5
+      V3 <- 297
+      Kin <- 1
+      Kout <- 1
+      EC50 <- 200
+      eta.ka ~ 0.12
+      prop.sd ~ 0.2
+    })
+    model({
+      KA <- exp(lKA + eta.ka)
+      C2 <- centr/V2
+      C3 <- peri/V3
+      d/dt(depot) <- -KA*depot
+      d/dt(centr) <- KA*depot - CL*C2 - Q*C2 + Q*C3
+      d/dt(peri) <- Q*C2 - Q*C3
+      d/dt(eff) <- Kin - Kout*(1-C2/(EC50+C2))*eff
+      eff(0) <- 1
+      C2 ~ prop(prop.sd)
+    })
+  }
+
+  expect_error(f(), "prop.sd")
+
 })
 
 }, test="lvl2")

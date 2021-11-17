@@ -112,6 +112,11 @@ model <- function(x, ..., envir=parent.frame()) {
       }
     }
     .mod$meta <- .meta
+    .w <- which(!is.na(.mod$iniDf$err) & !is.na(.mod$iniDf$neta1))
+    if (length(.w) > 0) {
+      stop("the parameter(s) '", paste(.mod$iniDf$name[.w], collapse="', '"), "' cannot be an error and between subject variability",
+           call.=FALSE)
+    }
     class(.mod) <- "rxUi"
     return(.mod)
   }
