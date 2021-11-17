@@ -19,6 +19,10 @@ ini(x, ..., envir = parent.frame())
 \item{x}{expression}
 
 \item{...}{Other expressions for \code{ini()} function}
+
+\item{envir}{the \code{environment} in which unevaluated model
+expressions is to be evaluated.  May also be \code{NULL}, a list, a
+data frame, a pairlist or an integer as specified to \code{sys.call}.}
 }
 \value{
 Ini block

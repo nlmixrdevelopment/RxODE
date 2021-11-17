@@ -67,6 +67,9 @@
 #'
 #' @param x expression
 #' @param ... Other expressions for `ini()` function
+#' @param envir the `environment` in which unevaluated model
+#'   expressions is to be evaluated.  May also be `NULL`, a list, a
+#'   data frame, a pairlist or an integer as specified to `sys.call`.
 #' @return Ini block
 #' @author Matthew Fidler
 #' @export
@@ -90,8 +93,11 @@ ini.default <- function(x, ...) {
 #'
 #' @param x model expression
 #' @param ... Other arguments
-#' @inheritParams eval
-#' @return Model block with ini information included.  `ini` must be called before `model` block
+#' @param envir the `environment` in which unevaluated model
+#'   expressions is to be evaluated.  May also be `NULL`, a list, a
+#'   data frame, a pairlist or an integer as specified to `sys.call`.
+#' @return Model block with ini information included.  `ini` must be
+#'   called before `model` block
 #' @author Matthew Fidler
 #' @export
 model <- function(x, ..., envir=parent.frame()) {

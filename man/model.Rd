@@ -19,9 +19,14 @@ model(x, ..., envir = parent.frame())
 \item{x}{model expression}
 
 \item{...}{Other arguments}
+
+\item{envir}{the \code{environment} in which unevaluated model
+expressions is to be evaluated.  May also be \code{NULL}, a list, a
+data frame, a pairlist or an integer as specified to \code{sys.call}.}
 }
 \value{
-Model block with ini information included.  \code{ini} must be called before \code{model} block
+Model block with ini information included.  \code{ini} must be
+called before \code{model} block
 }
 \description{
 Model block for RxODE/nlmixr models
