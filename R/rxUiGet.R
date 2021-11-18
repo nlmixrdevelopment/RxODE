@@ -220,6 +220,44 @@ rxUiGet.thetaUpper <- function(x, ...) {
 }
 attr(rxUiGet.thetaUpper, "desc") -> "thetaUpper"
 
+# Get the state information for the current model
+#
+# @param obj RxODE model that can take rxModelVars
+# @return character vector of initial preserved states (state),
+#     extra states (statef) and dvid translation information
+#     (dvid). This is used in generating the final RxODE model.
+# @author Matthew Fidler
+
+#' @export
+rxUiGet.getStateInformation <- function(x, ...) {
+  .x <- x[[1]]
+  .mv0 <- .x$mv0
+  .curDvid <- .mv0$dvid
+  .state0 <- .mv0$state
+  if (length(.state0) > 0) {
+    .state0 <- paste(paste0("cmt(", .mv0$state, ");\n"), collapse = "")
+  } else {
+    .state0 <- ""
+  }
+  .statef <- .mv0$stateExtra
+  if (length(.statef) > 0) {
+    .statef <- paste0(paste(paste0("\ncmt(", .mv0$stateExtra, ");"), collapse = ""), "\n")
+  } else {
+    .statef <- ""
+  }
+  if (length(.curDvid) > 1) {
+    .dvidF <- paste0(
+      "\ndvid(",
+      paste(.curDvid, collapse = ","), ");\n"
+    )
+  } else {
+    .dvidF <- ""
+  }
+  return(c(state = .state0, statef = .statef, dvid = .dvidF))
+}
+# Info doesn't need to be exported.  This is a "non-public" method
+#attr(rxUiGet.getStateInformation, "desc") -> "State information about preserved, extra, and dvid states"
+
 #' @export
 #' @rdname rxUiGet
 rxUiGet.default <- function(x, ...) {
@@ -228,6 +266,7 @@ rxUiGet.default <- function(x, ...) {
   get(.arg, x[[1]])
 }
 .rxUiGetEnvInfo <- c("model"="Original Model (with comments if available)")
+
 
 
 
@@ -269,6 +308,3 @@ str.rxUi <- function(object, ...) {
   .cmp <- names(.rxUiGetSupportedDollars())
   grep(pattern, .cmp, value = TRUE)
 }
-
-
-
