@@ -106,6 +106,36 @@ rxGetDistributionSimulationLines.rxUi <- function(line) {
 
 #' @export
 #' @rdname rxUiGet
+rxUiGet.cmtLines <- function(x, ...) {
+  .x <- x[[1]]
+  .len <- length(.x$mv0$state)
+  .predDf <- get("predDf", .x)
+  lapply(.predDf[.predDf$cmt > .len, "cond"], function(cmt) {
+    call("cmt", .enQuote(cmt))
+  })
+}
+attr(rxUiGet.cmtLines, "desc") <- "cmt lines for model"
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.dvidLine <- function(x, ...) {
+  .x <- x[[1]]
+  as.call(c(list(quote(`dvid`)), as.numeric(.x$predDf$cmt)))
+}
+attr(rxUiGet.dvidLine, "desc") <- "dvid() line for model"
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.paramsLine <- function(x, ...) {
+  .x <- x[[1]]
+  .iniDf <- .x$iniDf
+  .params <- c(.iniDf[is.na(.iniDf$neta1) | .iniDf$neta1 == .iniDf$neta2, "name"], .x$cov)
+  eval(parse(text=paste0("quote(params(", paste(.params, collapse=", "), "))")))
+}
+attr(rxUiGet.paramsLine, "desc") <- "params() line for model"
+
+#' @export
+#' @rdname rxUiGet
 rxUiGet.simulationSigma <- function(x, ...) {
   .x <- x[[1]]
   .exact <- x[[2]]
@@ -265,11 +295,13 @@ rxCombineErrorLines <- function(uiModel, errLines=NULL) {
     }, integer(1)))
   }
   .expr <- uiModel$lstExpr
-  .lenLines <- .lenLines + length(uiModel$lstExpr) - length(.predDf$line)
-  .ret <- vector("list", .lenLines + 1)
+  .cmtLines <- uiModel$cmtLines
+  .lenLines <- .lenLines + length(uiModel$lstExpr) - length(.predDf$line) + length(.cmtLines)
+  .ret <- vector("list", .lenLines + 3)
   .curErrLine <- 1
-  .k <- 2
+  .k <- 3
   .ret[[1]] <- quote(`{`)
+  .ret[[2]] <- uiModel$paramsLine
   for (.i in seq_along(.expr)) {
     if (.i %in% .predDf$line) {
       .curErr <- errLines[[.curErrLine]]
@@ -289,6 +321,12 @@ rxCombineErrorLines <- function(uiModel, errLines=NULL) {
       .ret[[.k]] <- .expr[[.i]]
       .k <- .k + 1
     }
+
   }
+  for(.i in seq_along(.cmtLines)) {
+    .ret[[.k]] <- .cmtLines[[.i]]
+    .k <- .k + 1
+  }
+  .ret[[.k]] <- uiModel$dvidLine
   as.call(list(quote(`RxODE`), as.call(.ret)))
 }

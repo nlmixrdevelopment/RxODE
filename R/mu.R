@@ -762,6 +762,7 @@
   .env$muRefDropParameters <- data.frame(parameter=character(0), term=character(0))
   .env$muRefCovariateEmpty <- NULL
   .env$nonMuEtas <- NULL
+  .env$cov <- .info$cov
   return(.env)
 }
 
