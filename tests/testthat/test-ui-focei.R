@@ -110,15 +110,14 @@ rxodeTest({
       ka <- exp(tka + eta.ka)
       cl <- exp(tcl + eta.cl)
       v <- exp(tv + eta.v)
-      linCmt() ~ add(add.sd) | tmp
-      vv ~ add(add.sd)
+      a <- add.sd
+      linCmt() ~ add(a) | tmp
+      vv ~ add(a)
     })
   }
 
   f <- RxODE(one.cmt)
   f$getStateInformation
-
-
 
 
 

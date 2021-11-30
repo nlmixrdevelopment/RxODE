@@ -873,6 +873,30 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
   }
 }
 
+#' Check for error exceptions
+#'
+#' @param env Environment to check for error exceptions
+#' @return Nothing called for side effects
+#' @author Matthew L. Fidler
+.checkForMissingOrDupliacteInitials <- function(env) {
+  .predDf <- env$predDf
+  .iniDf <- env$iniDf
+  .err <- NULL
+  for (.i in seq_along(.predDf$cond)) {
+    if (!any(!is.na(.predDf[.i, c("a", "b", "c", "d", "e", "f", "lambda")]))) {
+      .cnd <- .predDf$cond[.i]
+      .w <- which(.iniDf$condition == .cnd)
+      if (length(.w) == 0L) {
+        .err <- c(.err, .cnd)
+      }
+    }
+  }
+  if (length(.err) > 0) {
+    stop("endpoints with missing or duplicated ini estimates: ", paste(.err, collapse=", "),
+         call.=FALSE)
+  }
+}
+
 #' Process the errors in the quoted expression
 #'
 #' @param x Quoted expression for parsing
@@ -1006,6 +1030,7 @@ rxErrTypeCombine <- function(oldErrType, newErrType) {
                          "curCmt", "errGlobal", "linCmt", "n2ll", "distribution"),
                        ls(envir=.env, all.names=TRUE))
       if (length(.rm) > 0) rm(list=.rm, envir=.env)
+      .checkForMissingOrDupliacteInitials(.env)
       return(.env)
     }
   }

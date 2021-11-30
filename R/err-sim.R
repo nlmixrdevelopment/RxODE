@@ -12,8 +12,9 @@
 
 #' This is a S3 method for getting the distribution lines for a RxODE simulation
 #'
-#' @param line  Parsed RxODE model environment
-#' @return Lines for the simulation of `ipred` and `dv`. This is based on the idea that the focei parameters are defined
+#' @param line Parsed RxODE model environment
+#' @return Lines for the simulation of `ipred` and `dv`. This is based
+#'   on the idea that the focei parameters are defined
 #' @author Matthew Fidler
 #' @keywords internal
 #' @export
@@ -171,6 +172,9 @@ attr(rxUiGet.simulationModel, "desc") <- "simulation model from UI"
 #' @param uiModel UI model
 #' @param errLines Error lines; If missing, get the error lines from
 #'   `rxGetDistributionSimulationLines()`
+#' @param prefixLines Prefix lines, after param statement
+#' @param paramsLine Params line, if not present.
+#' @param modelVars Return model vars instead of RxODE statement
 #' @return quoted extression that can be evaluated to compiled RxODE
 #'   model
 #' @export
@@ -276,7 +280,8 @@ attr(rxUiGet.simulationModel, "desc") <- "simulation model from UI"
 #'
 #' f$simulationModel
 #'
-rxCombineErrorLines <- function(uiModel, errLines=NULL) {
+rxCombineErrorLines <- function(uiModel, errLines=NULL, prefixLines=NULL, paramsLine=NULL,
+                                modelVars=FALSE) {
   if(!inherits(uiModel, "rxUi")) {
     stop("uiModel must be a evaluated UI model by RxODE(modelFunction) or modelFunction()",
          call.=FALSE)
@@ -296,12 +301,20 @@ rxCombineErrorLines <- function(uiModel, errLines=NULL) {
   }
   .expr <- uiModel$lstExpr
   .cmtLines <- uiModel$cmtLines
-  .lenLines <- .lenLines + length(uiModel$lstExpr) - length(.predDf$line) + length(.cmtLines)
+  .lenLines <- .lenLines + length(uiModel$lstExpr) - length(.predDf$line) + length(.cmtLines) + length(prefixLines)
   .ret <- vector("list", .lenLines + 3)
   .curErrLine <- 1
   .k <- 3
   .ret[[1]] <- quote(`{`)
-  .ret[[2]] <- uiModel$paramsLine
+  if (!is.null(paramsLine)) {
+    .ret[[2]] <- paramsLine
+  } else {
+    .ret[[2]] <- uiModel$paramsLine
+  }
+  for (.i in seq_along(prefixLines)) {
+    .ret[[.k]] <- prefixLines[[.i]]
+    .k <- .k + 1
+  }
   for (.i in seq_along(.expr)) {
     if (.i %in% .predDf$line) {
       .curErr <- errLines[[.curErrLine]]
@@ -328,5 +341,9 @@ rxCombineErrorLines <- function(uiModel, errLines=NULL) {
     .k <- .k + 1
   }
   .ret[[.k]] <- uiModel$dvidLine
-  as.call(list(quote(`RxODE`), as.call(.ret)))
+  if (modelVars) {
+    as.call(list(quote(`rxModelVars`), as.call(.ret)))
+  } else {
+    as.call(list(quote(`RxODE`), as.call(.ret)))
+  }
 }

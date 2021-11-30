@@ -42,7 +42,7 @@ rxodeTest({
         ka <- exp(tka + eta.ka)
         cl <- exp(tcl + eta.cl)
         v <- exp(tv + eta.v)
-        linCmt() ~ add(add.sd) | tmp
+        linCmt() ~ add(add.sd)
       })
     }
 
@@ -53,9 +53,33 @@ rxodeTest({
       attr(one.cmt, "srcref") <- NULL
     }
 
-    str <- .rx$.rxFunction2string(one.cmt)
+      one.cmt <- function() {
+      ini({
+        ## You may label each parameter with a comment
+        tka <- 0.45 # Log Ka
+        tcl <- log(c(0, 2.7, 100)) # Log Cl
+        ## This works with interactive models
+        ## You may also label the preceding line with label("label text")
+        tv <- 3.45; label("log V")
+        ## the label("Label name") works with all models
+        eta.ka ~ 0.6
+        eta.cl ~ 0.3
+        eta.v ~ 0.1
+        add.sd <- 0.7
+      })
+      model({
+        ka <- exp(tka + eta.ka)
+        cl <- exp(tcl + eta.cl)
+        v <- exp(tv + eta.v)
+        linCmt() ~ add(add.sd) | tmp
+      })
+    }
 
-    expect_equal(str,
+
+    mkstr <- .rx$.rxFunction2string(one.cmt)
+
+
+    expect_equal(mkstr,
                  c("function () ", "{", "    ini({", "        tka <- 0.45", "        label(\"Log Ka\")",
                    "        tcl <- log(c(0, 2.7, 100))", "        label(\"Log Cl\")",
                    "        tv <- 3.45", "        label(\"log V\")", "        eta.ka ~ 0.6",
@@ -380,6 +404,31 @@ rxodeTest({
   }
 
   expect_error(f(), "prop.sd")
+
+  one.cmt <- function() {
+    ini({
+      ## You may label each parameter with a comment
+      tka <- 0.45 # Log Ka
+      tcl <- log(c(0, 2.7, 100)) # Log Cl
+      ## This works with interactive models
+      ## You may also label the preceding line with label("label text")
+      tv <- 3.45; label("log V")
+      ## the label("Label name") works with all models
+      eta.ka + eta.cl ~ c(0.6,
+                          0.001, 0.3)
+      eta.v ~ 0.1
+      add.sd <- 0.7
+    })
+    model({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl)
+      v <- exp(tv + eta.v)
+      linCmt() ~ add(add.sd) | tmp
+      vv ~ add(add.sd)
+    })
+  }
+
+  expect_error(one.cmt())
 
 })
 

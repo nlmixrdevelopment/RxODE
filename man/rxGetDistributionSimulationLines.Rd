@@ -22,7 +22,8 @@ rxGetDistributionSimulationLines(line)
 \item{line}{Parsed RxODE model environment}
 }
 \value{
-Lines for the simulation of \code{ipred} and \code{dv}. This is based on the idea that the focei parameters are defined
+Lines for the simulation of \code{ipred} and \code{dv}. This is based
+on the idea that the focei parameters are defined
 }
 \description{
 This is a S3 method for getting the distribution lines for a RxODE simulation

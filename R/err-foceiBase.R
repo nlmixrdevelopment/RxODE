@@ -106,7 +106,8 @@
   if (length(.w) == 1L) {
     .p1 <- .enQuote(env$iniDf$name[.w])
   } else {
-    stop("cannot find additive standard deviation", call.=FALSE)
+    stop("cannot find additive standard deviation for '", .cnd, "'",
+         ifelse(length(env$predDf$condition) == 1L, "", "; this parameter could be estimated by another endpoint, to fix move outside of error expression."), call.=FALSE)
   }
   bquote((.(.p1)) ^ 2)
 }

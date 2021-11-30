@@ -4,13 +4,25 @@
 \alias{rxCombineErrorLines}
 \title{Combine Error Lines and create RxODE expression}
 \usage{
-rxCombineErrorLines(uiModel, errLines = NULL)
+rxCombineErrorLines(
+  uiModel,
+  errLines = NULL,
+  prefixLines = NULL,
+  paramsLine = NULL,
+  modelVars = FALSE
+)
 }
 \arguments{
 \item{uiModel}{UI model}
 
 \item{errLines}{Error lines; If missing, get the error lines from
 \code{rxGetDistributionSimulationLines()}}
+
+\item{prefixLines}{Prefix lines, after param statement}
+
+\item{paramsLine}{Params line, if not present.}
+
+\item{modelVars}{Return model vars instead of RxODE statement}
 }
 \value{
 quoted extression that can be evaluated to compiled RxODE
