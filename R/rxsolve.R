@@ -902,6 +902,53 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL,
   }
   UseMethod("rxSolve")
 }
+
+#' @rdname rxSolve
+#' @export
+rxSolve.function <- function(object, params = NULL, events = NULL, inits = NULL, ...,
+                             theta = NULL, eta = NULL) {
+  .object <- RxODE(object)
+  do.call("rxSolve", c(list(object=.object, params = params, events = events, inits = inits),
+                       list(...),
+                       list(theta = theta, eta = eta)))
+}
+#' @rdname rxSolve
+#' @export
+rxSolve.rxUi <- function(object, params = NULL, events = NULL, inits = NULL, ...,
+                         theta = NULL, eta = NULL) {
+  .rxControl <- rxSolve(NULL, params = params, events = events, inits = inits, ...,
+                        theta = theta, eta = eta)
+  if (rxIs(params, "rx.event")) {
+    if (!is.null(events)) {
+      .tmp <- events
+      events <- params
+      params <- .tmp
+    } else {
+      events <- params
+      params <- NULL
+    }
+  }
+  if (is.null(params)) {
+    params <- object$theta
+  }
+  if (is.null(.rxControl$thetaLower)) {
+    .rxControl$thetaLower <- object$thetaLower
+  }
+  if (is.null(.rxControl$thetaUpper)) {
+    .rxControl$thetaUpper <- object$thetaUpper
+  }
+  if (is.null(.rxControl$omega)) {
+    .rxControl$omega <- object$omega
+  }
+  if (is.null(.rxControl$sigma)) {
+    .rxControl$sigma <- object$simulationSigma
+  }
+  .rx <- object$simulationModel
+  do.call("rxSolve", c(list(object=.rx, params = params, events = events, inits = inits),
+                       .rxControl,
+                       list(theta = theta, eta = eta)))
+}
+
 #' @rdname rxSolve
 #' @export
 rxSolve.default <- function(object, params = NULL, events = NULL, inits = NULL, ...,

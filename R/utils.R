@@ -1153,3 +1153,20 @@ rxSetSeed <- function(seed) {
   .Call(`_rxSetSeed`, seed)
   invisible()
 }
+
+
+use.utf <- function() {
+  opt <- getOption("cli.unicode", NULL)
+  if (!is.null(opt)) {
+    isTRUE(opt)
+  } else {
+    l10n_info()$`UTF-8` && !is.latex()
+  }
+}
+
+is.latex <- function() {
+  if (!("knitr" %in% loadedNamespaces())) {
+    return(FALSE)
+  }
+  get("is_latex_output", asNamespace("knitr"))()
+}

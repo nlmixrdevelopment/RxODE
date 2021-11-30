@@ -2,6 +2,8 @@
 % Please edit documentation in R/rxsolve.R
 \name{rxSolve}
 \alias{rxSolve}
+\alias{rxSolve.function}
+\alias{rxSolve.rxUi}
 \alias{rxSolve.default}
 \alias{update.rxSolve}
 \alias{predict.RxODE}
@@ -115,6 +117,26 @@ rxSolve(
   resample = NULL,
   resampleID = TRUE,
   maxwhile = 1e+05
+)
+
+\method{rxSolve}{`function`}(
+  object,
+  params = NULL,
+  events = NULL,
+  inits = NULL,
+  ...,
+  theta = NULL,
+  eta = NULL
+)
+
+\method{rxSolve}{rxUi}(
+  object,
+  params = NULL,
+  events = NULL,
+  inits = NULL,
+  ...,
+  theta = NULL,
+  eta = NULL
 )
 
 \method{rxSolve}{default}(

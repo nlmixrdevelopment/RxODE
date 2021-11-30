@@ -95,24 +95,24 @@ StatCens <- ggplot2::ggproto("StatCens", ggplot2::Stat,
   required_aes = c("x", "y")
 )
 
-##' Censoring geom/stat
-##'
-##' This is a censoring geom that shows the left or right censoring specified in the nlmixr input data-set or fit
-##'
-##' Requires the following aesthetics:
-##'
-##'  - `x` Represents the independent variable, often the time scale
-##'  - `y` represents the dependent variable
-##'  - `CENS` for the censoring information; (`-1` right censored, `0` no censoring or `1` left censoring)
-##'  - `LIMIT` which represents the corresponding limit ()
-##'
-##' Will add boxes representing the areas of the fit that were censored.
-##'
-##' @param width represents the width (in \% of range) of the
-##'   censoring box
-##' @inheritParams ggplot2::stat_identity
-##' @return This returns a ggplot2 stat
-##' @export
+#' Censoring geom/stat
+#'
+#' This is a censoring geom that shows the left or right censoring specified in the nlmixr input data-set or fit
+#'
+#' Requires the following aesthetics:
+#'
+#'  - `x` Represents the independent variable, often the time scale
+#'  - `y` represents the dependent variable
+#'  - `CENS` for the censoring information; (`-1` right censored, `0` no censoring or `1` left censoring)
+#'  - `LIMIT` which represents the corresponding limit ()
+#'
+#' Will add boxes representing the areas of the fit that were censored.
+#'
+#' @param width represents the width (in \% of range) of the
+#'   censoring box
+#' @inheritParams ggplot2::stat_identity
+#' @return This returns a ggplot2 stat
+#' @export
 stat_cens <- function(mapping = NULL, data = NULL,
                       position = "identity", show.legend = NA,
                       inherit.aes = TRUE, width = 0.01, ...) {
@@ -122,6 +122,6 @@ stat_cens <- function(mapping = NULL, data = NULL,
     params = list(na.rm = TRUE, width = width, ...)
   )
 }
-##' @rdname stat_cens
-##' @export
+#' @rdname stat_cens
+#' @export
 geom_cens <- stat_cens

@@ -103,6 +103,7 @@ typedef struct {
   int kind;
   int is_locf;
   int cores;
+  int doesRandom;
   int extraCmt;
   double hmax2; // Determined by diff
   double *rtol2;

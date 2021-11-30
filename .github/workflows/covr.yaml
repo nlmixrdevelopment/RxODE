@@ -53,7 +53,7 @@ jobs:
       - name: Install dependencies
         run: |
           remotes::install_deps(dependencies = TRUE)
-          remotes::install_github("nlmixrdevelopment/dparser-R")
+          remotes::install_github("nlmixrdevelopment/lotri")
         shell: Rscript {0}
 
       - name: Test coverage

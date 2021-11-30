@@ -15,10 +15,10 @@ The most popular is
 [deSolve](https://CRAN.R-project.org/package=deSolve).
 
 However for pharmacometrics-specific ODE solving, there are only 2
-packages other than [RxODE](https://CRAN.R-project.org/package=RxODE)
+packages other than [RxODE](https://cran.r-project.org/package=RxODE)
 released on CRAN. Each uses compiled code to have faster ODE solving.
 
--   [mrgsolve](https://CRAN.R-project.org/package=mrgsolve), which uses
+-   [mrgsolve](https://cran.r-project.org/package=mrgsolve), which uses
     C++ lsoda solver to solve ODE systems. The user is required to write
     hybrid R/C++ code to create a mrgsolve model which is translated to
     C++ for solving.
@@ -72,7 +72,7 @@ math's auto-differentiation). This currently uses the same equations as
 
 ### The following packages for solved PK systems are on CRAN
 
--   [mrgsolve](https://CRAN.R-project.org/package=mrgsolve) currently
+-   [mrgsolve](https://cran.r-project.org/package=mrgsolve) currently
     has 1-2 compartment (poly-exponential models) models built-in. The
     solved systems and ODEs cannot currently be mixed.
 -   [pmxTools](https://github.com/kestrel99/pmxTools) currently have 1-3

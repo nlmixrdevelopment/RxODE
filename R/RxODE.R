@@ -336,6 +336,14 @@ RxODE <- # nolint
           model <- model[-length(model)]
         }
         model <- paste(model, collapse = "\n")
+      } else if (inherits(model, "rxUi")) {
+        return(model)
+       } else if (inherits(model, "function")) {
+         .args <- as.list(match.call())[-1]
+         if (length(.args) != 1L) {
+           stop("model functions can only be called with one argument", call.=FALSE)
+         }
+         return(.rxFunction2ui(model))
       } else if (is(model, "RxODE")) {
         package <- get("package", model)
         if (!is.null(package)) {
@@ -1747,6 +1755,15 @@ rxModels_ <- # nolint
 #' @author Matthew L. Fidler
 #' @export
 rxModelVars <- function(obj) {
+  if (is(substitute(obj), "{")) {
+    .obj <- deparse(substitute(obj))
+    if (.obj[1] == "{") {
+      .obj <- .obj[-1]
+      .obj <- .obj[-length(.obj)]
+    }
+    .obj <- paste(.obj, collapse = "\n")
+    return(rxModelVars_(.obj))
+  }
   if (is(obj, "rxModelVars")) {
     return(obj)
   }

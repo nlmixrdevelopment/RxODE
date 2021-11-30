@@ -535,7 +535,6 @@ rx_gradpsi gradpsi(arma::vec y, arma::mat L, arma::vec l, arma::vec u,
 	pu[j] = exp(-0.5*ut[j]*ut[j] - w[j])*M_1_SQRT_2PI;
 	P[j] = pl[j] - pu[j];
       }
-
     }
   arma::vec dfdx = -mu(span(0, d-2)) + trans(trans(P) * L(span(0, d-1), span(0, d-2)));
   arma::vec dfdm = mu - x + P;

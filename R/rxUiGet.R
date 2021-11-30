@@ -1,0 +1,310 @@
+# backward-compatible list
+.rxUiBackward <- c(
+  "model.desc"="modelDesc"
+)
+
+#' @export
+`$.rxUi` <- function(obj, arg, exact = TRUE) {
+  .lst <- list(obj, exact)
+  .arg <- .rxUiBackward[arg]
+  if (is.na(.arg)) .arg <- arg
+  class(.lst) <- c(.arg, "rxUiGet")
+  rxUiGet(.lst)
+}
+
+#' S3 for getting information from UI model
+#'
+#' @param x list of (UIenvironment, exact).  UI environment is the
+#'   parsed function for RxODE.  `exact` is a boolean that says if an
+#'   exact match is required.
+#' @param ... Other arguments
+#' @return value that was requested from the UI object
+#' @author Matthew Fidler
+#' @export
+rxUiGet <- function(x, ...) {
+  if (!inherits(x, "rxUiGet")) {
+    stop("object is wrong type for `rxUiGet`")
+  }
+  UseMethod("rxUiGet")
+}
+#' @export
+#' @rdname rxUiGet
+rxUiGet.theta <- function(x, ...) {
+  .x <- x[[1]]
+  .ini <- .x$iniDf
+  .w <- !is.na(.ini$ntheta)
+  setNames(.ini$est[.w], .ini$name[.w])
+}
+attr(rxUiGet.theta, "desc") <- "Inital Population/Fixed Effects estimates, theta"
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.omega <- function(x, ...) {
+  .x <- x[[1]]
+  .lotri <- lotri::as.lotri(.x$iniDf)
+  if (inherits(.lotri, "matrix")) {
+    attr(.lotri, "lotriEst") <- NULL
+    class(.lotri) <- NULL
+  } else {
+    attr(.lotri, "lotriEst") <- NULL
+    class(.lotri) <- class(.lotri)[-1]
+  }
+  .lotri
+}
+#attr(rxUiGet.omega, "desc") <- "Initial Random Effects variability matrix, omega"
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.muRefTable <- function(x, ...) {
+  .x <- x[[1]]
+  .exact <- x[[2]]
+  .muRef <- get("muRefDataFrame", .x)
+  if (length(.muRef$theta) == 0) return(NULL)
+  .muRefCov <- get("muRefCovariateDataFrame", .x)
+  if (length(.muRefCov$theta) > 0) {
+    .env <- new.env(parent=emptyenv())
+    lapply(seq_along(.muRefCov$theta), function(i){
+      .theta <- .muRefCov$theta[i]
+      .cov <- paste0(.muRefCov$covariate[i], "*", .muRefCov$covariateParameter[i])
+      if (exists(.theta, .env)) {
+        assign(.theta, c(get(.theta, .env), .cov), .env)
+      } else {
+        assign(.theta, .cov, .env)
+      }
+    })
+    .muRef$covariates <- vapply(.muRef$theta, function(theta) {
+      if (exists(theta, .env)) {
+        return(paste(get(theta, .env), collapse=" + "))
+      }
+      return("")
+    }, character(1), USE.NAMES=FALSE)
+  }
+  if (requireNamespace("huxtable", quietly = TRUE)) {
+    .muRef <- huxtable::hux(.muRef) %>%
+      ## huxtable::add_colnames() %>%
+      huxtable::set_bold(row = 1, col = huxtable::everywhere, value = TRUE) %>%
+      huxtable::set_position("center") %>%
+      huxtable::set_all_borders(TRUE)
+  }
+  .muRef
+}
+attr(rxUiGet.muRefTable, "desc") <- "table/huxtable of mu-referenced items in a model"
+
+#' @rdname rxUiGet
+#' @export
+rxUiGet.multipleEndpoint <- function(x, ...) {
+  .x <- x[[1]]
+  .exact <- x[[2]]
+  .info <- get("predDf", .x)
+  if (length(.info$cond) == 1) return(NULL)
+  if (getOption("RxODE.combine.dvid", TRUE)) {
+    .info <- .info[order(.info$dvid), ]
+  }
+  .info <- with(.info, data.frame(
+    variable = paste(var, "~", ifelse(use.utf(), "\u2026", "...")),
+    cmt = paste0("cmt='", cond, "' or cmt=", cmt),
+    "dvid*" = ifelse(is.na(dvid), "",
+                     paste0("dvid='", cond, "' or dvid=", dvid)),
+    check.names = FALSE,
+    stringsAsFactors=FALSE))
+  if (!getOption("RxODE.combine.dvid", TRUE)) {
+    .info <- .info[, names(.info) != "dvid*"]
+  }
+  if (requireNamespace("huxtable", quietly = TRUE)) {
+    .hux <- huxtable::hux(.info) %>%
+      huxtable::add_colnames() %>%
+      huxtable::set_bold(row = 1, col = huxtable::everywhere, value = TRUE) %>%
+      huxtable::set_position("center") %>%
+      huxtable::set_all_borders(TRUE)
+    if (getOption("RxODE.combine.dvid", TRUE)) {
+      .hux <- .hux %>%
+        huxtable::add_footnote("* If dvids are outside this range, all dvids are re-numered sequentially, ie 1,7, 10 becomes 1,2,3 etc")
+    }
+  } else {
+    .hux <- .info
+  }
+  .hux
+}
+attr(rxUiGet.multipleEndpoint, "desc") <- "table/huxtable of multiple endpoint translations"
+
+#' @rdname rxUiGet
+#' @export
+rxUiGet.funPrint <- function(x, ...) {
+  .x <- x[[1]]
+  .ls <- ls(.x$meta, all=TRUE)
+  .ret <- vector("list", length(.ls) + 3)
+  .ret[[1]] <- quote(`{`)
+  for (.i in seq_along(.ls)) {
+    .ret[[.i + 1]] <- eval(parse(text=paste("quote(", .ls[.i], "<-", deparse1(.x$meta[[.ls[.i]]]), ")")))
+  }
+  .len <- length(.ls)
+  .ret[[.len + 2]] <- .x$iniFun
+  .ret[[.len + 3]] <- .x$modelFun
+  .ret
+}
+attr(rxUiGet.funPrint, "desc") <- "Normalized, quoted model function (for printing)"
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.fun <- function(x, ...) {
+  .ret <- rxUiGet.funPrint(x, ...)
+  .ret2 <- function(){}
+  body(.ret2) <- as.call(.ret)
+  .ret2
+}
+attr(rxUiGet.fun, "desc") <- "Normalized model function"
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.ini <- function(x, ...) {
+  get("iniDf", x[[1]])
+}
+attr(rxUiGet.ini, "desc") <- "Model initilizations/bounds object"
+
+#'@export
+#' @rdname rxUiGet
+rxUiGet.iniFun <- function(x, ...) {
+  .x <- x[[1]]
+  .arg <- class(x)[1]
+  lotri::lotriDataFrameToLotriExpression(.x$iniDf, useIni=TRUE)
+}
+attr(rxUiGet.iniFun, "desc") <- "normalized, quoted `ini()` block"
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.modelFun <- function(x, ...) {
+  .x <- x[[1]]
+  bquote(model(.(as.call(c(quote(`{`),.x$lstExpr)))))
+}
+attr(rxUiGet.modelFun, "desc") <- "normalized, quoted `model()` block"
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.modelDesc <- function(x, ...) {
+  .mv <- get("mv0", x[[1]])
+  .mvL <- get("mvL", x[[1]])
+  if (!is.null(.mvL)){
+    return(sprintf(
+      "RxODE-based solved PK %s-compartment model%s%s", .mvL$flags["ncmt"],
+      ifelse(.mv$extraCmt == 2, " with first-order absorption", ""),
+      ifelse(length(.mvL$state) == 0L, "",
+             sprintf(" mixed with free from %d-cmt ODE model",
+                     length(.mvL$state)))
+    ))
+  } else if (length(.mv$state) > 0) {
+    return(sprintf("RxODE-based free-form %d-cmt ODE model", length(.mv$state)))
+  } else {
+    return("RxODE-based Pred model")
+  }
+}
+attr(rxUiGet.modelDesc, "desc") <- "Model description (ie linear compartment, pred, ode etc)"
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.thetaLower <- function(x, ...) {
+  .x <- x[[1]]
+  .ini <- .x$iniDf
+  .w <- !is.na(.ini$ntheta)
+  setNames(.ini$lower[.w], .ini$name[.w])
+}
+attr(rxUiGet.thetaLower, "desc") <- "thetaLower"
+
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.thetaUpper <- function(x, ...) {
+  .x <- x[[1]]
+  .ini <- .x$iniDf
+  .w <- !is.na(.ini$ntheta)
+  setNames(.ini$upper[.w], .ini$name[.w])
+}
+attr(rxUiGet.thetaUpper, "desc") -> "thetaUpper"
+
+# Get the state information for the current model
+#
+# @param obj RxODE model that can take rxModelVars
+# @return character vector of initial preserved states (state),
+#     extra states (statef) and dvid translation information
+#     (dvid). This is used in generating the final RxODE model.
+# @author Matthew Fidler
+
+#' @export
+rxUiGet.getStateInformation <- function(x, ...) {
+  .x <- x[[1]]
+  .mv0 <- .x$mv0
+  .curDvid <- .mv0$dvid
+  .state0 <- .mv0$state
+  if (length(.state0) > 0) {
+    .state0 <- paste(paste0("cmt(", .mv0$state, ");\n"), collapse = "")
+  } else {
+    .state0 <- ""
+  }
+  .statef <- .mv0$stateExtra
+  if (length(.statef) > 0) {
+    .statef <- paste0(paste(paste0("\ncmt(", .mv0$stateExtra, ");"), collapse = ""), "\n")
+  } else {
+    .statef <- ""
+  }
+  if (length(.curDvid) > 1) {
+    .dvidF <- paste0(
+      "\ndvid(",
+      paste(.curDvid, collapse = ","), ");\n"
+    )
+  } else {
+    .dvidF <- ""
+  }
+  return(c(state = .state0, statef = .statef, dvid = .dvidF))
+}
+# Info doesn't need to be exported.  This is a "non-public" method
+#attr(rxUiGet.getStateInformation, "desc") -> "State information about preserved, extra, and dvid states"
+
+#' @export
+#' @rdname rxUiGet
+rxUiGet.default <- function(x, ...) {
+  .arg <- class(x)[1]
+  if (!exists(.arg, envir=x[[1]])) return(NULL)
+  get(.arg, x[[1]])
+}
+.rxUiGetEnvInfo <- c("model"="Original Model (with comments if available)")
+
+
+
+
+.rxUiGetSupportedDollars <- function() {
+  .v <- as.character(methods("rxUiGet"))
+  .v <- .v[.v != "rxUiGet.default"]
+  .cls <- vapply(.v, function(methodStr){
+    substr(methodStr,9,nchar(methodStr))
+  }, character(1), USE.NAMES=FALSE)
+  .v <- vapply(.cls, function(cls){
+    .desc <- attr(utils::getS3method("rxUiGet", cls), "desc")
+    if (is.null(.desc)) .desc <- ""
+    .desc
+  }, character(1), USE.NAMES=TRUE)
+  # Take out any "hidden methods"
+  .w <- which(.v != "")
+  .v <- c(.v[.w], .rxUiGetEnvInfo)
+  .v
+}
+
+#' @export
+str.rxUi <- function(object, ...) {
+  cat("RxODE model function\n")
+  .s <- .rxUiGetSupportedDollars()
+  cat(paste(strtrim(paste(vapply(names(.s), function(x){
+    .nchar <- nchar(x)
+    if (.nchar >= 10) {
+      return(paste0(" $ ", x, ": "))
+    } else {
+      return(paste0(" $ ",x, paste(rep(" ", 10 - .nchar), collapse=""), ": "))
+    }
+  }, character(1), USE.NAMES=FALSE), .s), 128), collapse="\n"))
+  cat("\n")
+  invisible()
+}
+
+#' @export
+.DollarNames.rxUi <- function(x, pattern) {
+  .cmp <- names(.rxUiGetSupportedDollars())
+  grep(pattern, .cmp, value = TRUE)
+}
