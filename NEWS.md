@@ -1,3 +1,7 @@
+# RxODE 1.1.4
+
+* As requested by CRAN, fix the -Wpointer-sign warnings
+
 # RxODE 1.1.3
 
 * Change handling of missing covariates while interpolating "nocb" so
