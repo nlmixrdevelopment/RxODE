@@ -1,3 +1,15 @@
+# RxODE 1.1.6
+
+* Remove omp headers from generated models to support Mac.
+
+* Do not require binary compatibility with dparser or PreciseSums any
+  longer.
+
+# RxODE 1.1.5 
+
+* Version bump to compile new binaries so that mac binaries work
+  without any intervention.
+
 # RxODE 1.1.4
 
 * As requested by CRAN, fix the -Wpointer-sign warnings

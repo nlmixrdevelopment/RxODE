@@ -8,20 +8,6 @@
 .PreciseSumsVersion <- utils::packageVersion("PreciseSums")
 .dparserVersion <- utils::packageVersion("dparser")
 .onLoad <- function(libname, pkgname) { ## nocov start
-  if (!identical(.dparserVersion, utils::packageVersion("dparser"))) {
-    stop("RxODE compiled with dparser '", as.character(.dparserVersion),
-      "' but dparser '", as.character(utils::packageVersion("dparser")),
-      "' is loaded\nRecompile RxODE with the this version of dparser",
-      call. = FALSE
-    )
-  }
-  if (!identical(.PreciseSumsVersion, utils::packageVersion("PreciseSums"))) {
-    stop("RxODE compiled with PreciseSums '", as.character(.PreciseSumsVersion),
-      "' but PreciseSums '", as.character(utils::packageVersion("PreciseSums")),
-      "' is loaded\nRecompile RxODE with the this version of PreciseSums",
-      call. = FALSE
-    )
-  }
   if (requireNamespace("pillar", quietly = TRUE)) {
     .s3register("pillar::type_sum", "rxEvid")
     .s3register("pillar::type_sum", "rxRateDur")
